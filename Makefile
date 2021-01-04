@@ -15,9 +15,9 @@
 ###################################################################
 
 amimd_OBJ := \
-	 editor_gadget.o gui.o md4c-master/src/entity.o \
-	 md4c-master/src/md4c.o md4c-master/src/md4c-html.o md4c-master/md2html/md2html.o \
-	 viewer_gadget.o amimd.o memory_buffer.o \
+	src/amimd.o src/editor_gadget.o src/gui.o \
+	src/md_to_html.o src/memory_buffer.o src/viewer_gadget.o \
+	md4c/src/entity.o md4c/src/md4c.o md4c/src/md4c-html.o
 
 
 
@@ -29,7 +29,7 @@ amimd_OBJ := \
 
 CC := gcc:bin/gcc
 
-INCPATH := -I. -I SDK:MUI/C/Include -Imd4c-master/src -Imd4c-master/md2html
+INCPATH := -I. -I SDK:MUI/C/Include -Imd4c/src -Iinclude
 
 CFLAGS := $(INCPATH) -gstabs -Werror -Wwrite-strings  -DMD_VERSION_MAJOR=0 -DMD_VERSION_MINOR=4 -DMD_VERSION_RELEASE=7
 
@@ -88,11 +88,11 @@ gui.o: gui.c editor_gadget.h viewer_gadget.h \
 
 	$(CC) -c gui.c -o gui.o $(CFLAGS)
 
-md4c-master/src/entity.o: md4c-master/src/entity.c
-	$(CC) -c md4c-master/src/entity.c -o md4c-master/src/entity.o $(CFLAGS)
+md4c/src/entity.o: md4c/src/entity.c
+	$(CC) -c md4c/src/entity.c -o md4c/src/entity.o $(CFLAGS)
 
-md4c-master/src/md4c.o: md4c-master/src/md4c.c
-	$(CC) -c md4c-master/src/md4c.c -o md4c-master/src/md4c.o $(CFLAGS)
+md4c/src/md4c.o: md4c/src/md4c.c
+	$(CC) -c md4c/src/md4c.c -o md4c/src/md4c.o $(CFLAGS)
 
 md4c-master/src/md4c-html.o: md4c-master/src/md4c-html.c md4c-master/src/md4c-html.h md4c-master/src/md4c.h \
 
