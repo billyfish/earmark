@@ -89,6 +89,7 @@ static APTR s_viewer_p = NULL;
 static APTR s_editor_p = NULL;
 static APTR s_window_p = NULL;
 
+STRPTR s_file_pattern_s = NULL;
 
 /***************************************/
 /*********** API FUNCTIONS ************/
@@ -109,8 +110,18 @@ BOOL CreateMUIInterface (void)
 
 					if (app_p)
 						{
-							RunMD (app_p);
-							success_flag = TRUE;
+							CONST STRPTR md_reg_s = "(#?.md)";
+							const size_t md_reg_length = strlen (md_reg_s);
+
+							s_file_pattern_s = (STRPTR) IExecAllocVecTags ((md_reg_length + 1) << 1, TAG_DONE);
+
+							if (s_file_pattern_s)
+								{
+									RunMD (app_p);
+									success_flag = TRUE;
+
+									IExec -> FreeVec (s_file_pattern_s);
+								}
 
 							FreeGUIObjects (app_p);
 						}		/* if (CreateGUIObjects (screen_p, app_port_p, hook_p)) */
@@ -396,30 +407,98 @@ static void RunMD (APTR app_p)
 }
 
 
-static STRPTR RequestFilename (STRPTR ok_s, STRPTR title_s)
+static STRPTR RequestFilename (STRPTR ok_s, STRPTR title_s, BOOL save_flag)
 {
 	STRPTR filename_s = NULL;
 	struct FileRequester *req_p = IAsl -> AllocFileRequest ();
 
 	if (req_p)
 		{
+			CONST_STRPTR button_label_s = "Load";
+			UINT32 flags = FILF_DOWILDFUNC | FILF_DOMSGFUNC;
+
+			if (save_flag)
+				{
+					flags |= FILF_SAVE;
+					button_label_s = "Save";
+				}
+
 			if (IAsl -> AslRequestTags (req_p,
 				ASL_Dir, "SYS:Utilities",
 				ASL_Window, window,
 				ASL_TopEdge, 0,
 				ASL_Height, 200,
 				ASL_Hail, title_s,
-				ASL_FuncFlags, FILF_DOWILDFUNC | FILF_DOMSGFUNC | FILF_SAVE,
-				ASL_OKText, ok_s,
+				ASL_FuncFlags, flags,
+				ASL_HookFunc, AslHook,
+				ASL_OKText, button_label_s,
 				TAG_END))
 					{
 						IDOS_>Printf("PATH=%s FILE=%s\n", req_p -> rf_Dir, req_p -> rf_File);
 						IDOS->Printf("To combine the path and filename, copy the path\n");
 						IDOS->Printf("to a buffer, add the filename with Dos AddPart().\n");
+						#define FNAME_MAX (2048)
+						char buffer_s [FNAME_MAX];
+
+						if (IUtility -> Strlcpy (buffer_s, req_p -> rf_Dir, FNAME_MAX) < FNAME_MAX)
+							{
+								if (IDOS -> AddPart (buffer_s, req_p -> rf_File, FNAME_MAX))
+									{
+										const size_t l = strlen (buffer_s);
+
+										filename_s = (STRPTR) IExec -> AllocVecTags (l + 1, TAG_DONE);
+
+										if (filename_s)
+											{
+												if (IUtility -> Strlcpy (filename_s, buffer_s, l + 1) > l)
+													{
+														IExec -> FreeVec (filename_s);
+														filename_s = NULL;
+													}
+
+											}
+									}
+							}
 					}
 
 			IAsl -> FreeFileRequest (req_p);
 		}
 
 	return filename_s;
+}
+
+
+
+static uint32 AslHook (int32 type, APTR obj, struct FileRequester *req_p)
+{
+	uint32 ret = 0;
+
+  switch (type)
+  	{
+      case FILF_DOMSGFUNC:
+      	/* We got a message meant for the window */
+        IDOS->Printf("You activated the window\n");
+        ret = (uint32) obj;
+        break;
+
+			case FILF_DOWILDFUNC:
+				{
+					/* We got an AnchorPath structure, should
+	      	** the requester display this file? */
+
+	          /* MatchPattern() is a dos.library function that
+	          ** compares a matching pattern (parsed by the
+	          ** ParsePattern() DOS function) to a string and
+	          ** returns true if they match. */
+	          BOOL b = IDOS -> MatchPattern (s_file_pattern_s, ((struct AnchorPath *) obj) -> ap_Info.fib_FileName);
+
+	          /* we have to negate MatchPattern()'s return value
+	          ** because the file requester expects a zero for
+	          ** a match not a TRUE value */
+	          ret = (uint32) !b;
+	          break;
+				}
+    }
+
+	return ret;
 }
