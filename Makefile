@@ -18,7 +18,7 @@ amimd_OBJ := \
 	 editor_gadget.o gui.o md4c-master/src/entity.o \
 	 md4c-master/src/md4c.o md4c-master/src/md4c-html.o md4c-master/md2html/md2html.o \
 	 viewer_gadget.o amimd.o memory_buffer.o \
-	
+
 
 
 ###################################################################
@@ -29,9 +29,9 @@ amimd_OBJ := \
 
 CC := gcc:bin/gcc
 
-INCPATH := -I.
+INCPATH := -I. -I SDK:MUI/C/Include -Imd4c-master/src -Imd4c-master/md2html
 
-CFLAGS := $(INCPATH) -gstabs  -Werror -Wwrite-strings -I SDK:MUI/C/Include -Imd4c-master/src -Imd4c-master/md2html -DMD_VERSION_MAJOR=0 -DMD_VERSION_MINOR=4 -DMD_VERSION_RELEASE=7
+CFLAGS := $(INCPATH) -gstabs -Werror -Wwrite-strings  -DMD_VERSION_MAJOR=0 -DMD_VERSION_MINOR=4 -DMD_VERSION_RELEASE=7
 
 
 ###################################################################
@@ -81,11 +81,11 @@ amimd.o: amimd.c debugging_utils.h
 	$(CC) -c amimd.c -o amimd.o $(CFLAGS)
 
 editor_gadget.o: editor_gadget.c debugging_utils.h editor_gadget.h \
-	
+
 	$(CC) -c editor_gadget.c -o editor_gadget.o $(CFLAGS)
 
 gui.o: gui.c editor_gadget.h viewer_gadget.h \
-	
+
 	$(CC) -c gui.c -o gui.o $(CFLAGS)
 
 md4c-master/src/entity.o: md4c-master/src/entity.c
@@ -95,7 +95,7 @@ md4c-master/src/md4c.o: md4c-master/src/md4c.c
 	$(CC) -c md4c-master/src/md4c.c -o md4c-master/src/md4c.o $(CFLAGS)
 
 md4c-master/src/md4c-html.o: md4c-master/src/md4c-html.c md4c-master/src/md4c-html.h md4c-master/src/md4c.h \
-	
+
 	$(CC) -c md4c-master/src/md4c-html.c -o md4c-master/src/md4c-html.o $(CFLAGS)
 
 md4c-master/md2html/md2html.o: md4c-master/md2html/md2html.c
@@ -103,4 +103,3 @@ md4c-master/md2html/md2html.o: md4c-master/md2html/md2html.c
 
 viewer_gadget.o: viewer_gadget.c viewer_gadget.h
 	$(CC) -c viewer_gadget.c -o viewer_gadget.o $(CFLAGS)
-
