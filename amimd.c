@@ -1,0 +1,165 @@
+#include <stdio.h>
+#include <string.h>
+#include <math.h>
+#include <float.h>
+
+#include <classes/window.h>
+
+#include <dos/dos.h>
+
+#include <exec/types.h>
+
+#include <intuition/intuition.h>
+
+#include <libraries/mui.h>
+
+/* Prototypes for system functions. */
+#include <clib/alib_protos.h>
+#include <proto/exec.h>
+#include <proto/intuition.h>
+#include <proto/dos.h>
+
+#define ALLOCATE_GLOBALS
+
+#include "debugging_utils.h"
+#include "gui.h"
+
+
+//#include "memwatch.h"
+
+#ifdef _SASC
+int CXBRK(void) { return(0); }  /* Disable SAS CTRL/C handling */
+int chkabort(void) { return(0); }  /* really */
+#endif
+
+
+/* Prototypes for our functions. */
+
+int main (int argc, char *argv []);
+
+static BOOL OpenLibs (void);
+static void CloseLibs (void);
+
+static BOOL OpenLib (struct Library **library_pp, CONST_STRPTR lib_name_s, const uint32 lib_version, struct Interface **interface_pp, CONST_STRPTR interface_name_s, const uint32 interface_version);
+
+static void CloseLib (struct Library *library_p, struct Interface *interface_p);
+
+
+/* Global variables. */
+
+struct Library *IntuitionBase = NULL;
+struct IntuitionIFace *IIntuition = NULL;
+
+//struct Library *DOSBase = NULL;
+//struct DOSIFace *IDOS = NULL;
+
+struct Library *WorkbenchBase = NULL;
+struct WorkbenchIFace *IWorkbench = NULL;
+
+struct Library *UtilityBase = NULL;
+struct UtilityIFace *IUtility = NULL;
+
+struct Library *MUIMasterBase = NULL;
+struct MUIMasterIFace *IMUIMaster = NULL;
+
+static const char USED min_stack[] = "$STACK:102400";
+
+/***************************************************************/
+
+static BOOL OpenLibs (void)
+{
+
+			if (OpenLib (&IntuitionBase, "intuition.library", 53L, (struct Interface **) &IIntuition, "main", 1))
+				{
+					if (OpenLib (&UtilityBase, "utility.library", 53L, (struct Interface **) &IUtility, "main", 1))
+						{
+							if (OpenLib (&DOSBase, "dos.library", 53L, (struct Interface **) &IDOS, "main", 1))
+								{
+
+													if (OpenLib (&MUIMasterBase, "muimaster.library", 19L, (struct Interface **) &IMUIMaster, "main", 1))
+														{
+															return TRUE;
+														}
+												
+
+ 									CloseLib (DOSBase, (struct Interface *) IDOS);
+								}
+						 	CloseLib (UtilityBase, (struct Interface *) IUtility);
+						}
+					CloseLib (IntuitionBase, (struct Interface *) IIntuition);
+				}
+
+
+	return FALSE;
+}
+
+
+static void CloseLibs (void)
+{	
+	CloseLib (MUIMasterBase, (struct Interface *) IMUIMaster);
+	CloseLib (DOSBase, (struct Interface *) IDOS);	
+	CloseLib (UtilityBase, (struct Interface *) IUtility);
+	CloseLib (IntuitionBase, (struct Interface *) IIntuition);
+}
+
+
+
+
+int main (int argc, char *argv [])
+{
+	int result = 0;
+
+	if (OpenLibs ())
+		{
+			DB (KPRINTF ("%s %ld - Opened Libraries\n", __FILE__, __LINE__));
+			
+			CreateMUIInterface ();
+				
+				
+			CloseLibs ();
+		}		/* if (OpenLibs ()) */
+	else
+		{
+			printf ("failed to open libs\n");
+		}
+		
+	return result;
+}
+
+static BOOL OpenLib (struct Library **library_pp, CONST_STRPTR lib_name_s, const uint32 lib_version, struct Interface **interface_pp, CONST_STRPTR interface_name_s, const uint32 interface_version)
+{
+	if ((*library_pp = IExec->OpenLibrary (lib_name_s, lib_version)) != NULL)
+		{
+			if ((*interface_pp = IExec->GetInterface (*library_pp, interface_name_s, interface_version, NULL)) != NULL)
+				{
+					return TRUE;
+				}
+			else
+				{
+					printf ("failed to open interface \"%s\" version %lu from \"%s\"\n", interface_name_s, interface_version, lib_name_s);
+				}
+			IExec->CloseLibrary (*library_pp);
+		}
+	else
+		{
+			printf ("failed to open library \"%s\" version %lu\n", lib_name_s, lib_version);
+		}
+		
+	return FALSE;
+}
+
+
+static void CloseLib (struct Library *library_p, struct Interface *interface_p)
+{
+	if (interface_p)
+		{
+			IExec->DropInterface (interface_p); 
+		}
+		
+	if (library_p)
+		{
+			IExec->CloseLibrary (library_p);
+		}
+}
+
+

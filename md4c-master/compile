@@ -1,0 +1,1 @@
+gcc src/md4c.c src/md4c-html.c src/entity.c md2html/md2html.c md2html/cmdline.c -o md -I src -I md2html/ -gstabs -DMD_VERSION_RELEASE=0 -DMD_VERSION_MAJOR=4 -DMD_VERSION_MINOR=7
