@@ -8,6 +8,9 @@
 #include <workbench/startup.h>
 #include <workbench/workbench.h>
 
+#include <libraries/asl.h>
+
+#include <proto/asl.h>
 #include <proto/dos.h>
 #include <proto/exec.h>
 #include <proto/gadtools.h>
@@ -59,6 +62,8 @@ static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI
 static void RunMD (APTR app_p);
 
 static uint32 Convert (void);
+
+static uint32 AslHook (int32 type, APTR obj, struct FileRequester *req_p);
 
 
 /***************************************/
@@ -407,7 +412,7 @@ static void RunMD (APTR app_p)
 }
 
 
-static STRPTR RequestFilename (STRPTR ok_s, STRPTR title_s, BOOL save_flag)
+STRPTR RequestFilename (const BOOL save_flag)
 {
 	STRPTR filename_s = NULL;
 	struct FileRequester *req_p = IAsl -> AllocFileRequest ();

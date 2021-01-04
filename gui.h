@@ -28,5 +28,7 @@ BOOL LoadFile (STRPTR filename_s);
 
 BOOL SaveFile (STRPTR filename_s);
 
+STRPTR RequestFilename (const BOOL save_flag);
+
 
 #endif

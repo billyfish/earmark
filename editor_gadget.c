@@ -54,22 +54,17 @@ typedef struct MarkdownEditorData
 
 static uint32 MarkdownEditorDispatcher (Class *class_p, Object *object_p, Msg msg_p);
 
-
 static uint32 MarkdownEditor_New (Class *class_p, Object *object_p, Msg msg_p);
-
 
 static uint32 MarkdownEditor_Set (Class *class_p, Object *object_p, Msg msg_p);
 
+static uint32 MarkdownEditor_Convert (Class *class_p, Object *editor_p);
+
+static uint32 MarkdownEditor_Load (Class *class_p, Object *editor_p);
+
+static uint32 MarkdownEditor_Save (Class *class_p, Object *editor_p);
 
 static void SetFile (MarkdownEditorData *md_p, STRPTR filename_s);
-
-static uint32 ConvertMD (Class *class_p, Object *editor_p);
-
-static uint32 LoadMD (Class *class_p, Object *editor_p);
-
-
-
-static uint32 SaveMD (Class *class_p, Object *editor_p);
 
 /**************************************************/
 /**************** PUBLIC FUNCTIONS ****************/
@@ -86,13 +81,13 @@ struct MUI_CustomClass *InitMarkdownEditorClass (void)
 	/* *not* use its h_Data field! If you need custom data, use the		*/
 	/* cl_UserData of the IClass structure!								*/
 
-	return IMUIMaster->MUI_CreateCustomClass (NULL, MUIC_TextEditor, NULL, sizeof (MarkdownEditorData), MarkdownEditorDispatcher);
+	return IMUIMaster -> MUI_CreateCustomClass (NULL, MUIC_TextEditor, NULL, sizeof (MarkdownEditorData), MarkdownEditorDispatcher);
 }
 
 
 void FreeMarkdownEditorClass (struct MUI_CustomClass *mui_class_p)
 {
-	IMUIMaster->MUI_DeleteCustomClass (mui_class_p);
+	IMUIMaster -> MUI_DeleteCustomClass (mui_class_p);
 }
 
 
@@ -119,39 +114,31 @@ static uint32 MarkdownEditorDispatcher (Class *class_p,  Object *object_p, Msg m
 
 			case MEM_MDEditor_Convert:
 				DB (KPRINTF ("%s %ld - MarkdownEditorDispatcher: Convert\n", __FILE__, __LINE__));
-				res = ConvertMD (class_p, object_p);
+				res = MarkdownEditor_Convert (class_p, object_p);
 				break;
 
 			case MEM_MDEditor_Load:
-				DB (KPRINTF ("%s %ld - MarkdownEditorDispatcher: LoadMD\n", __FILE__, __LINE__));
-				res = LoadMD (class_p, object_p);
+				DB (KPRINTF ("%s %ld - MarkdownEditorDispatcher: Load\n", __FILE__, __LINE__));
+				res = MarkdownEditor_Load (class_p, object_p);
+				break;
+
+			case MEM_MDEditor_Save:
+				DB (KPRINTF ("%s %ld - MarkdownEditorDispatcher: Save\n", __FILE__, __LINE__));
+				res = MarkdownEditor_Save (class_p, object_p);
 				break;
 
 			default:
 				//DB (KPRINTF ("%s %ld - MoleculeInfoDispatcher: %x\n", __FILE__, __LINE__, msg_p -> MethodID));
-				res = IIntuition->IDoSuperMethodA (class_p, object_p, msg_p);
+				res = IIntuition -> IDoSuperMethodA (class_p, object_p, msg_p);
 				break;
 		}
 
 	return res;
 }
-           
+
 
 static uint32 MarkdownEditor_New (Class *class_p, Object *object_p, Msg msg_p)
 {
-
-
-//	static struct Hook atom_select_hook  = { {NULL, NULL}, AtomSelectionChange , NULL, NULL };
-
-	APTR mol_name_p = NULL;
-	APTR num_atoms_p = NULL;
-	APTR num_bonds_p = NULL;
-	APTR atoms_listview_p = NULL;
-	APTR bonds_listview_p = NULL;
-	APTR text_p = NULL;
-	APTR atoms_list_p = NULL;
-	APTR bonds_list_p = NULL;
-
 	Object *md_editor_p = (Object *) IIntuition -> IDoSuperMethodA (class_p, object_p, msg_p);
 
 
@@ -161,38 +148,6 @@ static uint32 MarkdownEditor_New (Class *class_p, Object *object_p, Msg msg_p)
 
 			md_p -> med_filename_s = NULL;
 			md_p -> med_viewer_p = NULL;
-			
-			/*
-			** Call when an atom is selected in the info - atoms list.
-			*/
-			//IIntuition->IDoMethod (atoms_list_p, MUIM_Notify, MUIA_NList_SelectChange, MUIV_EveryTime,
-		//	mol_info_obj_p, 3, MUIM_CallHook, &atom_select_hook, MUIV_TriggerValue);
-
-
-/*
-			DoMethod (bonds_list_p, MUIM_Notify, MUIA_NList_Active, MUIV_EveryTime,
-				new_obj_p, 3, MUIM_Set, MIGA_Bonds_Selected, MUIV_TriggerValue);
-*/
-/*
-			DoMethod (bonds_list_p, MUIM_Notify, MUIA_NList_Active, MUIV_EveryTime,
-				new_obj_p, 1, MIGM_MarkdownEditor_BondSelect);
-
-*/
-
-//			IIntuition->IDoMethod (atoms_list_p, MUIM_Notify, MUIA_NList_DoubleClick, MUIV_EveryTime,
-	//			mol_info_obj_p, 3, MUIM_Set, MIGA_Atoms_Selected, MUIV_TriggerValue);
-
-	//		IIntuition->IDoMethod (atoms_list_p, MUIM_Notify, MUIA_NList_DoubleClick, MUIV_EveryTime,
-	//			mol_info_obj_p, 1, MIGM_MarkdownEditor_AtomSelect);
-
-
-	//		IIntuition->IDoMethod (bonds_list_p, MUIM_Notify, MUIA_NList_DoubleClick, MUIV_EveryTime,
-	//			mol_info_obj_p, 1, MIGM_MarkdownEditor_BondSelect);
-
-			//IIntuition->IDoMethod(obj,MUIM_Notify,MUIA_List_Active,MUIV_EveryTime,obj,1,MUIM_DispIDlist_Change);
-
-
-//			IIntuition->IDoMethod(obj,MUIM_Notify,MUIA_List_Active,MUIV_EveryTime,obj,1,MUIM_DispIDlist_Change);
 
 
 			DB (KPRINTF ("%s %ld - MarkdownEditor_New: Adding info obj\n", __FILE__, __LINE__));
@@ -268,63 +223,62 @@ static void SetFile (MarkdownEditorData *md_p, STRPTR filename_s)
 
 
 
-static uint32 ConvertMD (Class *class_p, Object *editor_p)
+static uint32 MarkdownEditor_Convert (Class *class_p, Object *editor_p)
 {
 	uint32 res = 0;
 	MarkdownEditorData *md_p = INST_DATA (class_p, editor_p);
 	STRPTR text_s = (STRPTR) IIntuition -> IDoMethod (editor_p, MUIM_TextEditor_ExportText);
-	
+
 	if (text_s)
 		{
 			STRPTR html_s = NULL;
 			BOOL res;
-						
+
 			res = ConvertText (text_s, &html_s, MD_HTML_FLAG_DEBUG | MD_HTML_FLAG_SKIP_UTF8_BOM, 0, TRUE);
-			
+
 			if (res)
-				{				
+				{
 					if (md_p -> med_viewer_p)
 						{
 							IIntuition -> SetAttrs (md_p -> med_viewer_p, MUIA_HTMLview_Contents, html_s, TAG_DONE);
 						}
-					
-					IExec -> FreeVec (html_s);	
+
+					IExec -> FreeVec (html_s);
 				}
-			
+
 			IExec -> FreeVec (text_s);
 		}
-	
+
 	return res;
 }
 
 
-static uint32 LoadMD (Class *class_p, Object *editor_p)
+static uint32 MarkdownEditor_Load (Class *class_p, Object *editor_p)
 {
 	uint32 res = 0;
-	STRPTR filename_s = NULL;
-	
+	STRPTR filename_s = RequestFilename (FALSE);
+
 	if (filename_s)
 		{
 			LoadFile (filename_s);
+			IExec -> FreeVec (filename_s);
 		}
-	
+
 	return res;
 }
 
 
 
-static uint32 SaveMD (Class *class_p, Object *editor_p)
+static uint32 MarkdownEditor_Save (Class *class_p, Object *editor_p)
 {
 	uint32 res = 0;
-	STRPTR filename_s = NULL;
-	
+	STRPTR filename_s = RequestFilename (TRUE);
+
 	if (filename_s)
 		{
 			SaveFile (filename_s);
+			IExec -> FreeVec (filename_s);
 		}
-	
+
 	return res;
 }
-
-
-
