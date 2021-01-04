@@ -18,6 +18,7 @@
 #include <proto/exec.h>
 #include <proto/intuition.h>
 #include <proto/dos.h>
+#include <proto/asl.h>
 
 #define ALLOCATE_GLOBALS
 
@@ -62,6 +63,10 @@ struct UtilityIFace *IUtility = NULL;
 struct Library *MUIMasterBase = NULL;
 struct MUIMasterIFace *IMUIMaster = NULL;
 
+struct Library *AslBase = NULL;
+struct AslIFace *IAsl = NULL;
+
+
 static const char USED min_stack[] = "$STACK:102400";
 
 /***************************************************************/
@@ -75,13 +80,15 @@ static BOOL OpenLibs (void)
 						{
 							if (OpenLib (&DOSBase, "dos.library", 53L, (struct Interface **) &IDOS, "main", 1))
 								{
+									if (OpenLib (&DOSBase, "asl.library", 53L, (struct Interface **) &IAsl, "main", 1))
+										{
+											if (OpenLib (&MUIMasterBase, "muimaster.library", 19L, (struct Interface **) &IMUIMaster, "main", 1))
+												{
+													return TRUE;
+												}
 
-													if (OpenLib (&MUIMasterBase, "muimaster.library", 19L, (struct Interface **) &IMUIMaster, "main", 1))
-														{
-															return TRUE;
-														}
-												
-
+											CloseLib (AslBase, (struct Interface *) IAsl);
+										}
  									CloseLib (DOSBase, (struct Interface *) IDOS);
 								}
 						 	CloseLib (UtilityBase, (struct Interface *) IUtility);
@@ -95,9 +102,10 @@ static BOOL OpenLibs (void)
 
 
 static void CloseLibs (void)
-{	
+{
 	CloseLib (MUIMasterBase, (struct Interface *) IMUIMaster);
-	CloseLib (DOSBase, (struct Interface *) IDOS);	
+	CloseLib (AslBase, (struct Interface *) IAsl);
+	CloseLib (DOSBase, (struct Interface *) IDOS);
 	CloseLib (UtilityBase, (struct Interface *) IUtility);
 	CloseLib (IntuitionBase, (struct Interface *) IIntuition);
 }
@@ -112,17 +120,17 @@ int main (int argc, char *argv [])
 	if (OpenLibs ())
 		{
 			DB (KPRINTF ("%s %ld - Opened Libraries\n", __FILE__, __LINE__));
-			
+
 			CreateMUIInterface ();
-				
-				
+
+
 			CloseLibs ();
 		}		/* if (OpenLibs ()) */
 	else
 		{
 			printf ("failed to open libs\n");
 		}
-		
+
 	return result;
 }
 
@@ -144,7 +152,7 @@ static BOOL OpenLib (struct Library **library_pp, CONST_STRPTR lib_name_s, const
 		{
 			printf ("failed to open library \"%s\" version %lu\n", lib_name_s, lib_version);
 		}
-		
+
 	return FALSE;
 }
 
@@ -153,13 +161,11 @@ static void CloseLib (struct Library *library_p, struct Interface *interface_p)
 {
 	if (interface_p)
 		{
-			IExec->DropInterface (interface_p); 
+			IExec->DropInterface (interface_p);
 		}
-		
+
 	if (library_p)
 		{
 			IExec->CloseLibrary (library_p);
 		}
 }
-
-
