@@ -4,7 +4,7 @@
 #
 # Project: AmiMarkdown
 #
-# Created on: 04-01-2021 18:36:44
+# Created on: 05-01-2021 09:36:30
 #
 #
 
@@ -14,11 +14,11 @@
 ##
 ###################################################################
 
-amimd_OBJ := \
-	src/amimd.o src/editor_gadget.o src/gui.o \
-	src/md_to_html.o src/memory_buffer.o src/viewer_gadget.o \
-	md4c/src/entity.o md4c/src/md4c.o md4c/src/md4c-html.o
-
+AmiMarkdown_OBJ := \
+	 src/amimd.o src/editor_gadget.o src/gui.o \
+	 src/md_to_html.o src/memory_buffer.o src/viewer_gadget.o \
+	 md4c/src/entity.o md4c/src/md4c.o md4c/src/md4c-html.o \
+	
 
 
 ###################################################################
@@ -29,9 +29,9 @@ amimd_OBJ := \
 
 CC := gcc:bin/gcc
 
-INCPATH := -I. -I SDK:MUI/C/Include -Imd4c/src -Iinclude
+INCPATH := -I.
 
-CFLAGS := $(INCPATH) -gstabs -Werror -Wwrite-strings  -DMD_VERSION_MAJOR=0 -DMD_VERSION_MINOR=4 -DMD_VERSION_RELEASE=7
+CFLAGS := $(INCPATH) -gstabs  -Werror -Wwrite-strings -I SDK:MUI/C/Include -Iinclude -Imd4c/src -DMD_VERSION_MAJOR=0 -DMD_VERSION_MINOR=4 -DMD_VERSION_RELEASE=7
 
 
 ###################################################################
@@ -42,7 +42,7 @@ CFLAGS := $(INCPATH) -gstabs -Werror -Wwrite-strings  -DMD_VERSION_MAJOR=0 -DMD_
 
 .PHONY: all all-before all-after clean clean-custom realclean
 
-all: all-before amimd all-after
+all: all-before AmiMarkdown all-after
 
 all-before:
 #	You can add rules here to execute before the project is built
@@ -51,10 +51,10 @@ all-after:
 #	You can add rules here to execute after the project is built
 
 clean: clean-custom
-	rm -f -v  $(amimd_OBJ)
+	rm -f -v  $(AmiMarkdown_OBJ)
 
 realclean:
-	rm -f -v  $(amimd_OBJ) amimd
+	rm -f -v  $(AmiMarkdown_OBJ) AmiMarkdown
 
 
 ###################################################################
@@ -63,9 +63,9 @@ realclean:
 ##
 ###################################################################
 
-amimd: $(amimd_OBJ)
-	gcc:bin/gcc -o amimd.debug $(amimd_OBJ) -lauto
-	cp -f -p amimd.debug amimd
+AmiMarkdown: $(AmiMarkdown_OBJ)
+	gcc:bin/gcc -o AmiMarkdown.debug $(AmiMarkdown_OBJ) -lauto
+	cp -f -p AmiMarkdown.debug AmiMarkdown
 
 
 ###################################################################
@@ -74,19 +74,23 @@ amimd: $(amimd_OBJ)
 ##
 ###################################################################
 
-memory_buffer.o: memory_buffer.c
-	$(CC) -c memory_buffer.c -o memory_buffer.o $(CFLAGS)
+src/amimd.o: src/amimd.c
+	$(CC) -c src/amimd.c -o src/amimd.o $(CFLAGS)
 
-amimd.o: amimd.c debugging_utils.h
-	$(CC) -c amimd.c -o amimd.o $(CFLAGS)
+src/editor_gadget.o: src/editor_gadget.c
+	$(CC) -c src/editor_gadget.c -o src/editor_gadget.o $(CFLAGS)
 
-editor_gadget.o: editor_gadget.c debugging_utils.h editor_gadget.h \
+src/gui.o: src/gui.c
+	$(CC) -c src/gui.c -o src/gui.o $(CFLAGS)
 
-	$(CC) -c editor_gadget.c -o editor_gadget.o $(CFLAGS)
+src/md_to_html.o: src/md_to_html.c
+	$(CC) -c src/md_to_html.c -o src/md_to_html.o $(CFLAGS)
 
-gui.o: gui.c editor_gadget.h viewer_gadget.h \
+src/memory_buffer.o: src/memory_buffer.c
+	$(CC) -c src/memory_buffer.c -o src/memory_buffer.o $(CFLAGS)
 
-	$(CC) -c gui.c -o gui.o $(CFLAGS)
+src/viewer_gadget.o: src/viewer_gadget.c
+	$(CC) -c src/viewer_gadget.c -o src/viewer_gadget.o $(CFLAGS)
 
 md4c/src/entity.o: md4c/src/entity.c
 	$(CC) -c md4c/src/entity.c -o md4c/src/entity.o $(CFLAGS)
@@ -94,12 +98,7 @@ md4c/src/entity.o: md4c/src/entity.c
 md4c/src/md4c.o: md4c/src/md4c.c
 	$(CC) -c md4c/src/md4c.c -o md4c/src/md4c.o $(CFLAGS)
 
-md4c-master/src/md4c-html.o: md4c-master/src/md4c-html.c md4c-master/src/md4c-html.h md4c-master/src/md4c.h \
+md4c/src/md4c-html.o: md4c/src/md4c-html.c md4c/src/md4c-html.h md4c/src/md4c.h \
+	
+	$(CC) -c md4c/src/md4c-html.c -o md4c/src/md4c-html.o $(CFLAGS)
 
-	$(CC) -c md4c-master/src/md4c-html.c -o md4c-master/src/md4c-html.o $(CFLAGS)
-
-md4c-master/md2html/md2html.o: md4c-master/md2html/md2html.c
-	$(CC) -c md4c-master/md2html/md2html.c -o md4c-master/md2html/md2html.o $(CFLAGS)
-
-viewer_gadget.o: viewer_gadget.c viewer_gadget.h
-	$(CC) -c viewer_gadget.c -o viewer_gadget.o $(CFLAGS)

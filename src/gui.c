@@ -1,6 +1,7 @@
 #include <limits.h>
 #include <math.h>
 #include <stdio.h>
+#include <string.h>
 
 
 #include <exec/lists.h>
@@ -14,17 +15,16 @@
 #include <proto/dos.h>
 #include <proto/exec.h>
 #include <proto/gadtools.h>
-#include <proto/graphics.h>
 #include <proto/intuition.h>
-#include <proto/layers.h>
+#include <proto/utility.h>
 #include <proto/muimaster.h>
 
 #include <clib/alib_protos.h>
 
-#include <mui/NListview_mcc.h>
+#include <mui/TextEditor_mcc.h>
 #include <mui/Aboutbox_mcc.h>
 
-
+#include "gui.h"
 #include "editor_gadget.h"
 #include "viewer_gadget.h"
 
@@ -44,7 +44,7 @@ enum
 {
 	MENU_ID_QUIT,
 	MENU_ID_ABOUT,
-	MENU_ID_UDATE,
+	MENU_ID_UPDATE,
 	MENU_ID_LOAD,
 	MENU_ID_SAVE
 };
@@ -62,8 +62,6 @@ static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI
 static void RunMD (APTR app_p);
 
 static uint32 Convert (void);
-
-static uint32 AslHook (int32 type, APTR obj, struct FileRequester *req_p);
 
 
 /***************************************/
@@ -94,7 +92,10 @@ static APTR s_viewer_p = NULL;
 static APTR s_editor_p = NULL;
 static APTR s_window_p = NULL;
 
-STRPTR s_file_pattern_s = NULL;
+static STRPTR s_file_pattern_s = NULL;
+
+static CONST_STRPTR s_app_name_s = "AmiMarkdown";
+
 
 /***************************************/
 /*********** API FUNCTIONS ************/
@@ -115,17 +116,29 @@ BOOL CreateMUIInterface (void)
 
 					if (app_p)
 						{
-							CONST STRPTR md_reg_s = "(#?.md)";
+							CONST CONST_STRPTR md_reg_s = "#?.md";
 							const size_t md_reg_length = strlen (md_reg_s);
-
-							s_file_pattern_s = (STRPTR) IExecAllocVecTags ((md_reg_length + 1) << 1, TAG_DONE);
+							const size_t size = (md_reg_length + 1) << 1;
+							
+							s_file_pattern_s = (STRPTR) IExec -> AllocVecTags (size, TAG_DONE);
 
 							if (s_file_pattern_s)
 								{
-									RunMD (app_p);
-									success_flag = TRUE;
+									if (IDOS -> ParsePattern (md_reg_s, s_file_pattern_s, size) >= 0)
+										{
+									
+										
+											RunMD (app_p);
+											success_flag = TRUE;
 
-									IExec -> FreeVec (s_file_pattern_s);
+											/*
+											** save the current weights of all Balance objects until the next reboot
+											** if the weights are to be saved permanently the MUIV_Application_Save_ENVARC must be used instead
+											*/
+											IIntuition -> IDoMethod (app_p, MUIM_Application_Save, MUIV_Application_Save_ENV);
+
+											IExec -> FreeVec (s_file_pattern_s);
+										}
 								}
 
 							FreeGUIObjects (app_p);
@@ -172,7 +185,7 @@ HOOKPROTONH(DroppedFile, uint32, APTR object_p, struct AppMessage **msg_pp)
 				{
 					if (IDOS -> AddPart (filename_s, arg_p -> wa_Name, FNAME_MAX))
 						{
-							DB (KPRINTF ("%s %ld - dropped %s\n", __FILE__, __LINE__, filename_s));
+							LoadFile (filename_s);
 						}
 				}
 		}
@@ -201,17 +214,17 @@ static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI
 		};
 
 	app_p = IMUIMaster -> MUI_NewObject (MUIC_Application,
-		MUIA_Application_Title      , "AmiMarkdown",
-		MUIA_Application_Version    , "$VER: AmiMarkdown 0.1 (04.01.21)",
-		MUIA_Application_Copyright  , "ï¿½2021, Simon Tyrrell",
+		MUIA_Application_Title      , s_app_name_s,
+		MUIA_Application_Version    , "$VER: AmiMarkdown 0.1",
+		MUIA_Application_Copyright  , "(c) 2021, Simon Tyrrell",
 		MUIA_Application_Author     , "Simon Tyrrell",
 		MUIA_Application_Description, "Edit and view Markdown documents.",
 		MUIA_Application_Base       , "AMIMD",
 		MUIA_Application_UsedClasses, used_classes,
 
 		SubWindow, about_box_p = IMUIMaster -> MUI_NewObject (MUIC_Aboutbox,
-			MUIA_Aboutbox_Build,   "0.1",
-			MUIA_Aboutbox_Credits, "Try clicking the version string above...\n",
+			MUIA_Aboutbox_Build,  __DATE__,
+			MUIA_Aboutbox_Credits, "This uses sections of code from md4c at http://github.com/mity/md4c by Martin Mitás.\n\n Click the version string above to get the build date...\n",
 			// fallback to external image in case the program icon cannot be obtained
 			//MUIA_Aboutbox_LogoFile, "PROGDIR:boing.png",
 			// fallback to embedded image in case the external image cannot be loaded
@@ -246,7 +259,12 @@ static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI
 
 					MUIA_Group_Child, editor_scrollbar_p = IMUIMaster -> MUI_NewObject (MUIC_Scrollbar,
 					TAG_DONE),
-
+						
+					MUIA_Group_Child, IMUIMaster -> MUI_NewObject (MUIC_Balance, 
+						MUIA_CycleChain, 1, 
+						MUIA_ObjectID, MAKE_ID('B', 'A', 'L', 1), 
+					TAG_DONE),
+						
 					MUIA_Group_Child, s_viewer_p = IIntuition -> NewObject (viewer_class_p -> mcc_Class, NULL,
 						ImageButtonFrame,
 						MUIA_FillArea, FALSE,
@@ -265,7 +283,7 @@ static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI
 			Object *menu_item_p;
 
 			/*
-			** Call the AppMsgHook when an icon is dropped on the molecule viewer
+			** Call the AppMsgHook when an icon is dropped on the application
 			*/
 			IIntuition -> IDoMethod (s_window_p, MUIM_Notify, MUIA_AppMessage, MUIV_EveryTime,
 				s_window_p, 3, MUIM_CallHook, &DroppedFileHook, MUIV_TriggerValue);
@@ -274,13 +292,6 @@ static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI
 			/* set the window close gadget to work */
 			IIntuition -> IDoMethod (s_window_p, MUIM_Notify, MUIA_Window_CloseRequest, TRUE,
 				app_p, 2, MUIM_Application_ReturnID, MUIV_Application_ReturnID_Quit);
-
-
-			/*
-			** Call the AppMsgHook when an icon is dropped on the molecule viewer
-			*/
-			IIntuition -> IDoMethod (s_window_p, MUIM_Notify, MUIA_AppMessage, MUIV_EveryTime,
-				s_window_p, 3, MUIM_CallHook, &DroppedFileHook, MUIV_TriggerValue);
 
 
 			/* QUIT */
@@ -296,7 +307,7 @@ static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI
 
 
 			/* CONVERT */
-			menu_item_p = (Object *) IIntuition -> IDoMethod (strip_p, MUIM_FindUData, MENU_ID_CONVERT);
+			menu_item_p = (Object *) IIntuition -> IDoMethod (strip_p, MUIM_FindUData, MENU_ID_UPDATE);
 			IIntuition -> IDoMethod (menu_item_p, MUIM_Notify, MUIA_Menuitem_Trigger, MUIV_EveryTime,
 				s_editor_p, 1, MEM_MDEditor_Convert);
 
@@ -306,8 +317,13 @@ static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI
 
 			IIntuition -> IDoMethod (about_box_p, MUIM_Notify, MUIA_Window_CloseRequest, TRUE, MUIV_Notify_Self, 3, MUIM_Set, MUIA_Window_Open, FALSE);
 
+			IIntuition -> SetAttrs (load_button_p, MUIA_ShortHelp, "Load a Markdown file", TAG_DONE);
 			IIntuition -> IDoMethod (load_button_p, MUIM_Notify, MUIA_Pressed, FALSE, s_editor_p, 1, MEM_MDEditor_Load);
 
+			IIntuition -> SetAttrs (save_button_p, MUIA_ShortHelp, "Save the editor content to a Markdown file", TAG_DONE);
+			IIntuition -> IDoMethod (save_button_p, MUIM_Notify, MUIA_Pressed, FALSE, s_editor_p, 1, MEM_MDEditor_Save);
+
+			IIntuition -> SetAttrs (update_button_p, MUIA_ShortHelp, "Update the generated HTML for the Markdown", TAG_DONE);
       IIntuition -> IDoMethod (update_button_p, MUIM_Notify, MUIA_Pressed, FALSE, s_editor_p, 1, MEM_MDEditor_Convert);
 
 		}		/* if (app_p) */
@@ -335,12 +351,38 @@ BOOL LoadFile (STRPTR filename_s)
 						{
 							if (IDOS -> FRead (fh_p, content_s, size, 1) == 1)
 								{
+									const size_t filename_length = strlen (filename_s);
+									const size_t app_name_length = strlen (s_app_name_s);
+									CONST_STRPTR join_s = " - ";
+									const size_t join_length = strlen (join_s);
+									STRPTR title_s = NULL;
+									
+									
 									* (content_s + size) = '\0';
-
-									IIntuition -> DoMethod (s_editor_p, MUIM_TextEditor_ClearText);
+										
+									IIntuition -> IDoMethod (s_editor_p, MUIM_TextEditor_ClearText);
 									IIntuition -> SetAttrs (s_editor_p, MUIA_TextEditor_Contents, content_s, TAG_DONE);
-									IIntuition -> SetAttrs (s_window_p, MUIA_Window_Title, filename_s, TAG_DONE);
-
+													
+									title_s = IExec -> AllocVecTags (filename_length + app_name_length + join_length + 1, TAG_DONE);
+									
+									if (title_s)
+										{
+											STRPTR temp_p = title_s;
+											
+											IExec -> CopyMem (s_app_name_s, temp_p, app_name_length);
+											temp_p += app_name_length;
+									
+											IExec -> CopyMem (join_s, temp_p, join_length);
+											temp_p += join_length;
+											
+											IExec -> CopyMem (filename_s, temp_p, filename_length);
+											temp_p += filename_length + 1;
+											
+											*temp_p = '\0';
+											
+											IIntuition -> SetAttrs (s_window_p, MUIA_Window_Title, title_s, TAG_DONE);		
+										}
+																		
 									success_flag = TRUE;
 								}
 						}
@@ -362,13 +404,13 @@ BOOL SaveFile (STRPTR filename_s)
 
 	if (fh_p)
 		{
-			STRPTR text_s = (STRPTR) IIntuition -> IDoMethod (editor_p, MUIM_TextEditor_ExportText);
+			STRPTR text_s = (STRPTR) IIntuition -> IDoMethod (s_editor_p, MUIM_TextEditor_ExportText);
 
 			if (text_s)
 				{
 					const uint32 size = strlen (text_s);
 
-					if (IDOS -> FWrite (fh_p, content_s, size, 1) == 1)
+					if (IDOS -> FWrite (fh_p, text_s, size, 1) == 1)
 						{
 							success_flag = TRUE;
 						}
@@ -392,10 +434,13 @@ static void RunMD (APTR app_p)
 	uint32 sigs;
 	APTR window_p = s_window_p;
 
+	/*
+	** restore the previously set weights of all Balance objects
+	*/
+	IIntuition -> IDoMethod (app_p, MUIM_Application_Load, MUIV_Application_Load_ENV);
 
 	if (window_p)
 		{
-			//SetMouseQueue (window_p, 255);
 			IIntuition -> SetAttrs (window_p, MUIA_Window_Open, TRUE, TAG_DONE);
 
 			while (IIntuition -> IDoMethod (app_p, MUIM_Application_NewInput, &sigs) != MUIV_Application_ReturnID_Quit)
@@ -421,47 +466,57 @@ static void RunMD (APTR app_p)
 STRPTR RequestFilename (const BOOL save_flag)
 {
 	STRPTR filename_s = NULL;
-	struct FileRequester *req_p = IAsl -> AllocFileRequest ();
+	struct FileRequester *req_p = (struct FileRequester *) IAsl -> AllocAslRequest (ASL_FileRequest, NULL);
 
 	if (req_p)
 		{
-			CONST_STRPTR button_label_s = "Load";
-			UINT32 flags = FILF_DOWILDFUNC | FILF_DOMSGFUNC;
+			CONST_STRPTR title_s = "Load Markdown File";
+			struct Window *window_p = NULL;
+			
 
-			if (save_flag)
+		//	printf ("req win %lu\n", s_window_p);			
+			
+			if (s_window_p)
 				{
-					flags |= FILF_SAVE;
-					button_label_s = "Save";
+			 		if (IIntuition -> GetAttr (MUIA_Window_Window, s_window_p, (uint32 *) &window_p) == 0)
+			 			{
+			 				printf ("Failed to get window\n");	
+			 			}
+				}
+				
+			if (window_p)
+				{
+								if (save_flag)
+				{
+					title_s = "Save Markdown File";
 				}
 
 			if (IAsl -> AslRequestTags (req_p,
-				ASL_Dir, "SYS:Utilities",
-				ASL_Window, window,
-				ASL_TopEdge, 0,
-				ASL_Height, 200,
-				ASL_Hail, title_s,
-				ASL_FuncFlags, flags,
-				ASL_HookFunc, AslHook,
-				ASL_OKText, button_label_s,
+				ASLFR_InitialDrawer, "RAM:",
+				ASLFR_RejectIcons, TRUE,
+				ASLFR_Window, window_p,
+				ASLFR_TitleText, title_s,
+				ASLFR_DoSaveMode, save_flag,
+				ASLFR_DoPatterns, TRUE,
+				ASLFR_InitialPattern, s_file_pattern_s,
 				TAG_END))
-					{
-						IDOS_>Printf("PATH=%s FILE=%s\n", req_p -> rf_Dir, req_p -> rf_File);
-						IDOS->Printf("To combine the path and filename, copy the path\n");
-						IDOS->Printf("to a buffer, add the filename with Dos AddPart().\n");
+					{;
 						#define FNAME_MAX (2048)
 						char buffer_s [FNAME_MAX];
 
-						if (IUtility -> Strlcpy (buffer_s, req_p -> rf_Dir, FNAME_MAX) < FNAME_MAX)
+						if (IUtility -> Strlcpy (buffer_s, req_p -> fr_Drawer, FNAME_MAX) < FNAME_MAX)
 							{
-								if (IDOS -> AddPart (buffer_s, req_p -> rf_File, FNAME_MAX))
+								if (IDOS -> AddPart (buffer_s, req_p -> fr_File, FNAME_MAX))
 									{
-										const size_t l = strlen (buffer_s);
-
-										filename_s = (STRPTR) IExec -> AllocVecTags (l + 1, TAG_DONE);
+										const size_t l = strlen (buffer_s) + 1;
+										
+										//printf ("asl: %s %s\n", req_p -> fr_Drawer, req_p -> fr_File);
+										
+										filename_s = (STRPTR) IExec -> AllocVecTags (l, TAG_DONE);
 
 										if (filename_s)
 											{
-												if (IUtility -> Strlcpy (filename_s, buffer_s, l + 1) > l)
+												if (IUtility -> Strlcpy (filename_s, buffer_s, l) > l)
 													{
 														IExec -> FreeVec (filename_s);
 														filename_s = NULL;
@@ -471,45 +526,19 @@ STRPTR RequestFilename (const BOOL save_flag)
 									}
 							}
 					}
+				}
+			else
+				{
+					printf ("no window\n");
+					}
+			
 
-			IAsl -> FreeFileRequest (req_p);
+
+			IAsl -> FreeAslRequest (req_p);
 		}
 
+
+	//printf ("filename: %s\n", filename_s ? filename_s : "NULL");
 	return filename_s;
 }
 
-
-
-static uint32 AslHook (int32 type, APTR obj, struct FileRequester *req_p)
-{
-	uint32 ret = 0;
-
-  switch (type)
-  	{
-      case FILF_DOMSGFUNC:
-      	/* We got a message meant for the window */
-        IDOS->Printf("You activated the window\n");
-        ret = (uint32) obj;
-        break;
-
-			case FILF_DOWILDFUNC:
-				{
-					/* We got an AnchorPath structure, should
-	      	** the requester display this file? */
-
-	          /* MatchPattern() is a dos.library function that
-	          ** compares a matching pattern (parsed by the
-	          ** ParsePattern() DOS function) to a string and
-	          ** returns true if they match. */
-	          BOOL b = IDOS -> MatchPattern (s_file_pattern_s, ((struct AnchorPath *) obj) -> ap_Info.fib_FileName);
-
-	          /* we have to negate MatchPattern()'s return value
-	          ** because the file requester expects a zero for
-	          ** a match not a TRUE value */
-	          ret = (uint32) !b;
-	          break;
-				}
-    }
-
-	return ret;
-}

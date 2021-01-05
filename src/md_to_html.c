@@ -137,11 +137,12 @@ BOOL ConvertText (const char *in_s, char **out_ss, uint16 parser_flags, uint16 r
       		const size_t footer_length = strlen (footer_s);	      
       		char *output_s = (char *) IExec -> AllocVecTags (output_buffer.mb_used_size + header_length + footer_length + 1, TAG_DONE);
 
-
+					/*
 					printf ("header length %lu\n", header_length);
 					printf ("footer length %lu\n", footer_length);
 					printf ("output_buffer.mb_used_size %lu\n", output_buffer.mb_used_size);					
-      
+      		*/
+      		
       		if (output_s)
       			{
       				char *c_p = output_s;
@@ -157,10 +158,12 @@ BOOL ConvertText (const char *in_s, char **out_ss, uint16 parser_flags, uint16 r
       				IExec -> CopyMem (footer_s, c_p, footer_length);
       				* (c_p + footer_length) = '\0';
       				
+      				/*
       				for (i = 0; i <= size; ++ i)
       					{
       						printf ("res [%lu] = \'%c\'\n", i, * (output_s + i));
       					}
+							*/
 							
 							*out_ss = output_s;
 							      				

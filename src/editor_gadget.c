@@ -33,7 +33,7 @@
 //#include "memwatch.h"
 #include "editor_gadget.h"
 
-#include "md2html.h"
+#include "md_to_html.h"
 
 #include "md4c-html.h"
 
@@ -190,7 +190,6 @@ static uint32 MarkdownEditor_Set (Class *class_p, Object *object_p, Msg msg_p)
 					 * function understands */
 					case MEA_Viewer:
 						md_p -> med_viewer_p = (Object *) tag_data;
-						printf ("setting viewer to %lu\n", tag_data);
 						break;
 
 					/* We don't understand this attribute */

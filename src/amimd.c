@@ -80,7 +80,7 @@ static BOOL OpenLibs (void)
 						{
 							if (OpenLib (&DOSBase, "dos.library", 53L, (struct Interface **) &IDOS, "main", 1))
 								{
-									if (OpenLib (&DOSBase, "asl.library", 53L, (struct Interface **) &IAsl, "main", 1))
+									if (OpenLib (&AslBase, "asl.library", 53L, (struct Interface **) &IAsl, "main", 1))
 										{
 											if (OpenLib (&MUIMasterBase, "muimaster.library", 19L, (struct Interface **) &IMUIMaster, "main", 1))
 												{

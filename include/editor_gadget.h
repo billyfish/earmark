@@ -40,6 +40,8 @@
 #define MEM_MDEditor_Load   (ME_Dummy + 2)
 
 
+#define MEM_MDEditor_Save   (ME_Dummy + 3)
+
 /*************************/
 /***** API FUNCTIONS *****/
 /*************************/
