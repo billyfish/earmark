@@ -191,6 +191,7 @@ static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI
 	Object *load_button_p = NULL;
 	Object *save_button_p = NULL;
 	Object *update_button_p = NULL;
+	Object *editor_scrollbar_p = NULL;
 
 	static const char * const used_classes [] =
 		{
@@ -243,6 +244,9 @@ static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI
 						MUIA_ShortHelp, (uint32) "The Markdown source code",
 					TAG_DONE),
 
+					MUIA_Group_Child, editor_scrollbar_p = IMUIMaster -> MUI_NewObject (MUIC_Scrollbar,
+					TAG_DONE),
+
 					MUIA_Group_Child, s_viewer_p = IIntuition -> NewObject (viewer_class_p -> mcc_Class, NULL,
 						ImageButtonFrame,
 						MUIA_FillArea, FALSE,
@@ -253,10 +257,10 @@ static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI
 			TAG_DONE),
 
 		TAG_DONE),
+	TAG_DONE);
 
 
 	if (app_p)
-	TAG_DONE);
 		{
 			Object *menu_item_p;
 
@@ -297,6 +301,8 @@ static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI
 				s_editor_p, 1, MEM_MDEditor_Convert);
 
 			IIntuition -> SetAttrs (s_editor_p, MEA_Viewer, s_viewer_p, TAG_DONE);
+
+			IIntuition -> SetAttrs (s_editor_p, MUIA_TextEditor_Slider, editor_scrollbar_p, TAG_DONE);
 
 			IIntuition -> IDoMethod (about_box_p, MUIM_Notify, MUIA_Window_CloseRequest, TRUE, MUIV_Notify_Self, 3, MUIM_Set, MUIA_Window_Open, FALSE);
 
