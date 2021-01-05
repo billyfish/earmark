@@ -108,11 +108,19 @@ BOOL CreateMUIInterface (void)
 
 	if (editor_class_p)
 		{
-			struct MUI_CustomClass *viewer_class_p = InitMarkdownViewerClass ();
+			struct MUI_CustomClass *viewer_class_p;
+			
+			DB (KPRINTF ("%s %ld - Inited Editor\n", __FILE__, __LINE__));
+						
+			viewer_class_p = InitMarkdownViewerClass ();
 
 			if (viewer_class_p)
 				{
-					APTR app_p = CreateGUIObjects (editor_class_p, viewer_class_p);
+					APTR app_p;
+
+					DB (KPRINTF ("%s %ld - Inited Viewer\n", __FILE__, __LINE__));
+										
+					app_p = CreateGUIObjects (editor_class_p, viewer_class_p);
 
 					if (app_p)
 						{
@@ -120,13 +128,17 @@ BOOL CreateMUIInterface (void)
 							const size_t md_reg_length = strlen (md_reg_s);
 							const size_t size = (md_reg_length + 1) << 1;
 							
+							DB (KPRINTF ("%s %ld - Created GUI Objects\n", __FILE__, __LINE__));
+			
 							s_file_pattern_s = (STRPTR) IExec -> AllocVecTags (size, TAG_DONE);
 
 							if (s_file_pattern_s)
 								{
+									DB (KPRINTF ("%s %ld - Created File Pattern\n", __FILE__, __LINE__));
+							
 									if (IDOS -> ParsePattern (md_reg_s, s_file_pattern_s, size) >= 0)
 										{
-									
+											DB (KPRINTF ("%s %ld - Parsed File Pattern\n", __FILE__, __LINE__));									
 										
 											RunMD (app_p);
 											success_flag = TRUE;
@@ -205,7 +217,18 @@ static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI
 	Object *save_button_p = NULL;
 	Object *update_button_p = NULL;
 	Object *editor_scrollbar_p = NULL;
-
+	Object *renderer_p = NULL;
+	Object *tables_cb_p = NULL;
+	Object *task_lists_cb_p = NULL;
+	Object *collapse_whitespace_cb_p = NULL;
+	Object *strike_through_cb_p = NULL;	
+	Object *underline_span_cb_p = NULL;
+	Object *latex_math_span_cb_p = NULL;
+	Object *raw_html_blocks_cb_p = NULL;	
+	Object *raw_html_spans_cb_p = NULL;
+	Object *indented_code_blocks_cb_p = NULL;	
+	Object *translate_entities_cb_p = NULL;	
+		
 	static const char * const used_classes [] =
 		{
 			"HTMLview.mcc",
@@ -213,6 +236,12 @@ static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI
 			NULL
 		};
 
+	static const char *pages_ss []   = { "Editor","Settings", NULL };
+	static const char *dialects_ss []   = { "CommonMark","Github", NULL };
+	
+	
+	DB (KPRINTF ("%s %ld - CreateGUIObjects starting\n", __FILE__, __LINE__));
+	  		
 	app_p = IMUIMaster -> MUI_NewObject (MUIC_Application,
 		MUIA_Application_Title      , s_app_name_s,
 		MUIA_Application_Version    , "$VER: AmiMarkdown 0.1",
@@ -237,50 +266,127 @@ static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI
 			MUIA_Window_AppWindow, TRUE,
 			MUIA_Window_Menustrip, strip_p = IMUIMaster -> MUI_MakeObject (MUIO_MenustripNM, s_menus_p, 0),
  			MUIA_ShortHelp, (uint32) "A Markdown editor and viewer",
+ 		
+ 			
 			WindowContents, IMUIMaster -> MUI_NewObject (MUIC_Group,
-				MUIA_Group_Horiz, FALSE,
+				MUIA_Group_Child, IMUIMaster -> MUI_NewObject (MUIC_Register,
+					MUIA_Register_Titles, pages_ss,
+					MUIA_Register_Frame, TRUE,
+					
+					/* main tools */
+					MUIA_Group_Child, IMUIMaster -> MUI_NewObject (MUIC_Group,
+						MUIA_Group_Horiz, FALSE,
+		
+						/* tool bar */
+						MUIA_Group_Child, IMUIMaster -> MUI_NewObject (MUIC_Group,
+							MUIA_Group_Horiz, TRUE,
+		
+							MUIA_Group_Child, load_button_p = IMUIMaster -> MUI_MakeObject (MUIO_Button, "_Load"),
+							MUIA_Group_Child, save_button_p = IMUIMaster -> MUI_MakeObject (MUIO_Button, "_Save"),
+							MUIA_Group_Child, update_button_p = IMUIMaster -> MUI_MakeObject (MUIO_Button, "_Update"),
+						TAG_DONE),
+		
+						/* Editor and viewer */
+						MUIA_Group_Child, IMUIMaster -> MUI_NewObject (MUIC_Group,
+							MUIA_Group_Horiz, TRUE,
 
-				MUIA_Group_Child, IMUIMaster -> MUI_NewObject (MUIC_Group,
-					MUIA_Group_Horiz, TRUE,
+							
+							MUIA_Group_Child, s_editor_p = IIntuition -> NewObject (editor_class_p -> mcc_Class, NULL,
+								ImageButtonFrame,
+								MUIA_FillArea, FALSE,
+								MUIA_ShortHelp, (uint32) "The Markdown source code",
+							TAG_DONE),
+		
+							MUIA_Group_Child, editor_scrollbar_p = IMUIMaster -> MUI_NewObject (MUIC_Scrollbar,
+							TAG_DONE),
+								
+							MUIA_Group_Child, IMUIMaster -> MUI_NewObject (MUIC_Balance, 
+								MUIA_CycleChain, 1, 
+								MUIA_ObjectID, MAKE_ID('B', 'A', 'L', 1), 
+							TAG_DONE),
+								
+							MUIA_Group_Child, s_viewer_p = IIntuition -> NewObject (viewer_class_p -> mcc_Class, NULL,
+								ImageButtonFrame,
+								MUIA_FillArea, FALSE,
+								MUIA_ShortHelp, (uint32) "The generated HTML",
+							TAG_DONE),
+						TAG_DONE),
+		
+					TAG_DONE),		/* End main tools */										
 
-					Child, load_button_p = IMUIMaster -> MUI_MakeObject (MUIO_Button, "_Load"),
-					Child, save_button_p = IMUIMaster -> MUI_MakeObject (MUIO_Button, "_Save"),
-					Child, update_button_p = IMUIMaster -> MUI_MakeObject (MUIO_Button, "_Update"),
-				TAG_DONE),
+								
+					/* settings */
+					
+					MUIA_Group_Child, IMUIMaster -> MUI_NewObject (MUIC_Group,
+						MUIA_Group_Horiz, TRUE,
+							
+						MUIA_Group_Child, renderer_p = IMUIMaster -> MUI_NewObject (MUIC_Radio,
+							MUIA_Frame, MUIV_Frame_Group,
+							MUIA_FrameTitle, "Markdown Dialect",
+							MUIA_Radio_Entries, dialects_ss,
+						TAG_DONE),
 
-				MUIA_Group_Child, IMUIMaster -> MUI_NewObject (MUIC_Group,
-					MUIA_Group_Horiz, TRUE,
-
-					MUIA_Group_Child, s_editor_p = IIntuition -> NewObject (editor_class_p -> mcc_Class, NULL,
-						ImageButtonFrame,
-						MUIA_FillArea, FALSE,
-						MUIA_ShortHelp, (uint32) "The Markdown source code",
-					TAG_DONE),
-
-					MUIA_Group_Child, editor_scrollbar_p = IMUIMaster -> MUI_NewObject (MUIC_Scrollbar,
-					TAG_DONE),
 						
-					MUIA_Group_Child, IMUIMaster -> MUI_NewObject (MUIC_Balance, 
-						MUIA_CycleChain, 1, 
-						MUIA_ObjectID, MAKE_ID('B', 'A', 'L', 1), 
-					TAG_DONE),
+						MUIA_Group_Child, IMUIMaster -> MUI_NewObject (MUIC_Group,
+							MUIA_Frame, MUIV_Frame_Group,
+							MUIA_FrameTitle, "Markdown Extensions",
+							MUIA_Group_Columns, 2,
+										
+							MUIA_Group_Child, IMUIMaster -> MUI_MakeObject (MUIO_Label, "Tables", TAG_DONE),
+							MUIA_Group_Child, tables_cb_p = IMUIMaster -> MUI_MakeObject (MUIO_Checkmark, TAG_DONE),
+							
+							MUIA_Group_Child, IMUIMaster -> MUI_MakeObject (MUIO_Label, "Task lists", TAG_DONE),
+							MUIA_Group_Child, task_lists_cb_p = IMUIMaster -> MUI_MakeObject (MUIO_Checkmark, TAG_DONE),
+							
+							MUIA_Group_Child, IMUIMaster -> MUI_MakeObject (MUIO_Label, "Collapse whitespace", TAG_DONE),
+							MUIA_Group_Child, collapse_whitespace_cb_p = IMUIMaster -> MUI_MakeObject (MUIO_Checkmark, TAG_DONE),
+
+							MUIA_Group_Child, IMUIMaster -> MUI_MakeObject (MUIO_Label, "Strike-through spans", TAG_DONE),
+							MUIA_Group_Child, strike_through_cb_p = IMUIMaster -> MUI_MakeObject (MUIO_Checkmark, TAG_DONE),
+
+							MUIA_Group_Child, IMUIMaster -> MUI_MakeObject (MUIO_Label, "Underline spans", TAG_DONE),														
+							MUIA_Group_Child, underline_span_cb_p = IMUIMaster -> MUI_MakeObject (MUIO_Checkmark, TAG_DONE),
+
+							MUIA_Group_Child, IMUIMaster -> MUI_MakeObject (MUIO_Label, "LaTeX maths", TAG_DONE),
+							MUIA_Group_Child, latex_math_span_cb_p = IMUIMaster -> MUI_MakeObject (MUIO_Checkmark, TAG_DONE),														
+							
+						TAG_DONE),
+
+						MUIA_Group_Child, IMUIMaster -> MUI_NewObject (MUIC_Group,
+							MUIA_Frame, MUIV_Frame_Group,
+							MUIA_FrameTitle, "HTML Options",
+							MUIA_Group_Columns, 2,
+										
+							MUIA_Group_Child, IMUIMaster -> MUI_MakeObject (MUIO_Label, "Allow blocks", TAG_DONE),
+							MUIA_Group_Child, raw_html_blocks_cb_p = IMUIMaster -> MUI_MakeObject (MUIO_Checkmark, TAG_DONE),
+							
+							MUIA_Group_Child, IMUIMaster -> MUI_MakeObject (MUIO_Label, "Allow spans", TAG_DONE),
+							MUIA_Group_Child, raw_html_spans_cb_p = IMUIMaster -> MUI_MakeObject (MUIO_Checkmark, TAG_DONE),
+							
+							MUIA_Group_Child, IMUIMaster -> MUI_MakeObject (MUIO_Label, "Allow code blocks", TAG_DONE),
+							MUIA_Group_Child, indented_code_blocks_cb_p = IMUIMaster -> MUI_MakeObject (MUIO_Checkmark, TAG_DONE),											
+
+							MUIA_Group_Child, IMUIMaster -> MUI_MakeObject (MUIO_Label, "Translate Entities", TAG_DONE),
+							MUIA_Group_Child, translate_entities_cb_p = IMUIMaster -> MUI_MakeObject (MUIO_Checkmark, TAG_DONE),			
+							
+						TAG_DONE),
 						
-					MUIA_Group_Child, s_viewer_p = IIntuition -> NewObject (viewer_class_p -> mcc_Class, NULL,
-						ImageButtonFrame,
-						MUIA_FillArea, FALSE,
-						MUIA_ShortHelp, (uint32) "The generated HTML",
-					TAG_DONE),
-				TAG_DONE),
+					TAG_DONE),		/* end settings group */
+						
+				TAG_DONE),		/* End Register Group */
 
-			TAG_DONE),
+			TAG_DONE),		/* End WindowContents */
 
-		TAG_DONE),
+		TAG_DONE),		/* End Window */
+	
 	TAG_DONE);
 
 
 	if (app_p)
 		{
 			Object *menu_item_p;
+
+  		DB (KPRINTF ("%s %ld - Application created\n", __FILE__, __LINE__));
 
 			/*
 			** Call the AppMsgHook when an icon is dropped on the application
@@ -326,8 +432,24 @@ static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI
 			IIntuition -> SetAttrs (update_button_p, MUIA_ShortHelp, "Update the generated HTML for the Markdown", TAG_DONE);
       IIntuition -> IDoMethod (update_button_p, MUIM_Notify, MUIA_Pressed, FALSE, s_editor_p, 1, MEM_MDEditor_Convert);
 
+			IIntuition -> SetAttrs (tables_cb_p, MUIA_ShortHelp, "Enable support for tables", TAG_DONE);
+			IIntuition -> SetAttrs (task_lists_cb_p, MUIA_ShortHelp, "Enable support for task lists", TAG_DONE);			
+			IIntuition -> SetAttrs (collapse_whitespace_cb_p, MUIA_ShortHelp, "Collapse non-trivial whitespace", TAG_DONE);			
+			IIntuition -> SetAttrs (strike_through_cb_p, MUIA_ShortHelp, "Enable strike-through span elements", TAG_DONE);			
+			IIntuition -> SetAttrs (underline_span_cb_p, MUIA_ShortHelp, "Enable underline span elements", TAG_DONE);			
+			IIntuition -> SetAttrs (latex_math_span_cb_p, MUIA_ShortHelp, "Enable LaTeX-style mathematics span elements", TAG_DONE);			
+
+
+			IIntuition -> SetAttrs (raw_html_blocks_cb_p, MUIA_ShortHelp, "Allow HTML span elements in the markdown source", TAG_DONE);
+			IIntuition -> SetAttrs (raw_html_spans_cb_p, MUIA_ShortHelp, "Allow HTML span elements in the markdown source", TAG_DONE);			
+			IIntuition -> SetAttrs (indented_code_blocks_cb_p, MUIA_ShortHelp, "Allow indented code blocksin the markdown source", TAG_DONE);			
+			IIntuition -> SetAttrs (translate_entities_cb_p, MUIA_ShortHelp, "Translate HTML entities", TAG_DONE);	
+
+					
 		}		/* if (app_p) */
 
+
+	DB (KPRINTF ("%s %ld - CreateGUIObjects returning %lu\n created\n", __FILE__, __LINE__, app_p));
 
 	return app_p;
 }
@@ -439,10 +561,15 @@ static void RunMD (APTR app_p)
 	*/
 	IIntuition -> IDoMethod (app_p, MUIM_Application_Load, MUIV_Application_Load_ENV);
 
+
+	DB (KPRINTF ("%s %ld - Loaded ENV\n", __FILE__, __LINE__));
+
 	if (window_p)
-		{
+		{			
 			IIntuition -> SetAttrs (window_p, MUIA_Window_Open, TRUE, TAG_DONE);
 
+			DB (KPRINTF ("%s %ld - Opened Window\n", __FILE__, __LINE__));
+									
 			while (IIntuition -> IDoMethod (app_p, MUIM_Application_NewInput, &sigs) != MUIV_Application_ReturnID_Quit)
 				{
 					if (sigs)

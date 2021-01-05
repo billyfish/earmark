@@ -159,9 +159,6 @@ static uint32 MarkdownEditor_New (Class *class_p, Object *object_p, Msg msg_p)
 			md_editor_p = NULL;
 		}
 
-
-	DB (KPRINTF ("%s %ld - MarkdownEditor_New: new mol info gadget: 0x%.8x\n", __FILE__, __LINE__, mol_info_obj_p));
-
 	return ((uint32) md_editor_p);
 }
 

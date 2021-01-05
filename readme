@@ -1,8 +1,8 @@
 Short:        Edit and view Markdown documents
 Uploader:     tyrrell.simon@gmail.com (Simon Tyrrell)
 Author:       tyrrell.simon@gmail.com (Simon Tyrrell)
-Type:         gfx/show
-Version:      1.2
+Type:         text/edit
+Version:      0.1
 Architecture: ppc-amigaos >= 4.1
 Distribution: Aminet
 Requires: dev/mui/MCC_HTMLview-13.4, dev/mui/MCC_TextEditor-15.55.lha

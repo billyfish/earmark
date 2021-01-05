@@ -4,7 +4,7 @@
 #
 # Project: AmiMarkdown
 #
-# Created on: 05-01-2021 09:36:30
+# Created on: 05-01-2021 17:43:26
 #
 #
 
@@ -31,7 +31,7 @@ CC := gcc:bin/gcc
 
 INCPATH := -I.
 
-CFLAGS := $(INCPATH) -gstabs  -Werror -Wwrite-strings -I SDK:MUI/C/Include -Iinclude -Imd4c/src -DMD_VERSION_MAJOR=0 -DMD_VERSION_MINOR=4 -DMD_VERSION_RELEASE=7
+CFLAGS := $(INCPATH) -gstabs  -Werror -Wwrite-strings -I SDK:MUI/C/Include -Iinclude -Imd4c/src -DAMIGA=1 -D_DBUG=1
 
 
 ###################################################################
@@ -64,7 +64,7 @@ realclean:
 ###################################################################
 
 AmiMarkdown: $(AmiMarkdown_OBJ)
-	gcc:bin/gcc -o AmiMarkdown.debug $(AmiMarkdown_OBJ) -lauto
+	gcc:bin/gcc -o AmiMarkdown.debug $(AmiMarkdown_OBJ) 
 	cp -f -p AmiMarkdown.debug AmiMarkdown
 
 

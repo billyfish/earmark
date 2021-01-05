@@ -174,8 +174,6 @@ static uint32 MarkdownViewer_New (Class *class_p, Object *object_p, Msg msg_p)
 		}
 
 
-	DB (KPRINTF ("%s %ld - MarkdownViewer_New: new mol info gadget: 0x%.8x\n", __FILE__, __LINE__, mol_info_obj_p));
-
 	return ((uint32) md_viewer_p);
 }
 
