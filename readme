@@ -7,4 +7,36 @@ Architecture: ppc-amigaos >= 4.1
 Distribution: Aminet
 Requires: dev/mui/MCC_HTMLview-13.4, dev/mui/MCC_TextEditor-15.55.lha
 
-This is a tool to allow you to edit and view Markdown documents.
+This is a tool to allow you to edit and view Markdown documents.  It uses a customised version of 
+md4c at https://github.com/mity/md4c by Martin Mitas available to do the actual conversion of 
+Markdown to HTML.
+
+USAGE:
+
+The window consists of a tool bar and two gadgets; and editor gadget on the left which contains the 
+markdown data and a viewer gadget on the right-hand side which displays the HTML generated from
+the markdown data.
+
+You can either drag and drop a markdown file onto the window or use the "Load" button or menu item. 
+This will load it into the editor gadge. You can make any changes in the editor that you want and click 
+on the "Save" button or use the menu item to save your updated file. If you want to see how it looks, 
+click on the  "Update" button or menu item and the latest version of your file will get rendered into the 
+viewer gadget.
+ 
+
+FUTURE:
+
+Currently the Markdown is parsed using the CommonMark specification and I plan to support the 
+Github flavour too along with various other options such as allowing tables, task lists, strike through, 
+etc. Moving to an image-based toolbar too is on the list as well as a toolbar for the editor to allow 
+for a simple click to set some text as bold, italic, etc. Syntax highlighting would be nice too. Any 
+other ideas are welcome. :-)
+
+
+LICENSE:
+
+The code is available under the MIT license. The md4c parts are copyright Martin Mitas and the rest 
+is copyright (c) 20201  by Simon Tyrrell.
+
+
+ 
