@@ -20,7 +20,9 @@
 
 #include <exec/types.h>
 
-BOOL CreateMUIInterface (void);
+#include "prefs.h"
+
+BOOL CreateMUIInterface (MDPrefs *prefs_p);
 
 BOOL LoadFile (STRPTR filename_s);
 

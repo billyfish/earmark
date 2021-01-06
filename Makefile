@@ -4,7 +4,7 @@
 #
 # Project: AmiMarkdown
 #
-# Created on: 05-01-2021 17:43:26
+# Created on: 06-01-2021 18:41:58
 #
 #
 
@@ -16,9 +16,9 @@
 
 AmiMarkdown_OBJ := \
 	 src/amimd.o src/editor_gadget.o src/gui.o \
-	 src/md_to_html.o src/memory_buffer.o src/viewer_gadget.o \
-	 md4c/src/entity.o md4c/src/md4c.o md4c/src/md4c-html.o \
-	
+	 src/md_to_html.o src/memory_buffer.o src/settings_gadget.o \
+	 src/viewer_gadget.o md4c/src/entity.o md4c/src/md4c.o \
+	 md4c/src/md4c-html.o src/prefs.o
 
 
 ###################################################################
@@ -64,7 +64,7 @@ realclean:
 ###################################################################
 
 AmiMarkdown: $(AmiMarkdown_OBJ)
-	gcc:bin/gcc -o AmiMarkdown.debug $(AmiMarkdown_OBJ) 
+	gcc:bin/gcc -o AmiMarkdown.debug $(AmiMarkdown_OBJ) -lauto
 	cp -f -p AmiMarkdown.debug AmiMarkdown
 
 
@@ -101,4 +101,10 @@ md4c/src/md4c.o: md4c/src/md4c.c
 md4c/src/md4c-html.o: md4c/src/md4c-html.c md4c/src/md4c-html.h md4c/src/md4c.h \
 	
 	$(CC) -c md4c/src/md4c-html.c -o md4c/src/md4c-html.o $(CFLAGS)
+
+src/prefs.o: src/prefs.c
+	$(CC) -c src/prefs.c -o src/prefs.o $(CFLAGS)
+
+src/settings_gadget.o: src/settings_gadget.c
+	$(CC) -c src/settings_gadget.c -o src/settings_gadget.o $(CFLAGS)
 

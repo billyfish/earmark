@@ -24,7 +24,7 @@
 
 #include "debugging_utils.h"
 #include "gui.h"
-
+#include "prefs.h"
 
 //#include "memwatch.h"
 
@@ -73,30 +73,28 @@ static const char USED min_stack[] = "$STACK:102400";
 
 static BOOL OpenLibs (void)
 {
-
-			if (OpenLib (&IntuitionBase, "intuition.library", 53L, (struct Interface **) &IIntuition, "main", 1))
+	if (OpenLib (&IntuitionBase, "intuition.library", 53L, (struct Interface **) &IIntuition, "main", 1))
+		{
+			if (OpenLib (&UtilityBase, "utility.library", 53L, (struct Interface **) &IUtility, "main", 1))
 				{
-					if (OpenLib (&UtilityBase, "utility.library", 53L, (struct Interface **) &IUtility, "main", 1))
+					if (OpenLib (&DOSBase, "dos.library", 53L, (struct Interface **) &IDOS, "main", 1))
 						{
-							if (OpenLib (&DOSBase, "dos.library", 53L, (struct Interface **) &IDOS, "main", 1))
+							if (OpenLib (&AslBase, "asl.library", 53L, (struct Interface **) &IAsl, "main", 1))
 								{
-									if (OpenLib (&AslBase, "asl.library", 53L, (struct Interface **) &IAsl, "main", 1))
+									if (OpenLib (&MUIMasterBase, "muimaster.library", 19L, (struct Interface **) &IMUIMaster, "main", 1))
 										{
-											if (OpenLib (&MUIMasterBase, "muimaster.library", 19L, (struct Interface **) &IMUIMaster, "main", 1))
-												{
-													return TRUE;
-												}
-
-											CloseLib (AslBase, (struct Interface *) IAsl);
+											return TRUE;
 										}
- 									CloseLib (DOSBase, (struct Interface *) IDOS);
+
+									CloseLib (AslBase, (struct Interface *) IAsl);
 								}
-						 	CloseLib (UtilityBase, (struct Interface *) IUtility);
+								CloseLib (DOSBase, (struct Interface *) IDOS);
 						}
-					CloseLib (IntuitionBase, (struct Interface *) IIntuition);
+				 	CloseLib (UtilityBase, (struct Interface *) IUtility);
 				}
-
-
+			CloseLib (IntuitionBase, (struct Interface *) IIntuition);
+		}
+		
 	return FALSE;
 }
 
@@ -110,19 +108,24 @@ static void CloseLibs (void)
 	CloseLib (IntuitionBase, (struct Interface *) IIntuition);
 }
 
-
-
-
 int main (int argc, char *argv [])
 {
 	int result = 0;
 
 	if (OpenLibs ())
 		{
+			MDPrefs *prefs_p;
+			
 			DB (KPRINTF ("%s %ld - Opened Libraries\n", __FILE__, __LINE__));
 
-			CreateMUIInterface ();
+			prefs_p = AllocateMDPrefs ();
 
+			if (prefs_p)
+				{
+					CreateMUIInterface (prefs_p);
+					
+					FreeMDPrefs (prefs_p);
+				}
 
 			CloseLibs ();
 		}		/* if (OpenLibs ()) */

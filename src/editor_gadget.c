@@ -178,7 +178,7 @@ static uint32 MarkdownEditor_Set (Class *class_p, Object *object_p, Msg msg_p)
 			/* Cache the data for the current element */
 			uint32 tag_data = tag_p -> ti_Data;
 
-			DB (KPRINTF ("%s %ld - ti_Tag: %lu ti_Data: %lu\n", __FILE__, __LINE__, tag_p -> ti_Tag, tag_data));
+			DB (KPRINTF ("%s %ld - ti_Tag: MarkdownPrefs_Set %lu ti_Data: %lu\n", __FILE__, __LINE__, tag_p -> ti_Tag, tag_data));
 
 			/* Handle each attribute that we understand */
 			switch (tag_p -> ti_Tag)
