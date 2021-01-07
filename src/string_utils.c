@@ -27,8 +27,6 @@
 
 
 
-
-
 void FreeCopiedString (char *str_p)
 {
 	if (str_p)
