@@ -50,7 +50,7 @@ typedef struct ByteBuffer
  * @return The newly-allocated ByteBuffer or <code>NULL</code> on error.
  * @memberof ByteBuffer
  */
-GRASSROOTS_UTIL_API ByteBuffer *AllocateByteBuffer (size_t initial_size);
+ByteBuffer *AllocateByteBuffer (size_t initial_size);
 
 
 /**
@@ -59,7 +59,7 @@ GRASSROOTS_UTIL_API ByteBuffer *AllocateByteBuffer (size_t initial_size);
  * @param buffer_p The ByteBuffer to free.
  * @memberof ByteBuffer
  */
-GRASSROOTS_UTIL_API void FreeByteBuffer (ByteBuffer *buffer_p);
+void FreeByteBuffer (ByteBuffer *buffer_p);
 
 
 /**
@@ -72,7 +72,7 @@ GRASSROOTS_UTIL_API void FreeByteBuffer (ByteBuffer *buffer_p);
  * upon failure. If the call failed, the contents of the data buffer are preserved.
  * @memberof ByteBuffer
  */
-GRASSROOTS_UTIL_API BOOL ResizeByteBuffer (ByteBuffer *buffer_p, size_t new_size);
+BOOL ResizeByteBuffer (ByteBuffer *buffer_p, size_t new_size);
 
 
 /**
@@ -85,7 +85,7 @@ GRASSROOTS_UTIL_API BOOL ResizeByteBuffer (ByteBuffer *buffer_p, size_t new_size
  * upon failure. If the call failed, the contents of the data buffer are preserved.
  * @memberof ByteBuffer
  */
-GRASSROOTS_UTIL_API BOOL ExtendByteBuffer (ByteBuffer *buffer_p, size_t increment);
+BOOL ExtendByteBuffer (ByteBuffer *buffer_p, size_t increment);
 
 
 /**
@@ -98,7 +98,7 @@ GRASSROOTS_UTIL_API BOOL ExtendByteBuffer (ByteBuffer *buffer_p, size_t incremen
  * upon failure. If the call failed, the contents of the data buffer are preserved.
  * @memberof ByteBuffer
  */
-GRASSROOTS_UTIL_API BOOL AppendToByteBuffer (ByteBuffer *buffer_p, const void *data_p, const size_t data_length);
+BOOL AppendToByteBuffer (ByteBuffer *buffer_p, const void *data_p, const size_t data_length);
 
 
 /**
@@ -110,7 +110,7 @@ GRASSROOTS_UTIL_API BOOL AppendToByteBuffer (ByteBuffer *buffer_p, const void *d
  * upon failure. If the call failed, the contents of the data buffer are preserved.
  * @memberof ByteBuffer
  */
-GRASSROOTS_UTIL_API BOOL AppendStringToByteBuffer (ByteBuffer *buffer_p, const char * const value_s);
+BOOL AppendStringToByteBuffer (ByteBuffer *buffer_p, const char * const value_s);
 
 
 /**
@@ -124,7 +124,7 @@ GRASSROOTS_UTIL_API BOOL AppendStringToByteBuffer (ByteBuffer *buffer_p, const c
  * @see AppendVarArgsToByteBuffer
  * @memberof ByteBuffer
  */
-GRASSROOTS_UTIL_API BOOL AppendStringsToByteBuffer (ByteBuffer *buffer_p, const char *value_s, ...);
+BOOL AppendStringsToByteBuffer (ByteBuffer *buffer_p, const char *value_s, ...);
 
 
 /**
@@ -138,7 +138,7 @@ GRASSROOTS_UTIL_API BOOL AppendStringsToByteBuffer (ByteBuffer *buffer_p, const 
  * upon failure. If the call failed, the contents of the data buffer are preserved.
  * @memberof ByteBuffer
  */
-GRASSROOTS_UTIL_API BOOL AppendVarArgsToByteBuffer (ByteBuffer *buffer_p, const char *value_s, va_list args);
+BOOL AppendVarArgsToByteBuffer (ByteBuffer *buffer_p, const char *value_s, va_list args);
 
 
 /**
@@ -148,7 +148,7 @@ GRASSROOTS_UTIL_API BOOL AppendVarArgsToByteBuffer (ByteBuffer *buffer_p, const 
  * @param buffer_p The ByteBuffer who will have all of its data emptied.
  * @memberof ByteBuffer
  */
-GRASSROOTS_UTIL_API void ResetByteBuffer (ByteBuffer *buffer_p);
+void ResetByteBuffer (ByteBuffer *buffer_p);
 
 
 /**
@@ -158,7 +158,7 @@ GRASSROOTS_UTIL_API void ResetByteBuffer (ByteBuffer *buffer_p);
  * @return The space remaining by the ByteBuffer in bytes.
  * @memberof ByteBuffer
  */
-GRASSROOTS_UTIL_API size_t GetRemainingSpaceInByteBuffer (const ByteBuffer * const buffer_p);
+size_t GetRemainingSpaceInByteBuffer (const ByteBuffer * const buffer_p);
 
 
 /**
@@ -168,7 +168,7 @@ GRASSROOTS_UTIL_API size_t GetRemainingSpaceInByteBuffer (const ByteBuffer * con
  * @return The space used by the ByteBuffer in bytes.
  * @memberof ByteBuffer
  */
-GRASSROOTS_UTIL_API size_t GetByteBufferSize (const ByteBuffer * const buffer_p);
+size_t GetByteBufferSize (const ByteBuffer * const buffer_p);
 
 
 /**
@@ -178,7 +178,7 @@ GRASSROOTS_UTIL_API size_t GetByteBufferSize (const ByteBuffer * const buffer_p)
  * @return The data as valid c-style string.
  * @memberof ByteBuffer
  */
-GRASSROOTS_UTIL_API const char *GetByteBufferData (const ByteBuffer * const buffer_p);
+const char *GetByteBufferData (const ByteBuffer * const buffer_p);
 
 
 
@@ -190,7 +190,7 @@ GRASSROOTS_UTIL_API const char *GetByteBufferData (const ByteBuffer * const buff
  * @return The data as valid c-style string.
  * @memberof ByteBuffer
  */
-GRASSROOTS_UTIL_API char *DetachByteBufferData (ByteBuffer * const buffer_p);
+char *DetachByteBufferData (ByteBuffer * const buffer_p);
 
 
 
@@ -202,7 +202,7 @@ GRASSROOTS_UTIL_API char *DetachByteBufferData (ByteBuffer * const buffer_p);
  * ByteBuffer, then the ByteBUffer will be reset.
  * @memberof ByteBuffer
  */
-GRASSROOTS_UTIL_API void RemoveFromByteBuffer (ByteBuffer *buffer_p, size_t size);
+void RemoveFromByteBuffer (ByteBuffer *buffer_p, size_t size);
 
 
 /**
@@ -214,7 +214,7 @@ GRASSROOTS_UTIL_API void RemoveFromByteBuffer (ByteBuffer *buffer_p, size_t size
  * @memberof ByteBuffer
  * @see ReplaceChars
  */
-GRASSROOTS_UTIL_API void ReplaceCharsInByteBuffer (ByteBuffer *buffer_p, char old_data, char new_data);
+void ReplaceCharsInByteBuffer (ByteBuffer *buffer_p, char old_data, char new_data);
 
 
 

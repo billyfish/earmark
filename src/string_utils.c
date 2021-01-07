@@ -31,14 +31,14 @@ void FreeCopiedString (char *str_p)
 {
 	if (str_p)
 		{
-			FreeMemory (str_p);
+			IExec -> FreeVec (str_p);
 		}
 }
 
 
 char *EasyCopyToNewString (const char * const src_s)
 {
-	return CopyToNewString (src_s, 0, false);
+	return CopyToNewString (src_s, 0, FALSE);
 }
 
 
@@ -49,7 +49,7 @@ char *EasyCopyToNewString (const char * const src_s)
  * @param trim Whether to trim left and right trailing whitespace or not.
  * @return A newly allocated copy of the source string or NULL if there was an error.
  */
-char *CopyToNewString (const char * const src_p, const size_t l, bool trim)
+char *CopyToNewString (const char * const src_p, const size_t l, BOOL trim)
 {
 	char *dest_p = NULL;
 
@@ -89,7 +89,7 @@ char *CopyToNewString (const char * const src_p, const size_t l, bool trim)
 					if (start_p <= end_p)
 						{
 							ptrdiff_t d = end_p - start_p + 1;
-							dest_p = (char *) AllocMemory (d + 1);
+							dest_p = (char *) IExec ->  AllocVecTags (d + 1, TAG_DONE);
 
 							if (dest_p)
 								{
@@ -103,7 +103,7 @@ char *CopyToNewString (const char * const src_p, const size_t l, bool trim)
 				}
 			else
 				{
-					dest_p = (char *) AllocMemory (len + 1);
+					dest_p = (char *) IExec -> AllocVecTags (len + 1, TAG_DONE);
 
 					if (dest_p)
 						{
@@ -120,9 +120,9 @@ char *CopyToNewString (const char * const src_p, const size_t l, bool trim)
 
 
 
-bool CloneValidString (const char *src_s, char **dest_ss)
+BOOL CloneValidString (const char *src_s, char **dest_ss)
 {
-	bool success_flag = false;
+	BOOL success_flag = FALSE;
 
 
 	if (!IsStringEmpty (src_s))
@@ -132,13 +132,13 @@ bool CloneValidString (const char *src_s, char **dest_ss)
 			if (dest_s)
 				{
 					*dest_ss = dest_s;
-					success_flag = true;
+					success_flag = TRUE;
 				}
 		}
 	else
 		{
 			*dest_ss = NULL;
-			success_flag = true;
+			success_flag = TRUE;
 		}
 
 	return success_flag;
@@ -152,7 +152,7 @@ char *ConcatenateStrings (const char * const first_s, const char * const second_
 	const size_t len1 = (first_s != NULL) ? strlen (first_s) : 0;
 	const size_t len2 = (second_s != NULL) ? strlen (second_s) : 0;
 
-	char *result_s = (char *) AllocMemory (sizeof (char) * (len1 + len2 + 1));
+	char *result_s = (char *) IExec -> AllocVecTags (sizeof (char) * (len1 + len2 + 1)), TAG_DONE;
 
 	if (result_s)
 		{
@@ -195,9 +195,9 @@ void ReplaceCharacter (char *value_s, const char char_to_replace, const char rep
  *
  * You must free the result if result is non-NULL.
  */
-bool SearchAndReplaceInString (const char *src_s, char **dest_ss, const char *to_replace_s, const char *with_s)
+BOOL SearchAndReplaceInString (const char *src_s, char **dest_ss, const char *to_replace_s, const char *with_s)
 {
-	bool success_flag = true;
+	BOOL success_flag = TRUE;
 	char *result_s = NULL; // the return string
 	int len_rep;  // length of rep (the string to remove)
 	int len_with; // length of with (the string to replace rep with)
@@ -233,7 +233,7 @@ bool SearchAndReplaceInString (const char *src_s, char **dest_ss, const char *to
 
 					if (count > 0)
 						{
-							result_s = (char *) AllocMemory (strlen (src_s) + ((with_length - to_replace_length) * count) + 1);
+							result_s = (char *) IExec -> AllocVecTags (strlen (src_s) + ((with_length - to_replace_length) * count) + 1, TAG_DONE);
 
 							if (result_s)
 								{
@@ -258,7 +258,7 @@ bool SearchAndReplaceInString (const char *src_s, char **dest_ss, const char *to
 								}
 							else
 								{
-									success_flag = false;
+									success_flag = FALSE;
 								}
 
 						}		/* if (count > 0) */
@@ -273,7 +273,7 @@ bool SearchAndReplaceInString (const char *src_s, char **dest_ss, const char *to
 
 
 
-bool IsStringEmpty (const char *value_s)
+BOOL IsStringEmpty (const char *value_s)
 {
 	if (value_s)
 		{
@@ -285,22 +285,22 @@ bool IsStringEmpty (const char *value_s)
 						}
 					else
 						{
-							return false;
+							return FALSE;
 						}
 				}
 		}
 
-	return true;
+	return TRUE;
 }
 
 
 
 
 
-bool ReplaceStringValue (char **dest_ss, const char *value_s)
+BOOL ReplaceStringValue (char **dest_ss, const char *value_s)
 {
-	bool success_flag = false;
-	char *new_value_s = CopyToNewString (value_s, 0, false);
+	BOOL success_flag = FALSE;
+	char *new_value_s = CopyToNewString (value_s, 0, FALSE);
 
 	if (new_value_s)
 		{
@@ -310,7 +310,7 @@ bool ReplaceStringValue (char **dest_ss, const char *value_s)
 				}
 
 			*dest_ss = new_value_s;
-			success_flag = true;
+			success_flag = TRUE;
 		}
 
 	return success_flag;
@@ -362,13 +362,13 @@ char *ConcatenateVarargsStrings (const char *value_s, ...)
 
 
 
-bool DoesStringContainWhitespace (const char *value_s)
+BOOL DoesStringContainWhitespace (const char *value_s)
 {
 	while (*value_s != '\0')
 		{
 			if (isspace (*value_s))
 				{
-					return true;
+					return TRUE;
 				}
 			else
 				{
@@ -376,13 +376,13 @@ bool DoesStringContainWhitespace (const char *value_s)
 				}
 		}
 
-	return false;
+	return FALSE;
 }
 
 
-bool DoesStringEndWith (const char *value_s, const char *ending_s)
+BOOL DoesStringEndWith (const char *value_s, const char *ending_s)
 {
-	bool matching_ends_flag = false;
+	BOOL matching_ends_flag = FALSE;
 	const size_t value_length = strlen (value_s);
 	const size_t ending_length = strlen (ending_s);
 
@@ -394,7 +394,7 @@ bool DoesStringEndWith (const char *value_s, const char *ending_s)
 
 			if (strcmp (value_s, ending_s) == 0)
 				{
-					matching_ends_flag = true;
+					matching_ends_flag = TRUE;
 				}
 		}
 

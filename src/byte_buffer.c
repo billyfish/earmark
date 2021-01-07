@@ -57,15 +57,15 @@ void FreeByteBuffer (ByteBuffer *buffer_p)
 }
 
 
-bool ExtendByteBuffer (ByteBuffer *buffer_p, size_t increment)
+BOOL ExtendByteBuffer (ByteBuffer *buffer_p, size_t increment)
 {
 	return ResizeByteBuffer (buffer_p, (buffer_p -> bb_size) + increment);
 }
 
 
-bool ResizeByteBuffer (ByteBuffer *buffer_p, size_t new_size)
+BOOL ResizeByteBuffer (ByteBuffer *buffer_p, size_t new_size)
 {
-	bool success_flag = false;		
+	BOOL success_flag = FALSE;		
 	char *new_data_p = (char *) IExec -> AllocVecTags (new_size, AVT_ClearWithValue, 0, TAG_DONE);
 	
 	if (new_data_p)
@@ -80,7 +80,7 @@ bool ResizeByteBuffer (ByteBuffer *buffer_p, size_t new_size)
 			buffer_p -> bb_data_p = new_data_p;
 			buffer_p -> bb_size = new_size;
 			
-			success_flag = true;
+			success_flag = TRUE;
 		}
 	
 	return success_flag;
@@ -101,16 +101,16 @@ void RemoveFromByteBuffer (ByteBuffer *buffer_p, size_t size)
 }
 
 
-bool AppendStringToByteBuffer (ByteBuffer *buffer_p, const char * const value_s)
+BOOL AppendStringToByteBuffer (ByteBuffer *buffer_p, const char * const value_s)
 {
 	return AppendToByteBuffer (buffer_p, value_s, strlen (value_s));
 }
 
 
-bool AppendToByteBuffer (ByteBuffer *buffer_p, const void *data_p, const size_t data_length)
+BOOL AppendToByteBuffer (ByteBuffer *buffer_p, const void *data_p, const size_t data_length)
 {
 	const size_t space_remaining = GetRemainingSpaceInByteBuffer (buffer_p);
-	bool success_flag = true;
+	BOOL success_flag = TRUE;
 	
 	if (space_remaining <= data_length)
 		{
@@ -130,9 +130,9 @@ bool AppendToByteBuffer (ByteBuffer *buffer_p, const void *data_p, const size_t 
 
 
 
-bool AppendStringsToByteBuffer (ByteBuffer *buffer_p, const char *value_s, ...)
+BOOL AppendStringsToByteBuffer (ByteBuffer *buffer_p, const char *value_s, ...)
 {
-	bool success_flag;
+	BOOL success_flag;
 	va_list args;
 
 	va_start (args, value_s);
@@ -145,10 +145,10 @@ bool AppendStringsToByteBuffer (ByteBuffer *buffer_p, const char *value_s, ...)
 }
 
 
-bool AppendVarArgsToByteBuffer (ByteBuffer *buffer_p, const char *value_s, va_list args)
+BOOL AppendVarArgsToByteBuffer (ByteBuffer *buffer_p, const char *value_s, va_list args)
 {
-	bool success_flag = true;
-	bool loop_flag = true;
+	BOOL success_flag = TRUE;
+	BOOL loop_flag = TRUE;
 	const char *arg_s = value_s;
 
 	while (success_flag && loop_flag)
@@ -160,7 +160,7 @@ bool AppendVarArgsToByteBuffer (ByteBuffer *buffer_p, const char *value_s, va_li
 				}
 			else
 				{
-					loop_flag = false;
+					loop_flag = FALSE;
 				}
 		}
 

@@ -523,10 +523,7 @@ BOOL LoadFile (STRPTR filename_s)
 						{
 							if (IDOS -> FRead (fh_p, content_s, size, 1) == 1)
 								{
-									const size_t filename_length = strlen (filename_s);
-									const size_t app_name_length = strlen (s_app_name_s);
 									CONST_STRPTR join_s = " - ";
-									const size_t join_length = strlen (join_s);
 									STRPTR title_s = NULL;
 									
 									
@@ -535,23 +532,10 @@ BOOL LoadFile (STRPTR filename_s)
 									IIntuition -> IDoMethod (s_editor_p, MUIM_TextEditor_ClearText);
 									IIntuition -> SetAttrs (s_editor_p, MUIA_TextEditor_Contents, content_s, TAG_DONE);
 													
-									title_s = IExec -> AllocVecTags (filename_length + app_name_length + join_length + 1, TAG_DONE);
+									title_s = ConcatenateVarArgsStrings (s_app_name_s, join_s, filename_s, NULL);
 									
 									if (title_s)
-										{
-											STRPTR temp_p = title_s;
-											
-											IExec -> CopyMem (s_app_name_s, temp_p, app_name_length);
-											temp_p += app_name_length;
-									
-											IExec -> CopyMem (join_s, temp_p, join_length);
-											temp_p += join_length;
-											
-											IExec -> CopyMem (filename_s, temp_p, filename_length);
-											temp_p += filename_length + 1;
-											
-											*temp_p = '\0';
-											
+										{											
 											IIntuition -> SetAttrs (s_window_p, MUIA_Window_Title, title_s, TAG_DONE);		
 										
 											DB (KPRINTF ("%s %ld - LoadFile setting editor filename to %s (%lu)\n", __FILE__, __LINE__, filename_s, (uint32) filename_s));											

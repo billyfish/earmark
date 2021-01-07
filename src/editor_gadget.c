@@ -204,17 +204,11 @@ static uint32 MarkdownEditor_Set (Class *class_p, Object *object_p, Msg msg_p)
 							CONST_STRPTR filename_s = (CONST_STRPTR) tag_data;
 							
 							if (filename_s)
-								{
-									const size_t l = strlen (filename_s);
-									
-									STRPTR copied_filename_s = (STRPTR) IExec -> AllocVecTags (l + 1, TAG_DONE);
+								{									
+									STRPTR copied_filename_s = EasyCOpyToNewString (fileame_s);
 									
 									if (copied_filename_s)
 										{
-											IExec -> CopyMem (filename_s, copied_filename_s, l);
-											
-											* (copied_filename_s + l) = '\0';
-											
 											if (md_p -> med_filename_s)
 												{
 													IExec -> FreeVec (md_p -> med_filename_s);	
@@ -243,26 +237,14 @@ static uint32 MarkdownEditor_Set (Class *class_p, Object *object_p, Msg msg_p)
 							
 							if (marked_text_s)
 								{									
+									STRPTR replacement_s; 
+
 									DB (KPRINTF ("%s %ld - ti_Tag: MarkdownEditor_Set MEA_SurroundSelection marked text = \"%s\"\n", __FILE__, __LINE__, marked_text_s));				
-									const size_t surround_length = strlen (surround_s);
-									const size_t marked_text_length = strlen (marked_text_s);
-									STRPTR replacement_s = (STRPTR) IExec -> AllocVecTags ((surround_length << 1) + marked_text_length + 1, TAG_DONE);
+
+									replacement_s =  ConcatenateVarArgsStrings (surround_s, marked_text_s, surround_s, NULL); 
 									
 									if (replacement_s)
 										{
-											STRPTR cursor_p = replacement_s;
-											
-											IExec -> CopyMem (surround_s, cursor_p, surround_length);
-											cursor_p += surround_length;
-											
-											IExec -> CopyMem (marked_text_s, cursor_p, marked_text_length);
-											cursor_p += marked_text_length;
-											
-											IExec -> CopyMem (surround_s, cursor_p, surround_length);
-											cursor_p += surround_length;
-											
-											*cursor_p = '\0';											
-											
 											IIntuition -> IDoMethod (object_p, MUIM_TextEditor_Replace, replacement_s);
 											
 											IExec -> FreeVec (replacement_s);	
@@ -392,26 +374,10 @@ static uint32 MarkdownEditor_Convert (Class *class_p, Object *editor_p)
 						{
  							const char *prefix_s = "URL:file=";
 							const char *suffix_s = ".html";
-							const size_t prefix_length = strlen (prefix_s);
-							const size_t suffix_length = strlen (suffix_s);
-							size_t filename_length = strlen (md_p -> med_filename_s);
- 							char *html_filename_s = (char *) IExec -> AllocVecTags (prefix_length + suffix_length + filename_length + 1, TAG_DONE);
+ 							STRPTR html_filename_s = (STRPTR)  ConcatenateVarArgsStrings (prefix)s, md_p -> med_filename_s, suffix_s, NULL);
 							
 							if (html_filename_s)
 								{
-									STRPTR cursor_p = html_filename_s;
-									
-									IExec -> CopyMem (prefix_s, cursor_p, prefix_length);
-									cursor_p += prefix_length;
-									
-									IExec -> CopyMem (md_p -> med_filename_s, cursor_p, filename_length);
-									cursor_p += filename_length;
-									
-									IExec -> CopyMem (suffix_s, cursor_p, suffix_length);
-									cursor_p += suffix_length;
-									
-									*cursor_p = '\0';
-									
 									if (SaveFile (html_filename_s + prefix_length, html_s))
 										{
 											/*
