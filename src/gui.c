@@ -404,7 +404,8 @@ static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI
 	if (app_p)
 		{
 			Object *menu_item_p;
-
+			MDPrefs *prefs_p = NULL;
+			
   		DB (KPRINTF ("%s %ld - Application created\n", __FILE__, __LINE__));
 
 			/*
@@ -436,19 +437,22 @@ static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI
 			IIntuition -> IDoMethod (menu_item_p, MUIM_Notify, MUIA_Menuitem_Trigger, MUIV_EveryTime,
 				s_editor_p, 1, MEM_MDEditor_Convert);
 
-			IIntuition -> SetAttrs (s_editor_p, MEA_Viewer, s_viewer_p);
+			IIntuition -> SetAttrs (s_editor_p, MEA_Viewer, s_viewer_p, TAG_DONE);
 
-			IIntuition -> SetAttrs (s_editor_p, MUIA_TextEditor_Slider, editor_scrollbar_p);
+			IIntuition -> GetAttrs (s_settings_p, MSA_Prefs, &prefs_p);
+			IIntuition -> SetAttrs (s_editor_p, MEA_Prefs, prefs_p, TAG_DONE);
+					
+			IIntuition -> SetAttrs (s_editor_p, MUIA_TextEditor_Slider, editor_scrollbar_p, TAG_DONE);
 
 			IIntuition -> IDoMethod (about_box_p, MUIM_Notify, MUIA_Window_CloseRequest, TRUE, MUIV_Notify_Self, 3, MUIM_Set, MUIA_Window_Open, FALSE);
 
-			IIntuition -> SetAttrs (load_button_p, MUIA_ShortHelp, "Load a Markdown file");
+			IIntuition -> SetAttrs (load_button_p, MUIA_ShortHelp, "Load a Markdown file", TAG_DONE);
 			IIntuition -> IDoMethod (load_button_p, MUIM_Notify, MUIA_Pressed, FALSE, s_editor_p, 1, MEM_MDEditor_Load);
 
-			IIntuition -> SetAttrs (save_button_p, MUIA_ShortHelp, "Save the editor content to a Markdown file");
+			IIntuition -> SetAttrs (save_button_p, MUIA_ShortHelp, "Save the editor content to a Markdown file", TAG_DONE);
 			IIntuition -> IDoMethod (save_button_p, MUIM_Notify, MUIA_Pressed, FALSE, s_editor_p, 1, MEM_MDEditor_Save);
 
-			IIntuition -> SetAttrs (update_button_p, MUIA_ShortHelp, "Update the generated HTML for the Markdown");
+			IIntuition -> SetAttrs (update_button_p, MUIA_ShortHelp, "Update the generated HTML for the Markdown", TAG_DONE);
       IIntuition -> IDoMethod (update_button_p, MUIM_Notify, MUIA_Pressed, FALSE, s_editor_p, 1, MEM_MDEditor_Convert);
 					
 		}		/* if (app_p) */
@@ -508,6 +512,9 @@ BOOL LoadFile (STRPTR filename_s)
 											*temp_p = '\0';
 											
 											IIntuition -> SetAttrs (s_window_p, MUIA_Window_Title, title_s, TAG_DONE);		
+										
+											DB (KPRINTF ("%s %ld - LoadFile setting editor filename to %s (%lu)\n", __FILE__, __LINE__, filename_s, (uint32) filename_s));											
+											IIntuition -> SetAttrs (s_editor_p, MEA_Filename, filename_s, TAG_DONE);
 										}
 																		
 									success_flag = TRUE;
@@ -523,7 +530,7 @@ BOOL LoadFile (STRPTR filename_s)
 }
 
 
-BOOL SaveFile (STRPTR filename_s)
+BOOL SaveFile (STRPTR filename_s, CONST CONST_STRPTR text_s)
 {
 	BOOL success_flag = FALSE;
 
@@ -531,16 +538,11 @@ BOOL SaveFile (STRPTR filename_s)
 
 	if (fh_p)
 		{
-			STRPTR text_s = (STRPTR) IIntuition -> IDoMethod (s_editor_p, MUIM_TextEditor_ExportText);
+			const uint32 size = strlen (text_s);
 
-			if (text_s)
+			if (IDOS -> FWrite (fh_p, text_s, size, 1) == 1)
 				{
-					const uint32 size = strlen (text_s);
-
-					if (IDOS -> FWrite (fh_p, text_s, size, 1) == 1)
-						{
-							success_flag = TRUE;
-						}
+					success_flag = TRUE;
 				}
 
 			IDOS -> FClose (fh_p);

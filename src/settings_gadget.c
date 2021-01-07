@@ -53,6 +53,8 @@ static uint32 MarkdownSettings_New (Class *class_p, Object *object_p, Msg msg_p)
 
 static uint32 MarkdownSettings_Set (Class *class_p, Object *object_p, Msg msg_p);
 
+static uint32 MarkdownSettings_Get (Class *class_p, Object *object_p, Msg msg_p);
+
 static uint32 MarkdownSettings_Dispose (Class *class_p, Object *object_p, Msg msg_p);
 
 
@@ -107,6 +109,11 @@ static uint32 MarkdownSettingsDispatcher (Class *class_p,  Object *object_p, Msg
 			case OM_DISPOSE:
 				DB (KPRINTF ("%s %ld - MarkdownSettings Dispatcher: Dispose\n", __FILE__, __LINE__));
 				res = MarkdownSettings_Dispose (class_p, object_p, msg_p);
+				break;
+				
+			case OM_GET:
+				DB (KPRINTF ("%s %ld - MarkdownSettings Dispatcher: Get\n", __FILE__, __LINE__));
+				res = MarkdownSettings_Get (class_p, object_p, msg_p);				
 				break;
 
 			default:
@@ -197,48 +204,48 @@ static Object *GetSettingsObject (MDPrefs *prefs_p, Object *parent_p)
 
 			IIntuition -> IDoMethod (parent_p, OM_ADDMEMBER, child_object_p);							
 
-			IIntuition -> SetAttrs (dialect_p, MUIA_ShortHelp, "Choose which Markdown dialect to use");
-			IIntuition -> IDoMethod (dialect_p, MUIM_Notify, MUIA_Radio_Active, MUIV_EveryTime, parent_p, 3, MUIM_Set, MPA_Dialect, MUIV_TriggerValue);
+			IIntuition -> SetAttrs (dialect_p, MUIA_ShortHelp, "Choose which Markdown dialect to use", TAG_DONE);
+			IIntuition -> IDoMethod (dialect_p, MUIM_Notify, MUIA_Radio_Active, MUIV_EveryTime, parent_p, 3, MUIM_Set, MSA_Dialect, MUIV_TriggerValue);
 
-			IIntuition -> SetAttrs (tables_cb_p, MUIA_ShortHelp, "Enable support for tables");
-			IIntuition -> SetAttrs (tables_cb_p, MUIA_Selected, prefs_p -> mdp_tables); 
-			IIntuition -> IDoMethod (tables_cb_p, MUIM_Notify, MUIA_Selected, MUIV_EveryTime, parent_p, 3, MUIM_Set, MPA_EnableTables, MUIV_TriggerValue);
+			IIntuition -> SetAttrs (tables_cb_p, MUIA_ShortHelp, "Enable support for tables", TAG_DONE);
+			IIntuition -> SetAttrs (tables_cb_p, MUIA_Selected, prefs_p -> mdp_tables, TAG_DONE); 
+			IIntuition -> IDoMethod (tables_cb_p, MUIM_Notify, MUIA_Selected, MUIV_EveryTime, parent_p, 3, MUIM_Set, MSA_EnableTables, MUIV_TriggerValue);
 				
-			IIntuition -> SetAttrs (task_lists_cb_p, MUIA_ShortHelp, "Enable support for task lists");			
-			IIntuition -> SetAttrs (task_lists_cb_p, MUIA_Selected, prefs_p -> mdp_task_lists); 
-			IIntuition -> IDoMethod (task_lists_cb_p, MUIM_Notify, MUIA_Selected, MUIV_EveryTime, parent_p, 3, MUIM_Set, MPA_EnableTaskLists, MUIV_TriggerValue);
+			IIntuition -> SetAttrs (task_lists_cb_p, MUIA_ShortHelp, "Enable support for task lists", TAG_DONE);			
+			IIntuition -> SetAttrs (task_lists_cb_p, MUIA_Selected, prefs_p -> mdp_task_lists, TAG_DONE); 
+			IIntuition -> IDoMethod (task_lists_cb_p, MUIM_Notify, MUIA_Selected, MUIV_EveryTime, parent_p, 3, MUIM_Set, MSA_EnableTaskLists, MUIV_TriggerValue);
 												
-			IIntuition -> SetAttrs (collapse_whitespace_cb_p, MUIA_ShortHelp, "Collapse non-trivial whitespace");			
-			IIntuition -> SetAttrs (collapse_whitespace_cb_p, MUIA_Selected, prefs_p -> mdp_collapse_whitespace); 
-			IIntuition -> IDoMethod (collapse_whitespace_cb_p, MUIM_Notify, MUIA_Selected, MUIV_EveryTime, parent_p, 3, MUIM_Set, MPA_CollapseWhitespace, MUIV_TriggerValue);
+			IIntuition -> SetAttrs (collapse_whitespace_cb_p, MUIA_ShortHelp, "Collapse non-trivial whitespace", TAG_DONE);			
+			IIntuition -> SetAttrs (collapse_whitespace_cb_p, MUIA_Selected, prefs_p -> mdp_collapse_whitespace, TAG_DONE); 
+			IIntuition -> IDoMethod (collapse_whitespace_cb_p, MUIM_Notify, MUIA_Selected, MUIV_EveryTime, parent_p, 3, MUIM_Set, MSA_CollapseWhitespace, MUIV_TriggerValue);
 															
-			IIntuition -> SetAttrs (strike_through_cb_p, MUIA_ShortHelp, "Enable strike-through span elements");			
-			IIntuition -> SetAttrs (strike_through_cb_p, MUIA_Selected, prefs_p -> mdp_strike_though_spans); 
-			IIntuition -> IDoMethod (strike_through_cb_p, MUIM_Notify, MUIA_Selected, MUIV_EveryTime, parent_p, 3, MUIM_Set, MPA_StrikeThroughSpans, MUIV_TriggerValue);
+			IIntuition -> SetAttrs (strike_through_cb_p, MUIA_ShortHelp, "Enable strike-through span elements", TAG_DONE);			
+			IIntuition -> SetAttrs (strike_through_cb_p, MUIA_Selected, prefs_p -> mdp_strike_though_spans, TAG_DONE); 
+			IIntuition -> IDoMethod (strike_through_cb_p, MUIM_Notify, MUIA_Selected, MUIV_EveryTime, parent_p, 3, MUIM_Set, MSA_StrikeThroughSpans, MUIV_TriggerValue);
 									
-			IIntuition -> SetAttrs (underline_span_cb_p, MUIA_ShortHelp, "Enable underline span elements");			
-			IIntuition -> SetAttrs (underline_span_cb_p, MUIA_Selected, prefs_p -> mdp_underline_spans); 
-			IIntuition -> IDoMethod (underline_span_cb_p, MUIM_Notify, MUIA_Selected, MUIV_EveryTime, parent_p, 3, MUIM_Set, MPA_UnderlineSpans, MUIV_TriggerValue);
+			IIntuition -> SetAttrs (underline_span_cb_p, MUIA_ShortHelp, "Enable underline span elements", TAG_DONE);			
+			IIntuition -> SetAttrs (underline_span_cb_p, MUIA_Selected, prefs_p -> mdp_underline_spans, TAG_DONE); 
+			IIntuition -> IDoMethod (underline_span_cb_p, MUIM_Notify, MUIA_Selected, MUIV_EveryTime, parent_p, 3, MUIM_Set, MSA_UnderlineSpans, MUIV_TriggerValue);
 									
-			IIntuition -> SetAttrs (latex_math_span_cb_p, MUIA_ShortHelp, "Enable LaTeX-style mathematics span elements");			
-			IIntuition -> SetAttrs (latex_math_span_cb_p, MUIA_Selected, prefs_p -> mdp_latex_maths); 
-			IIntuition -> IDoMethod (latex_math_span_cb_p, MUIM_Notify, MUIA_Selected, MUIV_EveryTime, parent_p, 3, MUIM_Set, MPA_LatexMaths, MUIV_TriggerValue);
+			IIntuition -> SetAttrs (latex_math_span_cb_p, MUIA_ShortHelp, "Enable LaTeX-style mathematics span elements", TAG_DONE);			
+			IIntuition -> SetAttrs (latex_math_span_cb_p, MUIA_Selected, prefs_p -> mdp_latex_maths, TAG_DONE); 
+			IIntuition -> IDoMethod (latex_math_span_cb_p, MUIM_Notify, MUIA_Selected, MUIV_EveryTime, parent_p, 3, MUIM_Set, MSA_LatexMaths, MUIV_TriggerValue);
 			
-			IIntuition -> SetAttrs (raw_html_blocks_cb_p, MUIA_ShortHelp, "Allow HTML span elements in the markdown source");
-			IIntuition -> SetAttrs (raw_html_blocks_cb_p, MUIA_Selected, prefs_p -> mdp_html_blocks); 
-			IIntuition -> IDoMethod (raw_html_blocks_cb_p, MUIM_Notify, MUIA_Selected, MUIV_EveryTime, parent_p, 3, MUIM_Set, MPA_HTMLBlocks, MUIV_TriggerValue);
+			IIntuition -> SetAttrs (raw_html_blocks_cb_p, MUIA_ShortHelp, "Allow HTML span elements in the markdown source", TAG_DONE);
+			IIntuition -> SetAttrs (raw_html_blocks_cb_p, MUIA_Selected, prefs_p -> mdp_html_blocks, TAG_DONE); 
+			IIntuition -> IDoMethod (raw_html_blocks_cb_p, MUIM_Notify, MUIA_Selected, MUIV_EveryTime, parent_p, 3, MUIM_Set, MSA_HTMLBlocks, MUIV_TriggerValue);
 						
-			IIntuition -> SetAttrs (raw_html_spans_cb_p, MUIA_ShortHelp, "Allow HTML span elements in the markdown source");			
-			IIntuition -> SetAttrs (raw_html_spans_cb_p, MUIA_Selected, prefs_p -> mdp_html_spans); 
-			IIntuition -> IDoMethod (raw_html_spans_cb_p, MUIM_Notify, MUIA_Selected, MUIV_EveryTime, parent_p, 3, MUIM_Set, MPA_HTMLSpans, MUIV_TriggerValue);
+			IIntuition -> SetAttrs (raw_html_spans_cb_p, MUIA_ShortHelp, "Allow HTML span elements in the markdown source", TAG_DONE);			
+			IIntuition -> SetAttrs (raw_html_spans_cb_p, MUIA_Selected, prefs_p -> mdp_html_spans, TAG_DONE); 
+			IIntuition -> IDoMethod (raw_html_spans_cb_p, MUIM_Notify, MUIA_Selected, MUIV_EveryTime, parent_p, 3, MUIM_Set, MSA_HTMLSpans, MUIV_TriggerValue);
 						
-			IIntuition -> SetAttrs (indented_code_blocks_cb_p, MUIA_ShortHelp, "Allow indented code blocks in the markdown source");			
-			IIntuition -> SetAttrs (indented_code_blocks_cb_p, MUIA_Selected, prefs_p -> mdp_indented_code_blocks); 
-			IIntuition -> IDoMethod (indented_code_blocks_cb_p, MUIM_Notify, MUIA_Selected, MUIV_EveryTime, parent_p, 3, MUIM_Set, MPA_IndentedCodeBlocks, MUIV_TriggerValue);
+			IIntuition -> SetAttrs (indented_code_blocks_cb_p, MUIA_ShortHelp, "Allow indented code blocks in the markdown source", TAG_DONE);			
+			IIntuition -> SetAttrs (indented_code_blocks_cb_p, MUIA_Selected, prefs_p -> mdp_indented_code_blocks, TAG_DONE); 
+			IIntuition -> IDoMethod (indented_code_blocks_cb_p, MUIM_Notify, MUIA_Selected, MUIV_EveryTime, parent_p, 3, MUIM_Set, MSA_IndentedCodeBlocks, MUIV_TriggerValue);
 						
-			IIntuition -> SetAttrs (translate_entities_cb_p, MUIA_ShortHelp, "Translate HTML entities");	
-			IIntuition -> SetAttrs (translate_entities_cb_p, MUIA_Selected, prefs_p -> mdp_translate_html_entities); 			
-			IIntuition -> IDoMethod (translate_entities_cb_p, MUIM_Notify, MUIA_Selected, MUIV_EveryTime, parent_p, 3, MUIM_Set, MPA_TranslateEntities, MUIV_TriggerValue);			
+			IIntuition -> SetAttrs (translate_entities_cb_p, MUIA_ShortHelp, "Translate HTML entities", TAG_DONE);	
+			IIntuition -> SetAttrs (translate_entities_cb_p, MUIA_Selected, prefs_p -> mdp_translate_html_entities, TAG_DONE); 			
+			IIntuition -> IDoMethod (translate_entities_cb_p, MUIM_Notify, MUIA_Selected, MUIV_EveryTime, parent_p, 3, MUIM_Set, MSA_TranslateEntities, MUIV_TriggerValue);			
 		}					
 					
 					
@@ -253,6 +260,8 @@ static uint32 MarkdownSettings_New (Class *class_p, Object *object_p, Msg msg_p)
 	if (prefs_p)
 		{			
 			Object *parent_p = (Object *) IIntuition -> IDoSuperMethodA (class_p, object_p, msg_p);
+
+			DB (KPRINTF ("%s %ld - MarkdownSettings_New: Allocated prefs at %lu\n", __FILE__, __LINE__, prefs_p));
 	
 			if (parent_p)
 				{
@@ -316,56 +325,56 @@ static uint32 MarkdownSettings_Set (Class *class_p, Object *object_p, Msg msg_p)
 					/* Put a case statement here for each attribute that your
 					 * function understands */
 				 
-					case MPA_Dialect:
-						DB (KPRINTF ("%s %ld - MarkdownSettings_Set -> mdp_dialect to lu", __FILE__, __LINE__, tag_data));							
+					case MSA_Dialect:
+						DB (KPRINTF ("%s %ld - MarkdownSettings_Set -> mdp_dialect to %lu", __FILE__, __LINE__, tag_data));							
 						break;
 					 
-					case MPA_EnableTables:
+					case MSA_EnableTables:
 						DB (KPRINTF ("%s %ld - MarkdownSettings_Set -> mdp_tables to %lu", __FILE__, __LINE__, tag_data));
 						settings_p -> mdp_tables = tag_data;
 						break;
 
-					case MPA_EnableTaskLists:
+					case MSA_EnableTaskLists:
 						DB (KPRINTF ("%s %ld - MarkdownSettings_Set -> mdp_task_listss to %lu", __FILE__, __LINE__, tag_data));
 						settings_p -> mdp_task_lists = tag_data;
 						break;
 
-					case MPA_CollapseWhitespace:
+					case MSA_CollapseWhitespace:
 						DB (KPRINTF ("%s %ld - MarkdownSettings_Set -> mdp_collapse_whitespace to %lu", __FILE__, __LINE__, tag_data));						
 						settings_p -> mdp_collapse_whitespace = tag_data;
 						break;
 
-					case MPA_StrikeThroughSpans:
+					case MSA_StrikeThroughSpans:
 						DB (KPRINTF ("%s %ld - MarkdownSettings_Set -> mdp_strike_though_spans to %lu", __FILE__, __LINE__, tag_data));
 						settings_p -> mdp_strike_though_spans = tag_data;
 						break;
 
-					case MPA_UnderlineSpans:
+					case MSA_UnderlineSpans:
 						DB (KPRINTF ("%s %ld - MarkdownSettings_Set -> mdp_strike_though_spans to %lu", __FILE__, __LINE__, tag_data));						
 						settings_p -> mdp_underline_spans = tag_data;
 						break;
 
-					case MPA_LatexMaths:
+					case MSA_LatexMaths:
 						DB (KPRINTF ("%s %ld - MarkdownSettings_Set -> mdp_underline_spans to %lu", __FILE__, __LINE__, tag_data));						
 						settings_p -> mdp_latex_maths = tag_data;
 						break;
 						
-					case MPA_HTMLBlocks:
+					case MSA_HTMLBlocks:
 						DB (KPRINTF ("%s %ld - MarkdownSettings_Set -> mdp_html_blocks to %lu", __FILE__, __LINE__, tag_data));						
 						settings_p -> mdp_html_blocks = tag_data;
 						break;
 
-					case MPA_HTMLSpans:
+					case MSA_HTMLSpans:
 						DB (KPRINTF ("%s %ld - MarkdownSettings_Set -> mdp_html_spans to %lu", __FILE__, __LINE__, tag_data));						
 						settings_p -> mdp_html_spans = tag_data;
 						break;
 						
-					case MPA_IndentedCodeBlocks:
+					case MSA_IndentedCodeBlocks:
 						DB (KPRINTF ("%s %ld - MarkdownSettings_Set -> mdp_indented_code_blocks to %lu", __FILE__, __LINE__, tag_data));						
 						settings_p -> mdp_indented_code_blocks = tag_data;
 						break;
 
-					case MPA_TranslateEntities:
+					case MSA_TranslateEntities:
 						DB (KPRINTF ("%s %ld - MarkdownSettings_Set -> mdp_translate_html_entities to %lu", __FILE__, __LINE__, tag_data));						
 						settings_p -> mdp_translate_html_entities = tag_data;
 						break;
@@ -383,5 +392,31 @@ static uint32 MarkdownSettings_Set (Class *class_p, Object *object_p, Msg msg_p)
 	return retval;
 }
 
+
+
+static uint32 MarkdownSettings_Get (Class *class_p, Object *object_p, Msg msg_p)
+{
+	uint32 retval;
+	MarkdownSettingsData *md_p = INST_DATA (class_p, object_p);
+	MDPrefs *settings_p = md_p -> msd_prefs_p;
+	struct opGet *op_p = (struct opGet *) msg_p;
+	uint32 *store_p = op_p -> opg_Storage;
+
+	DB (KPRINTF ("%s %ld - MarkdownSettings_Get enter\n", __FILE__, __LINE__));
+
+	switch (op_p -> opg_AttrID)
+		{
+			case MSA_Prefs:
+				DB (KPRINTF ("%s %ld - MarkdownSettings_Get -> MSA_Prefs to %lu", __FILE__, __LINE__, settings_p));
+				retval = *store_p = (uint32) settings_p;							
+				break;	
+	
+			default:
+				retval = IIntuition->IDoSuperMethodA (class_p, object_p, msg_p);
+				break;
+		}
+
+	return retval;
+}
 
 

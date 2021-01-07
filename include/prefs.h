@@ -30,7 +30,7 @@ typedef enum
 
 typedef struct MDPrefs
 {
-	Dialect mdp_dialect;
+	uint32 mdp_dialect;
 	uint32 mdp_tables;
 	uint32 mdp_task_lists;
 	uint32 mdp_collapse_whitespace;

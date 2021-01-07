@@ -29,29 +29,32 @@
 /******* ATTRIBUTES ******/
 /*************************/
 
-#define MP_Dummy (TAGBASE_BILLY | 0x00000200)
+#define MS_Dummy (TAGBASE_BILLY | 0x00000200)
 
-#define MPA_EnableTables (MP_Dummy + 1)
+#define MSA_EnableTables (MS_Dummy + 1)
 
-#define MPA_EnableTaskLists (MP_Dummy + 2)
+#define MSA_EnableTaskLists (MS_Dummy + 2)
 
-#define MPA_CollapseWhitespace (MP_Dummy + 3)
+#define MSA_CollapseWhitespace (MS_Dummy + 3)
 
-#define MPA_StrikeThroughSpans (MP_Dummy + 4)
+#define MSA_StrikeThroughSpans (MS_Dummy + 4)
 
-#define MPA_UnderlineSpans (MP_Dummy + 5)
+#define MSA_UnderlineSpans (MS_Dummy + 5)
 
-#define MPA_LatexMaths (MP_Dummy + 6)
+#define MSA_LatexMaths (MS_Dummy + 6)
 
-#define MPA_HTMLBlocks (MP_Dummy + 7)
+#define MSA_HTMLBlocks (MS_Dummy + 7)
 
-#define MPA_HTMLSpans (MP_Dummy + 8)
+#define MSA_HTMLSpans (MS_Dummy + 8)
 
-#define MPA_IndentedCodeBlocks (MP_Dummy + 9)
+#define MSA_IndentedCodeBlocks (MS_Dummy + 9)
 
-#define MPA_TranslateEntities (MP_Dummy + 10)
+#define MSA_TranslateEntities (MS_Dummy + 10)
 
-#define MPA_Dialect (MP_Dummy + 11)
+#define MSA_Dialect (MS_Dummy + 11)
+
+
+#define MSA_Prefs (MS_Dummy + 12)
 
 
 /*************************/

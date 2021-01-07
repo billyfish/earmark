@@ -16,12 +16,14 @@
 
 
 #include <stdio.h>
+#include <string.h>
 
 #include <clib/alib_protos.h>
 
 #include <exec/memory.h>
 #include <exec/types.h>
 
+#include <proto/dos.h>
 #include <proto/exec.h>
 #include <proto/muimaster.h>
 #include <proto/utility.h>
@@ -38,10 +40,12 @@
 #include "md4c-html.h"
 
 #include "gui.h"
+#include "prefs.h"
 
 typedef struct MarkdownEditorData
 {
 	Object *med_viewer_p;
+	MDPrefs *med_prefs_p; 
 	STRPTR med_filename_s;
 } MarkdownEditorData;
 
@@ -64,7 +68,7 @@ static uint32 MarkdownEditor_Load (Class *class_p, Object *editor_p);
 
 static uint32 MarkdownEditor_Save (Class *class_p, Object *editor_p);
 
-static void SetFile (MarkdownEditorData *md_p, STRPTR filename_s);
+
 
 /**************************************************/
 /**************** PUBLIC FUNCTIONS ****************/
@@ -148,6 +152,7 @@ static uint32 MarkdownEditor_New (Class *class_p, Object *object_p, Msg msg_p)
 
 			md_p -> med_filename_s = NULL;
 			md_p -> med_viewer_p = NULL;
+			md_p -> med_prefs_p = NULL;
 
 
 			DB (KPRINTF ("%s %ld - MarkdownEditor_New: Adding info obj\n", __FILE__, __LINE__));
@@ -178,7 +183,7 @@ static uint32 MarkdownEditor_Set (Class *class_p, Object *object_p, Msg msg_p)
 			/* Cache the data for the current element */
 			uint32 tag_data = tag_p -> ti_Data;
 
-			DB (KPRINTF ("%s %ld - ti_Tag: MarkdownPrefs_Set %lu ti_Data: %lu\n", __FILE__, __LINE__, tag_p -> ti_Tag, tag_data));
+			DB (KPRINTF ("%s %ld - ti_Tag: MarkdownEditor_Set %lu ti_Data: %lu\n", __FILE__, __LINE__, tag_p -> ti_Tag, tag_data));
 
 			/* Handle each attribute that we understand */
 			switch (tag_p -> ti_Tag)
@@ -187,6 +192,46 @@ static uint32 MarkdownEditor_Set (Class *class_p, Object *object_p, Msg msg_p)
 					 * function understands */
 					case MEA_Viewer:
 						md_p -> med_viewer_p = (Object *) tag_data;
+						break;
+						
+					case MEA_Prefs:
+						md_p -> med_prefs_p = (MDPrefs *) tag_data;
+						break;
+
+					case MEA_Filename:
+						{
+							CONST_STRPTR filename_s = (CONST_STRPTR) tag_data;
+							
+							if (filename_s)
+								{
+									const size_t l = strlen (filename_s);
+									
+									STRPTR copied_filename_s = (STRPTR) IExec -> AllocVecTags (l + 1, TAG_DONE);
+									
+									if (copied_filename_s)
+										{
+											IExec -> CopyMem (filename_s, copied_filename_s, l);
+											
+											* (copied_filename_s + l) = '\0';
+											
+											if (md_p -> med_filename_s)
+												{
+													IExec -> FreeVec (md_p -> med_filename_s);	
+												}
+												
+											md_p -> med_filename_s = copied_filename_s;
+										}
+								}
+							else
+								{
+									if (md_p -> med_filename_s)
+										{											
+											IExec -> FreeVec (md_p -> med_filename_s);											
+											md_p -> med_filename_s;
+										}					
+								}
+							
+						}
 						break;
 
 					/* We don't understand this attribute */
@@ -203,19 +248,6 @@ static uint32 MarkdownEditor_Set (Class *class_p, Object *object_p, Msg msg_p)
 
 
 
-static void SetFile (MarkdownEditorData *md_p, STRPTR filename_s)
-{
-	md_p -> med_filename_s = filename_s;
-
-	if (filename_s)
-		{
-			APTR list_p;
-			LONG l1, l2;
-			STRPTR buffer_s = NULL;
-
-		}		/* if (mol_p) */
-
-}
 
 
 
@@ -223,20 +255,163 @@ static uint32 MarkdownEditor_Convert (Class *class_p, Object *editor_p)
 {
 	uint32 res = 0;
 	MarkdownEditorData *md_p = INST_DATA (class_p, editor_p);
+	MDPrefs *prefs_p = md_p -> med_prefs_p;
 	STRPTR text_s = (STRPTR) IIntuition -> IDoMethod (editor_p, MUIM_TextEditor_ExportText);
+
+	DB (KPRINTF ("%s %ld - MarkdownEditor_Convert:  prefs at %lu\n", __FILE__, __LINE__, prefs_p));
 
 	if (text_s)
 		{
 			STRPTR html_s = NULL;
 			BOOL res;
-
-			res = ConvertText (text_s, &html_s, MD_HTML_FLAG_DEBUG | MD_HTML_FLAG_SKIP_UTF8_BOM, 0, TRUE);
+			uint16 parser_flags = 0;
+			uint16 renderer_flags = MD_HTML_FLAG_DEBUG | MD_HTML_FLAG_SKIP_UTF8_BOM;
+			
+			if (prefs_p)
+				{
+					switch (prefs_p -> mdp_dialect)
+						{
+							case DI_COMMON_MARK:
+								parser_flags = MD_DIALECT_COMMONMARK;
+								break;
+							
+							case DI_GITHUB:
+								parser_flags = MD_DIALECT_GITHUB;
+								break;
+							
+							default:
+								break;
+						}
+					
+					
+					if (prefs_p -> mdp_tables)
+						{
+							parser_flags |= MD_FLAG_TABLES;	
+						}
+					
+					if (prefs_p -> mdp_task_lists)
+						{
+							parser_flags |= MD_FLAG_TASKLISTS;	
+						}
+												
+					if (prefs_p -> mdp_collapse_whitespace)
+						{
+							parser_flags |= MD_FLAG_COLLAPSEWHITESPACE;	
+						}
+					
+					if (prefs_p -> mdp_strike_though_spans)
+						{
+							parser_flags |= MD_FLAG_STRIKETHROUGH;	
+						}
+								
+					if (prefs_p -> mdp_underline_spans)
+						{
+							parser_flags |= MD_FLAG_UNDERLINE;	
+						}
+					
+					if (prefs_p -> mdp_latex_maths)
+						{
+							parser_flags |= MD_FLAG_LATEXMATHSPANS;	
+						}
+								
+					if (! (prefs_p -> mdp_html_blocks))
+						{
+							parser_flags |= MD_FLAG_NOHTMLBLOCKS;	
+						}
+					
+					if (! (prefs_p -> mdp_html_spans))
+						{
+							parser_flags |= MD_FLAG_NOHTMLSPANS;	
+						}
+								
+					if (! (prefs_p -> mdp_indented_code_blocks))
+						{
+							parser_flags |= MD_FLAG_NOINDENTEDCODEBLOCKS;	
+						}
+					
+					if (prefs_p -> mdp_translate_html_entities)
+						{
+							renderer_flags |= MD_HTML_FLAG_VERBATIM_ENTITIES;	
+						}
+																																						
+						
+					
+				}		/* if (prefs_p) */
+				
+			res = ConvertText (text_s, &html_s, parser_flags, renderer_flags, TRUE);
 
 			if (res)
 				{
+					printf ("filename: %s\n", md_p -> med_filename_s ? md_p -> med_filename_s : "NULL");
+					printf ("html:\n%s\n", html_s);
+					
+					if (md_p -> med_filename_s)
+						{
+ 							const char *prefix_s = "URL:file=";
+							const char *suffix_s = ".html";
+							const size_t prefix_length = strlen (prefix_s);
+							const size_t suffix_length = strlen (suffix_s);
+							size_t filename_length = strlen (md_p -> med_filename_s);
+ 							char *html_filename_s = (char *) IExec -> AllocVecTags (prefix_length + suffix_length + filename_length + 1, TAG_DONE);
+							
+							if (html_filename_s)
+								{
+									STRPTR cursor_p = html_filename_s;
+									
+									IExec -> CopyMem (prefix_s, cursor_p, prefix_length);
+									cursor_p += prefix_length;
+									
+									IExec -> CopyMem (md_p -> med_filename_s, cursor_p, filename_length);
+									cursor_p += filename_length;
+									
+									IExec -> CopyMem (suffix_s, cursor_p, suffix_length);
+									cursor_p += suffix_length;
+									
+									*cursor_p = '\0';
+									
+									if (SaveFile (html_filename_s + prefix_length, html_s))
+										{
+											/*
+											** This example allows an application to determine if the URL: handler is
+											** currently mounted and to test whether the launch-handler is working
+											** without posting any requesters.
+											*/
+									    APTR old_win_p = IDOS -> SetProcWindow ((APTR) -1); 
+		    							BPTR url_handle_p = IDOS -> Open ("URL:NIL:", MODE_OLDFILE);
+		                  
+		                  IDOS -> SetProcWindow (old_win_p);
+	 
+									    if (url_handle_p)  /* Non-zero return values indicates success. */
+									    	{
+									        IDOS -> Close (url_handle_p);  /* Must still close it */
+									        
+									        /* We now know that the launch handler is working, so open our file */
+									        url_handle_p = IDOS -> Open (html_filename_s, MODE_OLDFILE);
+	
+		    									if (url_handle_p)  /* Check return value and Close() immediately. */
+		    										{	
+											        IDOS -> Close (url_handle_p);
+									        	}
+									        else
+									        	{
+									        		printf ("URL: is not functioning.\n");
+									        	}
+									        	
+									        printf ("URL: is operating correctly.\n");
+									    	}
+									    else
+									    	{
+									        printf ("URL: is not functioning.\n");
+									    	}
+										}
+									
+									IExec -> FreeVec (html_filename_s);	
+								}		/* if (html_filename_s) */	
+						}
+					
 					if (md_p -> med_viewer_p)
 						{
-							IIntuition -> SetAttrs (md_p -> med_viewer_p, MUIA_HTMLview_Contents, html_s, TAG_DONE);
+							//IIntuition -> SetAttrs (md_p -> med_viewer_p, MUIA_HTMLview_Contents, html_s, TAG_DONE);
 						}
 
 					IExec -> FreeVec (html_s);
@@ -272,7 +447,13 @@ static uint32 MarkdownEditor_Save (Class *class_p, Object *editor_p)
 
 	if (filename_s)
 		{
-			SaveFile (filename_s);
+			STRPTR text_s = (STRPTR) IIntuition -> IDoMethod (editor_p, MUIM_TextEditor_ExportText);
+
+			if (text_s)
+				{
+					SaveFile (filename_s, text_s);
+				}
+				
 			IExec -> FreeVec (filename_s);
 		}
 

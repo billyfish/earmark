@@ -1,58 +1,58 @@
 <?xml version="1.0" ?>
-<CodeBench_Project name="AmiMarkdown" path="DH6:Projects/ami-markdown/AmiMarkdown.cbp" created="1357141115" lastmodified="1357497628">
-	<plugin name="PROGDIR:Plugins/AmigaOS4SDK.CCPlugin" flags="528" />
-	<target />
-	<homedir name="DH6:Projects/ami-markdown" />
-	<compiler name="gcc:bin/gcc" switches=" -Werror -Wwrite-strings -I SDK:MUI&#047;C&#047;Include -Iinclude -Imd4c&#047;src -DAMIGA=1 -D_DBUG=1" stack="131072" />
-	<linker switches="" />
-	<debugger name="SDK:c/gdb" addsymbols="1"/>
-	<builder name="SDK:c/make -f" />
-	<environment tabsize="2" />
+<CodeBench_Project name="AmiMarkdown" path="DH6:Projects&#047;ami-markdown&#047;AmiMarkdown.cbp" created="1357141115" lastmodified="1357564711">
+	<plugin name="PROGDIR:Plugins&#047;AmigaOS4SDK.CCPlugin" flags="528"/>
+	<target/>
+	<homedir name="DH6:Projects&#047;ami-markdown"/>
+	<compiler name="gcc:bin&#047;gcc" switches=" -Werror -Wwrite-strings -I SDK:MUI&#047;C&#047;Include -Iinclude -Imd4c&#047;src -DAMIGA=1 -D_DBUG=1" stack="131072"/>
+	<linker switches=""/>
+	<debugger name="SDK:c&#047;gdb" addsymbols="1"/>
+	<builder name="SDK:c&#047;make -f"/>
+	<environment tabsize="2"/>
 	<headers>
-		<file name="include/md_to_html.h" open="0" />
-		<file name="include/memory_buffer.h" open="0" />
-		<file name="include/debugging_utils.h" open="1" top="0" left="0" line="19" row="14" />
-		<file name="include/editor_gadget.h" open="0" />
-		<file name="include/viewer_gadget.h" open="1" top="0" left="0" line="21" row="0" />
-		<file name="include/gui.h" open="1" top="0" left="0" line="25" row="41" />
-		<file name="md4c/src/entity.h" open="0" />
-		<file name="md4c/src/md4c.h" open="0" />
-		<file name="md4c/src/md4c-html.h" open="0" />
-		<file name="include/prefs.h" open="1" top="0" left="0" line="43" row="8" />
-		<file name="include/settings_gadget.h" open="1" top="15" left="0" line="69" row="23" />
+		<file name="include&#047;md_to_html.h" open="0"/>
+		<file name="include&#047;memory_buffer.h" open="0"/>
+		<file name="include&#047;debugging_utils.h" open="1" top="0" left="0" line="19" row="14"/>
+		<file name="include&#047;editor_gadget.h" open="0"/>
+		<file name="include&#047;viewer_gadget.h" open="1" top="0" left="0" line="21" row="0"/>
+		<file name="include&#047;gui.h" open="1" top="0" left="0" line="25" row="41"/>
+		<file name="md4c&#047;src&#047;entity.h" open="0"/>
+		<file name="md4c&#047;src&#047;md4c.h" open="0"/>
+		<file name="md4c&#047;src&#047;md4c-html.h" open="0"/>
+		<file name="include&#047;prefs.h" open="1" top="0" left="0" line="43" row="8"/>
+		<file name="include&#047;settings_gadget.h" open="1" top="15" left="0" line="69" row="23"/>
 	</headers>
 	<sources>
-		<file name="src/amimd.c" open="1" top="78" left="0" line="126" row="10" />
-		<file name="src/editor_gadget.c" open="0" />
-		<file name="src/gui.c" open="1" top="288" left="0" line="315" row="16" />
-		<file name="src/md_to_html.c" open="0" />
-		<file name="src/memory_buffer.c" open="0" />
-		<file name="src/viewer_gadget.c" open="0" />
-		<file name="md4c/src/entity.c" open="0" />
-		<file name="md4c/src/md4c.c" open="0" />
-		<file name="md4c/src/md4c-html.c" open="0" />
-		<file name="src/prefs.c" open="1" top="18" left="0" line="67" row="11" />
-		<file name="src/settings_gadget.c" open="1" current="1" top="21" left="0" line="31" row="0" />
+		<file name="src&#047;amimd.c" open="1" top="78" left="0" line="126" row="10"/>
+		<file name="src&#047;editor_gadget.c" open="0"/>
+		<file name="src&#047;gui.c" open="1" top="288" left="0" line="315" row="16"/>
+		<file name="src&#047;md_to_html.c" open="0"/>
+		<file name="src&#047;memory_buffer.c" open="0"/>
+		<file name="src&#047;viewer_gadget.c" open="0"/>
+		<file name="md4c&#047;src&#047;entity.c" open="0"/>
+		<file name="md4c&#047;src&#047;md4c.c" open="0"/>
+		<file name="md4c&#047;src&#047;md4c-html.c" open="0"/>
+		<file name="src&#047;prefs.c" open="1" top="18" left="0" line="67" row="11"/>
+		<file name="src&#047;settings_gadget.c" open="1" current="1" top="21" left="0" line="31" row="0"/>
 	</sources>
-	<flags value="0x0000000002078005" />
-	<buildscript name="Makefile" depth="3" open="0" />
-	<projectnotes open="0" />
-	<buildwindow open="1" />
+	<flags value="0x0000000002078005"/>
+	<buildscript name="Makefile" depth="3" open="0"/>
+	<projectnotes open="0"/>
+	<buildwindow open="1"/>
 	<targets>
-		<target name="AmiMarkdown" linker="gcc:bin/gcc" flags="0x00000002" >
-			<file name="src/amimd.c" />
-			<file name="src/editor_gadget.c" />
-			<file name="src/gui.c" />
-			<file name="src/md_to_html.c" />
-			<file name="src/memory_buffer.c" />
-			<file name="src/settings_gadget.c" />
-			<file name="src/viewer_gadget.c" />
-			<file name="md4c/src/entity.c" />
-			<file name="md4c/src/md4c.c" />
-			<file name="md4c/src/md4c-html.c" />
-			<file name="src/prefs.c" />
+		<target name="AmiMarkdown" linker="gcc:bin&#047;gcc" flags="0x00000002">
+			<file name="src&#047;amimd.c"/>
+			<file name="src&#047;editor_gadget.c"/>
+			<file name="src&#047;gui.c"/>
+			<file name="src&#047;md_to_html.c"/>
+			<file name="src&#047;memory_buffer.c"/>
+			<file name="src&#047;settings_gadget.c"/>
+			<file name="src&#047;viewer_gadget.c"/>
+			<file name="md4c&#047;src&#047;entity.c"/>
+			<file name="md4c&#047;src&#047;md4c.c"/>
+			<file name="md4c&#047;src&#047;md4c-html.c"/>
+			<file name="src&#047;prefs.c"/>
 		</target>
 	</targets>
-	<logfile name="RAM Disk:Build.log" />
+	<logfile name="RAM Disk:Build.log"/>
 	<search lastsearch="MarkdownPrefs" sensecase="1" replace_state="1" replace_string="MarkdownSettings "/>
 </CodeBench_Project>

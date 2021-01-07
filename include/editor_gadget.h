@@ -30,6 +30,10 @@
 
 #define MEA_Viewer (ME_Dummy + 1)
 
+#define MEA_Prefs (ME_Dummy + 2)
+
+#define MEA_Filename (ME_Dummy + 3)
+
 /*************************/
 /******** METHODS ********/
 /*************************/
