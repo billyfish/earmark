@@ -59,7 +59,7 @@ enum
 
 static void FreeGUIObjects (APTR app_p);
 
-static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI_CustomClass *viewer_class_p, struct MUI_CustomClass *prefs_class_p, MDPrefs *prefs_p);
+static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI_CustomClass *prefs_class_p, MDPrefs *prefs_p);
 
 static void RunMD (APTR app_p);
 
@@ -90,7 +90,6 @@ static struct NewMenu s_menus_p [] =
 };
 
 
-static APTR s_viewer_p = NULL;
 static APTR s_editor_p = NULL;
 static APTR s_settings_p = NULL;
 static APTR s_window_p = NULL;
@@ -111,85 +110,71 @@ BOOL CreateMUIInterface (MDPrefs *prefs_p)
 
 	if (editor_class_p)
 		{
-			struct MUI_CustomClass *viewer_class_p;
+			struct MUI_CustomClass *settings_class_p;
 			
 			DB (KPRINTF ("%s %ld - Inited Editor\n", __FILE__, __LINE__));
 						
-			viewer_class_p = InitMarkdownViewerClass ();
+			settings_class_p = InitMarkdownSettingsClass ();
 
-			if (viewer_class_p)
+			if (settings_class_p)
 				{
-					struct MUI_CustomClass *settings_class_p;
-					
-					DB (KPRINTF ("%s %ld - Inited Editor\n", __FILE__, __LINE__));
-								
-					settings_class_p = InitMarkdownSettingsClass ();
-		
-					if (settings_class_p)
+					APTR app_p;
+
+					DB (KPRINTF ("%s %ld - Inited Settings\n", __FILE__, __LINE__));
+										
+					app_p = CreateGUIObjects (editor_class_p, settings_class_p, prefs_p);
+
+					if (app_p)
 						{
-							APTR app_p;
-		
-							DB (KPRINTF ("%s %ld - Inited Settings\n", __FILE__, __LINE__));
-												
-							app_p = CreateGUIObjects (editor_class_p, viewer_class_p, settings_class_p, prefs_p);
-		
-							if (app_p)
+							CONST CONST_STRPTR md_reg_s = "#?.md";
+							const size_t md_reg_length = strlen (md_reg_s);
+							const size_t size = (md_reg_length + 1) << 1;
+							
+							DB (KPRINTF ("%s %ld - Created GUI Objects\n", __FILE__, __LINE__));
+			
+							s_file_pattern_s = (STRPTR) IExec -> AllocVecTags (size, TAG_DONE);
+
+							if (s_file_pattern_s)
 								{
-									CONST CONST_STRPTR md_reg_s = "#?.md";
-									const size_t md_reg_length = strlen (md_reg_s);
-									const size_t size = (md_reg_length + 1) << 1;
-									
-									DB (KPRINTF ("%s %ld - Created GUI Objects\n", __FILE__, __LINE__));
-					
-									s_file_pattern_s = (STRPTR) IExec -> AllocVecTags (size, TAG_DONE);
-		
-									if (s_file_pattern_s)
+									DB (KPRINTF ("%s %ld - Created File Pattern\n", __FILE__, __LINE__));
+							
+									if (IDOS -> ParsePattern (md_reg_s, s_file_pattern_s, size) >= 0)
 										{
-											DB (KPRINTF ("%s %ld - Created File Pattern\n", __FILE__, __LINE__));
-									
-											if (IDOS -> ParsePattern (md_reg_s, s_file_pattern_s, size) >= 0)
-												{
-													DB (KPRINTF ("%s %ld - Parsed File Pattern\n", __FILE__, __LINE__));									
-												
-													RunMD (app_p);
-													success_flag = TRUE;
-		
-													/*
-													** save the current weights of all Balance objects until the next reboot
-													** if the weights are to be saved permanently the MUIV_Application_Save_ENVARC must be used instead
-													*/
-													IIntuition -> IDoMethod (app_p, MUIM_Application_Save, MUIV_Application_Save_ENV);
-		
-													IExec -> FreeVec (s_file_pattern_s);
-												}
+											DB (KPRINTF ("%s %ld - Parsed File Pattern\n", __FILE__, __LINE__));									
+										
+											RunMD (app_p);
+											success_flag = TRUE;
+
+											/*
+											** save the current weights of all Balance objects until the next reboot
+											** if the weights are to be saved permanently the MUIV_Application_Save_ENVARC must be used instead
+											*/
+											IIntuition -> IDoMethod (app_p, MUIM_Application_Save, MUIV_Application_Save_ENV);
+
+											IExec -> FreeVec (s_file_pattern_s);
 										}
-		
-									FreeGUIObjects (app_p);
-								}		/* if (CreateGUIObjects (screen_p, app_port_p, hook_p)) */
-							else
-								{
-									printf ("Failed to create the user interface\n");
-								}		
-								
-							FreeMarkdownSettingsClass (settings_class_p);					
-						}		/* if (settings_class_p) */
+								}
+
+							FreeGUIObjects (app_p);
+						}		/* if (CreateGUIObjects (screen_p, app_port_p, hook_p)) */
 					else
 						{
-							printf ("Failed to set up the settings class\n");
-						}
+							IDOS -> PutStr ("Failed to create the user interface\n");
+						}		
 						
-					FreeMarkdownViewerClass (viewer_class_p);
-				}		/* if (mol_info_class_p) */
+					FreeMarkdownSettingsClass (settings_class_p);					
+				}		/* if (settings_class_p) */
 			else
 				{
-					printf ("Failed to set up the viewer, please install HTMLView.mcc.\n");
+					IDOS -> PutStr ("Failed to set up the settings class\n");
 				}
+
 
 			FreeMarkdownEditorClass (editor_class_p);
 		}		/* if (mol_viewer_class_p)*/
 	else
 		{
-			printf ("Failed to set up the editor, pleae install TextEditor.mcc\n");
+			IDOS -> PutStr ("Failed to set up the editor, pleae install TextEditor.mcc\n");
 		}
 
 	return success_flag;
@@ -226,33 +211,32 @@ MakeStaticHook(DroppedFileHook, DroppedFile);
 
 
 
-static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI_CustomClass *viewer_class_p, struct MUI_CustomClass *settings_class_p, MDPrefs *prefs_p)
+static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI_CustomClass *settings_class_p, MDPrefs *prefs_p)
 {
 	APTR app_p = NULL;
 	APTR strip_p = NULL;
 	Object *about_box_p = NULL;
 	Object *load_button_p = NULL;
 	Object *save_button_p = NULL;
+	Object *bold_button_p = NULL;
+	Object *italic_button_p = NULL;
+	Object *code_button_p = NULL;
 	Object *update_button_p = NULL;
 	Object *editor_scrollbar_p = NULL;
 
-		
 	static const char * const used_classes [] =
 		{
-			"HTMLview.mcc",
 			"TextEditor.mcc",
 			NULL
 		};
 
-	static const char *pages_ss []   = { "Editor","Settings", NULL };
-	static const char *dialects_ss []   = { "CommonMark","Github", NULL };
-	
-	
+	static const char *pages_ss []   = { "Editor", "Settings", NULL };
+		
 	DB (KPRINTF ("%s %ld - CreateGUIObjects starting\n", __FILE__, __LINE__));
 	  		
 	app_p = IMUIMaster -> MUI_NewObject (MUIC_Application,
 		MUIA_Application_Title      , s_app_name_s,
-		MUIA_Application_Version    , "$VER: AmiMarkdown 0.1",
+		MUIA_Application_Version    , "$VER: AmiMarkdown 0.5",
 		MUIA_Application_Copyright  , "(c) 2021, Simon Tyrrell",
 		MUIA_Application_Author     , "Simon Tyrrell",
 		MUIA_Application_Description, "Edit and view Markdown documents.",
@@ -292,13 +276,15 @@ static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI
 							MUIA_Group_Child, load_button_p = IMUIMaster -> MUI_MakeObject (MUIO_Button, "_Load"),
 							MUIA_Group_Child, save_button_p = IMUIMaster -> MUI_MakeObject (MUIO_Button, "_Save"),
 							MUIA_Group_Child, update_button_p = IMUIMaster -> MUI_MakeObject (MUIO_Button, "_Update"),
+							MUIA_Group_Child, bold_button_p = IMUIMaster -> MUI_MakeObject (MUIO_Button, "_Bold"),
+							MUIA_Group_Child, italic_button_p = IMUIMaster -> MUI_MakeObject (MUIO_Button, "_Italic"),							
+							MUIA_Group_Child, code_button_p = IMUIMaster -> MUI_MakeObject (MUIO_Button, "_Code"),	
 						TAG_DONE),
 		
-						/* Editor and viewer */
+						/* Editor  */
 						MUIA_Group_Child, IMUIMaster -> MUI_NewObject (MUIC_Group,
 							MUIA_Group_Horiz, TRUE,
 
-							
 							MUIA_Group_Child, s_editor_p = IIntuition -> NewObject (editor_class_p -> mcc_Class, NULL,
 								ImageButtonFrame,
 								MUIA_FillArea, FALSE,
@@ -307,21 +293,10 @@ static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI
 		
 							MUIA_Group_Child, editor_scrollbar_p = IMUIMaster -> MUI_NewObject (MUIC_Scrollbar,
 							TAG_DONE),
-								
-							MUIA_Group_Child, IMUIMaster -> MUI_NewObject (MUIC_Balance, 
-								MUIA_CycleChain, 1, 
-								MUIA_ObjectID, MAKE_ID('B', 'A', 'L', 1), 
-							TAG_DONE),
-								
-							MUIA_Group_Child, s_viewer_p = IIntuition -> NewObject (viewer_class_p -> mcc_Class, NULL,
-								ImageButtonFrame,
-								MUIA_FillArea, FALSE,
-								MUIA_ShortHelp, (uint32) "The generated HTML",
-							TAG_DONE),
-						TAG_DONE),
-		
+					
+						TAG_DONE),		/* End Editor */ 
+						
 					TAG_DONE),		/* End main tools */										
-
 								
 					/* settings */
 					MUIA_Group_Child, IMUIMaster -> MUI_NewObject (MUIC_Group,
@@ -334,63 +309,6 @@ static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI
 						TAG_DONE),
 						
 					TAG_DONE),					
-					
-					/*
-					MUIA_Group_Child, IMUIMaster -> MUI_NewObject (MUIC_Group,
-						MUIA_Group_Horiz, TRUE,
-							
-						MUIA_Group_Child, renderer_p = IMUIMaster -> MUI_NewObject (MUIC_Radio,
-							MUIA_Frame, MUIV_Frame_Group,
-							MUIA_FrameTitle, "Markdown Dialect",
-							MUIA_Radio_Entries, dialects_ss,
-						TAG_DONE),
-
-						
-						MUIA_Group_Child, IMUIMaster -> MUI_NewObject (MUIC_Group,
-							MUIA_Frame, MUIV_Frame_Group,
-							MUIA_FrameTitle, "Markdown Extensions",
-							MUIA_Group_Columns, 2,
-										
-							MUIA_Group_Child, IMUIMaster -> MUI_MakeObject (MUIO_Label, "Tables", TAG_DONE),
-							MUIA_Group_Child, tables_cb_p = IMUIMaster -> MUI_MakeObject (MUIO_Checkmark, TAG_DONE),
-							
-							MUIA_Group_Child, IMUIMaster -> MUI_MakeObject (MUIO_Label, "Task lists", TAG_DONE),
-							MUIA_Group_Child, task_lists_cb_p = IMUIMaster -> MUI_MakeObject (MUIO_Checkmark, TAG_DONE),
-							
-							MUIA_Group_Child, IMUIMaster -> MUI_MakeObject (MUIO_Label, "Collapse whitespace", TAG_DONE),
-							MUIA_Group_Child, collapse_whitespace_cb_p = IMUIMaster -> MUI_MakeObject (MUIO_Checkmark, TAG_DONE),
-
-							MUIA_Group_Child, IMUIMaster -> MUI_MakeObject (MUIO_Label, "Strike-through spans", TAG_DONE),
-							MUIA_Group_Child, strike_through_cb_p = IMUIMaster -> MUI_MakeObject (MUIO_Checkmark, TAG_DONE),
-
-							MUIA_Group_Child, IMUIMaster -> MUI_MakeObject (MUIO_Label, "Underline spans", TAG_DONE),														
-							MUIA_Group_Child, underline_span_cb_p = IMUIMaster -> MUI_MakeObject (MUIO_Checkmark, TAG_DONE),
-
-							MUIA_Group_Child, IMUIMaster -> MUI_MakeObject (MUIO_Label, "LaTeX maths", TAG_DONE),
-							MUIA_Group_Child, latex_math_span_cb_p = IMUIMaster -> MUI_MakeObject (MUIO_Checkmark, TAG_DONE),														
-							
-						TAG_DONE),
-
-						MUIA_Group_Child, IMUIMaster -> MUI_NewObject (MUIC_Group,
-							MUIA_Frame, MUIV_Frame_Group,
-							MUIA_FrameTitle, "HTML Options",
-							MUIA_Group_Columns, 2,
-										
-							MUIA_Group_Child, IMUIMaster -> MUI_MakeObject (MUIO_Label, "Allow blocks", TAG_DONE),
-							MUIA_Group_Child, raw_html_blocks_cb_p = IMUIMaster -> MUI_MakeObject (MUIO_Checkmark, TAG_DONE),
-							
-							MUIA_Group_Child, IMUIMaster -> MUI_MakeObject (MUIO_Label, "Allow spans", TAG_DONE),
-							MUIA_Group_Child, raw_html_spans_cb_p = IMUIMaster -> MUI_MakeObject (MUIO_Checkmark, TAG_DONE),
-							
-							MUIA_Group_Child, IMUIMaster -> MUI_MakeObject (MUIO_Label, "Allow code blocks", TAG_DONE),
-							MUIA_Group_Child, indented_code_blocks_cb_p = IMUIMaster -> MUI_MakeObject (MUIO_Checkmark, TAG_DONE),											
-
-							MUIA_Group_Child, IMUIMaster -> MUI_MakeObject (MUIO_Label, "Translate Entities", TAG_DONE),
-							MUIA_Group_Child, translate_entities_cb_p = IMUIMaster -> MUI_MakeObject (MUIO_Checkmark, TAG_DONE),			
-							
-						TAG_DONE),
-						
-					TAG_DONE), */		/* end settings group */
 						
 				TAG_DONE),		/* End Register Group */
 
@@ -437,7 +355,7 @@ static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI
 			IIntuition -> IDoMethod (menu_item_p, MUIM_Notify, MUIA_Menuitem_Trigger, MUIV_EveryTime,
 				s_editor_p, 1, MEM_MDEditor_Convert);
 
-			IIntuition -> SetAttrs (s_editor_p, MEA_Viewer, s_viewer_p, TAG_DONE);
+//			IIntuition -> SetAttrs (s_editor_p, MEA_Viewer, s_viewer_p, TAG_DONE);
 
 			IIntuition -> GetAttrs (s_settings_p, MSA_Prefs, &prefs_p);
 			IIntuition -> SetAttrs (s_editor_p, MEA_Prefs, prefs_p, TAG_DONE);
@@ -452,9 +370,17 @@ static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI
 			IIntuition -> SetAttrs (save_button_p, MUIA_ShortHelp, "Save the editor content to a Markdown file", TAG_DONE);
 			IIntuition -> IDoMethod (save_button_p, MUIM_Notify, MUIA_Pressed, FALSE, s_editor_p, 1, MEM_MDEditor_Save);
 
-			IIntuition -> SetAttrs (update_button_p, MUIA_ShortHelp, "Update the generated HTML for the Markdown", TAG_DONE);
+			IIntuition -> SetAttrs (update_button_p, MUIA_ShortHelp, "Update and view the generated HTML for the Markdown", TAG_DONE);
       IIntuition -> IDoMethod (update_button_p, MUIM_Notify, MUIA_Pressed, FALSE, s_editor_p, 1, MEM_MDEditor_Convert);
-					
+
+			IIntuition -> SetAttrs (bold_button_p, MUIA_ShortHelp, "Make the selected text bold", TAG_DONE);
+      IIntuition -> IDoMethod (bold_button_p, MUIM_Notify, MUIA_Pressed, FALSE, s_editor_p, 3, MUIM_Set, MEA_SurroundSelection, "**");
+
+			IIntuition -> SetAttrs (italic_button_p, MUIA_ShortHelp, "Make the selected text italic", TAG_DONE);
+      IIntuition -> IDoMethod (italic_button_p, MUIM_Notify, MUIA_Pressed, FALSE, s_editor_p, 3, MUIM_Set, MEA_SurroundSelection, "*");					
+
+			IIntuition -> SetAttrs (code_button_p, MUIA_ShortHelp, "Make the selected text code", TAG_DONE);
+      IIntuition -> IDoMethod (code_button_p, MUIM_Notify, MUIA_Pressed, FALSE, s_editor_p, 3, MUIM_Set, MEA_SurroundSelection, "`");	
 		}		/* if (app_p) */
 
 
@@ -604,70 +530,62 @@ STRPTR RequestFilename (const BOOL save_flag)
 
 	if (req_p)
 		{
-			CONST_STRPTR title_s = "Load Markdown File";
+			CONST_STRPTR title_s = save_flag ? "Save Markdown File" : "Load Markdown File";
 			struct Window *window_p = NULL;
 			
-
 		//	printf ("req win %lu\n", s_window_p);			
 			
 			if (s_window_p)
 				{
 			 		if (IIntuition -> GetAttr (MUIA_Window_Window, s_window_p, (uint32 *) &window_p) == 0)
 			 			{
-			 				printf ("Failed to get window\n");	
+				 			IDOS -> PutStr ("Failed to get Window\n");	
 			 			}
 				}
 				
 			if (window_p)
 				{
-								if (save_flag)
-				{
-					title_s = "Save Markdown File";
-				}
-
-			if (IAsl -> AslRequestTags (req_p,
-				ASLFR_InitialDrawer, "RAM:",
-				ASLFR_RejectIcons, TRUE,
-				ASLFR_Window, window_p,
-				ASLFR_TitleText, title_s,
-				ASLFR_DoSaveMode, save_flag,
-				ASLFR_DoPatterns, TRUE,
-				ASLFR_InitialPattern, s_file_pattern_s,
-				TAG_END))
-					{;
-						#define FNAME_MAX (2048)
-						char buffer_s [FNAME_MAX];
-
-						if (IUtility -> Strlcpy (buffer_s, req_p -> fr_Drawer, FNAME_MAX) < FNAME_MAX)
-							{
-								if (IDOS -> AddPart (buffer_s, req_p -> fr_File, FNAME_MAX))
-									{
-										const size_t l = strlen (buffer_s) + 1;
-										
-										//printf ("asl: %s %s\n", req_p -> fr_Drawer, req_p -> fr_File);
-										
-										filename_s = (STRPTR) IExec -> AllocVecTags (l, TAG_DONE);
-
-										if (filename_s)
-											{
-												if (IUtility -> Strlcpy (filename_s, buffer_s, l) > l)
-													{
-														IExec -> FreeVec (filename_s);
-														filename_s = NULL;
-													}
-
-											}
-									}
-							}
-					}
+					if (IAsl -> AslRequestTags (req_p,
+						//ASLFR_InitialDrawer, "RAM:",
+						ASLFR_RejectIcons, TRUE,
+						ASLFR_Window, window_p,
+						ASLFR_TitleText, title_s,
+						ASLFR_DoSaveMode, save_flag,
+						ASLFR_DoPatterns, TRUE,
+						ASLFR_InitialPattern, s_file_pattern_s,
+						TAG_END))
+						{
+							#define FNAME_MAX (2048)
+							char buffer_s [FNAME_MAX];
+	
+							if (IUtility -> Strlcpy (buffer_s, req_p -> fr_Drawer, FNAME_MAX) < FNAME_MAX)
+								{
+									if (IDOS -> AddPart (buffer_s, req_p -> fr_File, FNAME_MAX))
+										{
+											const size_t l = strlen (buffer_s) + 1;
+											
+											//printf ("asl: %s %s\n", req_p -> fr_Drawer, req_p -> fr_File);
+											
+											filename_s = (STRPTR) IExec -> AllocVecTags (l, TAG_DONE);
+	
+											if (filename_s)
+												{
+													if (IUtility -> Strlcpy (filename_s, buffer_s, l) > l)
+														{
+															IExec -> FreeVec (filename_s);
+															filename_s = NULL;
+														}
+	
+												}
+										}
+								}
+						}
 				}
 			else
 				{
-					printf ("no window\n");
-					}
+					IDOS -> PutStr ("Failed to open File Requester\n");
+				}
 			
-
-
 			IAsl -> FreeAslRequest (req_p);
 		}
 

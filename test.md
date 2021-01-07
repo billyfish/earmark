@@ -7,11 +7,13 @@
 
 ---
 
-Let's have some **bold** text
+Let's **have** some **bold** text
 
 And here is some *italic* text
 
 And some ***bold italic*** text
+
+And some `code` text
 
 > How about a blockquote?
 
@@ -20,9 +22,11 @@ And some ***bold italic*** text
 
 Image
 
+Here's an external image, the Amigans.net logo: 
 ![Amigans.net logo](https://www.amigans.net/themes/os4ice/images/logo_alt.png)
 
-
+And here is a local one
+![local image](emoticon_bigsmile)
 
 ----
 
@@ -48,14 +52,14 @@ Image
 
 ### Strikethrough
 
-~~The world is flat.~~ We now know that the world is round.
+~~This is struck through~~ So ignore it.
 
 ----
 
 ### Task lists
 
-- [x] Write the press release
-- [ ] Update the website
-- [ ] Contact the media
+- [x] Write some code
+- [ ] ?
+- [ ] Profit
 
 ---

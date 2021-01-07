@@ -34,6 +34,8 @@
 
 #define MEA_Filename (ME_Dummy + 3)
 
+#define MEA_SurroundSelection (ME_Dummy + 4)
+
 /*************************/
 /******** METHODS ********/
 /*************************/
@@ -45,6 +47,9 @@
 
 
 #define MEM_MDEditor_Save   (ME_Dummy + 3)
+
+
+#define MEM_MDEditor_ReplaceText (ME_Dummy + 4)
 
 /*************************/
 /***** API FUNCTIONS *****/

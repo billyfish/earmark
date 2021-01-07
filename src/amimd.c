@@ -28,12 +28,6 @@
 
 //#include "memwatch.h"
 
-#ifdef _SASC
-int CXBRK(void) { return(0); }  /* Disable SAS CTRL/C handling */
-int chkabort(void) { return(0); }  /* really */
-#endif
-
-
 /* Prototypes for our functions. */
 
 int main (int argc, char *argv []);
@@ -113,25 +107,18 @@ int main (int argc, char *argv [])
 	int result = 0;
 
 	if (OpenLibs ())
-		{
-			MDPrefs *prefs_p;
+		{			
+			MDPrefs *prefs_p = NULL;
 			
 			DB (KPRINTF ("%s %ld - Opened Libraries\n", __FILE__, __LINE__));
 
-			prefs_p = AllocateMDPrefs ();
-
-			if (prefs_p)
-				{
-					CreateMUIInterface (prefs_p);
-					
-					FreeMDPrefs (prefs_p);
-				}
+			CreateMUIInterface (prefs_p);
 
 			CloseLibs ();
 		}		/* if (OpenLibs ()) */
 	else
 		{
-			printf ("failed to open libs\n");
+			printf ("Failed to open libs\n");
 		}
 
 	return result;
@@ -147,13 +134,13 @@ static BOOL OpenLib (struct Library **library_pp, CONST_STRPTR lib_name_s, const
 				}
 			else
 				{
-					printf ("failed to open interface \"%s\" version %lu from \"%s\"\n", interface_name_s, interface_version, lib_name_s);
+					printf ("Failed to open interface \"%s\" version %lu from \"%s\"\n", interface_name_s, interface_version, lib_name_s);
 				}
 			IExec->CloseLibrary (*library_pp);
 		}
 	else
 		{
-			printf ("failed to open library \"%s\" version %lu\n", lib_name_s, lib_version);
+			printf ("Failed to open library \"%s\" version %lu\n", lib_name_s, lib_version);
 		}
 
 	return FALSE;

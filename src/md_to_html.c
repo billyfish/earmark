@@ -23,7 +23,7 @@
  * IN THE SOFTWARE.
  */
 
-#include <stdio.h>
+
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
@@ -32,6 +32,7 @@
 
 #include <exec/types.h>
 
+#include <proto/dos.h>
 #include <proto/exec.h>
 
 
@@ -125,7 +126,7 @@ BOOL ConvertText (const char *in_s, char **out_ss, uint16 parser_flags, uint16 r
     				"<html>\n"
       			"<head>\n"
         		"<title></title>\n"
-        		"<meta name=\"generator\" content=\"amimd\">\n"
+        		"<meta name=\"generator\" content=\"amimarkdown\">\n"
         		"</head>\n"
         		"<body>\n";
       
@@ -183,7 +184,7 @@ BOOL ConvertText (const char *in_s, char **out_ss, uint16 parser_flags, uint16 r
 		}
 	else
 		{
-			printf ("Failed to convert md_html");
+			IDOS -> PutStr ("Failed to convert Markdown to HTML");
   	}
 
 	return success_flag;	

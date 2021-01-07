@@ -2,10 +2,10 @@ Short:        Edit and view Markdown documents
 Uploader:     tyrrell.simon@gmail.com (Simon Tyrrell)
 Author:       tyrrell.simon@gmail.com (Simon Tyrrell)
 Type:         text/edit
-Version:      0.1
+Version:      0.5
 Architecture: ppc-amigaos >= 4.1
 Distribution: Aminet
-Requires: dev/mui/MCC_HTMLview-13.4, dev/mui/MCC_TextEditor-15.55.lha
+Requires: dev/mui/MCC_TextEditor-15.55.lha, Launch-Handler
 
 This is a tool to allow you to edit and view Markdown documents.  It uses a customised version of 
 md4c at https://github.com/mity/md4c by Martin Mitas available to do the actual conversion of 
@@ -13,30 +13,51 @@ Markdown to HTML.
 
 USAGE:
 
-The window consists of a tool bar and two gadgets; and editor gadget on the left which contains the 
-markdown data and a viewer gadget on the right-hand side which displays the HTML generated from
-the markdown data.
+The window consists of two pages; an Editor page and a Settings page.
+
+Editor:
+
+The Editor page consists of a tool bar and a text editor gadget which is where the Markdown source
+code will be shown .
 
 You can either drag and drop a markdown file onto the window or use the "Load" button or menu item. 
 This will load it into the editor gadge. You can make any changes in the editor that you want and click 
 on the "Save" button or use the menu item to save your updated file. If you want to see how it looks, 
-click on the  "Update" button or menu item and the latest version of your file will get rendered into the 
-viewer gadget.
- 
+click on the "Update" button or menu item and the latest version of your file will get saved as an HTML 
+file and you will be prompted to choose which Browser you wish to use to view it.
+
+The toolbar also adds some basic buttons for setting a selection of text to be bold, italic or code. They
+all work be highlighting some text and clicking them.
+
+Settings:
+
+On this page you can configure some of the options for converting the Markdown to HTML.
 
 FUTURE:
 
-Currently the Markdown is parsed using the CommonMark specification and I plan to support the 
-Github flavour too along with various other options such as allowing tables, task lists, strike through, 
-etc. Moving to an image-based toolbar too is on the list as well as a toolbar for the editor to allow 
-for a simple click to set some text as bold, italic, etc. Syntax highlighting would be nice too. Any 
-other ideas are welcome. :-)
+Moving to an image-based toolbar too, adding more editing functionality and getting the buttons
+to become selected for given bits of text, e.g. the bold button being highlighted when the cursor
+is in a piece of bold text, etc. is next. 
+Syntax highlighting would be nice too. Any other ideas are welcome. :-)
 
+CHANGELOG
+
+0.5 - (07/01/2021):
+	* Changed from using HTMLview to using Launch-Handler which comes with OS4.
+	* Added the settings page to allow configuration of the Markdown to HTML conversion settings. 
+	* Added a (very!) :-)) rudimentary set of buttons on the toolbar to allow the setting of bold, 
+	  italic and code sections. 
+	* Added a test Markdown file.
+	* Bug fixes.
+
+0.1 - (05/01/2021):
+	* Initial release
 
 LICENSE:
 
 The code is available under the MIT license. The md4c parts are copyright Martin Mitas and the rest 
-is copyright (c) 20201  by Simon Tyrrell.
+is copyright (c) 2021  by Simon Tyrrell. The emoticon_bigsmile image is copyright to Martin Merz, 
+go to http://www.masonicons.info for more information and to get his awesome artwork.
 
 
  

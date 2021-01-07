@@ -145,6 +145,7 @@ static Object *GetSettingsObject (MDPrefs *prefs_p, Object *parent_p)
 	
 	Object *child_object_p = IMUIMaster -> MUI_NewObject (MUIC_Group,
 		MUIA_Group_Horiz, TRUE,
+		MUIA_Group_VertCenter, MUIV_Group_VertCenter_Top,
 			
 		MUIA_Group_Child, dialect_p = IMUIMaster -> MUI_NewObject (MUIC_Radio,
 			MUIA_Frame, MUIV_Frame_Group,

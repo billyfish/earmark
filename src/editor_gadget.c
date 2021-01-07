@@ -70,6 +70,7 @@ static uint32 MarkdownEditor_Save (Class *class_p, Object *editor_p);
 
 
 
+
 /**************************************************/
 /**************** PUBLIC FUNCTIONS ****************/
 /**************************************************/
@@ -229,8 +230,54 @@ static uint32 MarkdownEditor_Set (Class *class_p, Object *object_p, Msg msg_p)
 											IExec -> FreeVec (md_p -> med_filename_s);											
 											md_p -> med_filename_s;
 										}					
-								}
+								}	
+						}
+						break;
+
+					/* Put a case statement here for each attribute that your
+					 * function understands */
+					case MEA_SurroundSelection:
+						{
+							CONST_STRPTR surround_s = (CONST_STRPTR) tag_data;	
+							STRPTR marked_text_s = (STRPTR) IIntuition -> IDoMethod (object_p, MUIM_TextEditor_ExportBlock, 0 /*, MUIF_TextEditor_ExportBlock_TakeBlock, x1, y1, x2, y2 */);
 							
+							if (marked_text_s)
+								{									
+									DB (KPRINTF ("%s %ld - ti_Tag: MarkdownEditor_Set MEA_SurroundSelection marked text = \"%s\"\n", __FILE__, __LINE__, marked_text_s));				
+									const size_t surround_length = strlen (surround_s);
+									const size_t marked_text_length = strlen (marked_text_s);
+									STRPTR replacement_s = (STRPTR) IExec -> AllocVecTags ((surround_length << 1) + marked_text_length + 1, TAG_DONE);
+									
+									if (replacement_s)
+										{
+											STRPTR cursor_p = replacement_s;
+											
+											IExec -> CopyMem (surround_s, cursor_p, surround_length);
+											cursor_p += surround_length;
+											
+											IExec -> CopyMem (marked_text_s, cursor_p, marked_text_length);
+											cursor_p += marked_text_length;
+											
+											IExec -> CopyMem (surround_s, cursor_p, surround_length);
+											cursor_p += surround_length;
+											
+											*cursor_p = '\0';											
+											
+											IIntuition -> IDoMethod (object_p, MUIM_TextEditor_Replace, replacement_s);
+											
+											IExec -> FreeVec (replacement_s);	
+										} 											
+																		
+									IExec -> FreeVec (marked_text_s);
+								}
+							else
+								{
+									DB (KPRINTF ("%s %ld - ti_Tag: MarkdownEditor_Set MEA_SurroundSelection failed to get marked text\n", __FILE__, __LINE__));											
+								}
+		
+
+							
+							//IIntuition -> IDoMethod (object_p, MUIM_TextEditor_InsertText, surround_s, MUIV_TextEditor_InsertText_Cursor);
 						}
 						break;
 
@@ -245,10 +292,6 @@ static uint32 MarkdownEditor_Set (Class *class_p, Object *object_p, Msg msg_p)
 
 	return retval;
 }
-
-
-
-
 
 
 static uint32 MarkdownEditor_Convert (Class *class_p, Object *editor_p)
@@ -341,9 +384,9 @@ static uint32 MarkdownEditor_Convert (Class *class_p, Object *editor_p)
 			res = ConvertText (text_s, &html_s, parser_flags, renderer_flags, TRUE);
 
 			if (res)
-				{
-					printf ("filename: %s\n", md_p -> med_filename_s ? md_p -> med_filename_s : "NULL");
-					printf ("html:\n%s\n", html_s);
+				{ 
+					DB (KPRINTF ("%s %ld - MarkdownEditor_Convert: filename \"%s\"\n", __FILE__, __LINE__, md_p -> med_filename_s ? md_p -> med_filename_s : "NULL"));
+					DB (KPRINTF ("%s %ld - MarkdownEditor_Convert: html:\n%s\n\n", __FILE__, __LINE__, html_s));
 					
 					if (md_p -> med_filename_s)
 						{
@@ -394,14 +437,13 @@ static uint32 MarkdownEditor_Convert (Class *class_p, Object *editor_p)
 									        	}
 									        else
 									        	{
-									        		printf ("URL: is not functioning.\n");
+									        		IDOS -> PutStr ("URL: is not functioning, LaunchHandler is required.\n");
 									        	}
 									        	
-									        printf ("URL: is operating correctly.\n");
 									    	}
 									    else
 									    	{
-									        printf ("URL: is not functioning.\n");
+													IDOS -> PutStr ("URL: is not functioning, LaunchHandler is required.\n");
 									    	}
 										}
 									
@@ -459,3 +501,4 @@ static uint32 MarkdownEditor_Save (Class *class_p, Object *editor_p)
 
 	return res;
 }
+
