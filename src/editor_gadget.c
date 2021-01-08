@@ -29,7 +29,7 @@
 #include <proto/utility.h>
 
 #include <mui/TextEditor_mcc.h>
-#include <mui/HTMLview_mcc.h>
+
 
 #include "debugging_utils.h"
 //#include "memwatch.h"

@@ -26,7 +26,7 @@
 #ifndef STRING_UTILS_H
 #define STRING_UTILS_H
 
-
+#include <stddef.h>
 
 #include <exec/types.h>
 

@@ -27,8 +27,9 @@
 
 #include "gui.h"
 #include "editor_gadget.h"
-#include "viewer_gadget.h"
 #include "settings_gadget.h"
+#include "image_editor.h"
+
 
 #include "debugging_utils.h"
 #include "SDI_hook.h"
@@ -61,7 +62,7 @@ enum
 
 static void FreeGUIObjects (APTR app_p);
 
-static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI_CustomClass *prefs_class_p, MDPrefs *prefs_p);
+static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI_CustomClass *prefs_class_p, struct MUI_CustomClass *image_editor_class_p, MDPrefs *prefs_p);
 
 static void RunMD (APTR app_p);
 
@@ -120,49 +121,64 @@ BOOL CreateMUIInterface (MDPrefs *prefs_p)
 
 			if (settings_class_p)
 				{
-					APTR app_p;
-
+					struct MUI_CustomClass *image_editor_class_p;
+					
 					DB (KPRINTF ("%s %ld - Inited Settings\n", __FILE__, __LINE__));
-										
-					app_p = CreateGUIObjects (editor_class_p, settings_class_p, prefs_p);
-
-					if (app_p)
+								
+					image_editor_class_p = InitImageEditorClass ();
+		
+					if (image_editor_class_p)
 						{
-							CONST CONST_STRPTR md_reg_s = "#?.md";
-							const size_t md_reg_length = strlen (md_reg_s);
-							const size_t size = (md_reg_length + 1) << 1;
-							
-							DB (KPRINTF ("%s %ld - Created GUI Objects\n", __FILE__, __LINE__));
-			
-							s_file_pattern_s = (STRPTR) IExec -> AllocVecTags (size, TAG_DONE);
-
-							if (s_file_pattern_s)
+							APTR app_p;
+		
+							DB (KPRINTF ("%s %ld - Inited Image Editor\n", __FILE__, __LINE__));
+												
+							app_p = CreateGUIObjects (editor_class_p, settings_class_p, image_editor_class_p, prefs_p);
+		
+							if (app_p)
 								{
-									DB (KPRINTF ("%s %ld - Created File Pattern\n", __FILE__, __LINE__));
-							
-									if (IDOS -> ParsePattern (md_reg_s, s_file_pattern_s, size) >= 0)
+									CONST CONST_STRPTR md_reg_s = "#?.md";
+									const size_t md_reg_length = strlen (md_reg_s);
+									const size_t size = (md_reg_length + 1) << 1;
+									
+									DB (KPRINTF ("%s %ld - Created GUI Objects\n", __FILE__, __LINE__));
+					
+									s_file_pattern_s = (STRPTR) IExec -> AllocVecTags (size, TAG_DONE);
+		
+									if (s_file_pattern_s)
 										{
-											DB (KPRINTF ("%s %ld - Parsed File Pattern\n", __FILE__, __LINE__));									
-										
-											RunMD (app_p);
-											success_flag = TRUE;
-
-											/*
-											** save the current weights of all Balance objects until the next reboot
-											** if the weights are to be saved permanently the MUIV_Application_Save_ENVARC must be used instead
-											*/
-											IIntuition -> IDoMethod (app_p, MUIM_Application_Save, MUIV_Application_Save_ENV);
-
-											IExec -> FreeVec (s_file_pattern_s);
+											DB (KPRINTF ("%s %ld - Created File Pattern\n", __FILE__, __LINE__));
+									
+											if (IDOS -> ParsePattern (md_reg_s, s_file_pattern_s, size) >= 0)
+												{
+													DB (KPRINTF ("%s %ld - Parsed File Pattern\n", __FILE__, __LINE__));									
+												
+													RunMD (app_p);
+													success_flag = TRUE;
+		
+													/*
+													** save the current weights of all Balance objects until the next reboot
+													** if the weights are to be saved permanently the MUIV_Application_Save_ENVARC must be used instead
+													*/
+													IIntuition -> IDoMethod (app_p, MUIM_Application_Save, MUIV_Application_Save_ENV);
+		
+													IExec -> FreeVec (s_file_pattern_s);
+												}
 										}
-								}
+		
+									FreeGUIObjects (app_p);
+								}		/* if (CreateGUIObjects (screen_p, app_port_p, hook_p)) */
+							else
+								{
+									IDOS -> PutStr ("Failed to create the user interface\n");
+								}		
 
-							FreeGUIObjects (app_p);
-						}		/* if (CreateGUIObjects (screen_p, app_port_p, hook_p)) */
+							FreeImageEditorClass (image_editor_class_p);
+						}
 					else
 						{
-							IDOS -> PutStr ("Failed to create the user interface\n");
-						}		
+							IDOS -> PutStr ("Failed to set up the image editor class\n");
+						}
 						
 					FreeMarkdownSettingsClass (settings_class_p);					
 				}		/* if (settings_class_p) */
@@ -213,7 +229,7 @@ MakeStaticHook(DroppedFileHook, DroppedFile);
 
 
 
-static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI_CustomClass *settings_class_p, MDPrefs *prefs_p)
+static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI_CustomClass *settings_class_p, struct MUI_CustomClass *image_editor_class_p, MDPrefs *prefs_p)
 {
 	APTR app_p = NULL;
 	APTR strip_p = NULL;
@@ -221,7 +237,8 @@ static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI
 	Object *toolbar_p = NULL;
 	Object *about_box_p = NULL;
 	Object *image_editor_p = NULL;
-	
+	Object *image_editor_window_p = NULL;
+		
 	static const char * const used_classes [] =
 		{
 			"TextEditor.mcc",
@@ -357,29 +374,23 @@ static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI
 			//MUIA_Aboutbox_LogoData, boing_bz2,
 		TAG_DONE),
 
-		/*
-		SubWindow, image_editor_p = IMUIMaster -> MUI_NewObject (MUIC_Window,
+		
+		SubWindow, image_editor_window_p = IMUIMaster -> MUI_NewObject (MUIC_Window,
 			MUIA_Window_Title, "Insert Image",
  			MUIA_ShortHelp, (uint32) "Edit Image Details",
 			
 			WindowContents, IMUIMaster -> MUI_NewObject (MUIC_Group,
-				MUIA_Group_Child, IMUIMaster -> MUI_NewObject (MUIC_String,
-					MUIA_String_Contents, (uint32) "path",
-				TAG_DONE),
-
-				MUIA_Group_Child, IMUIMaster -> MUI_NewObject (MUIC_String,
-					MUIA_String_Contents, (uint32) "alt",
-				TAG_DONE),
+				MUIA_Group_Horiz, FALSE,
 				
-				MUIA_Group_Child, IMUIMaster -> MUI_NewObject (MUIC_String,
-					MUIA_String_Contents, (uint32) "title",
-				TAG_DONE),
-								
-				
+				MUIA_Group_Child, image_editor_p = IIntuition -> NewObject (image_editor_class_p -> mcc_Class, NULL,
+					ImageButtonFrame,
+					MUIA_FillArea, FALSE,
+					MUIA_ShortHelp, (uint32) "Image Editor",
+				TAG_DONE),				
 			TAG_DONE),
 			
 		TAG_DONE),
-		*/
+		
 
 		SubWindow, s_window_p = IMUIMaster -> MUI_NewObject (MUIC_Window,
 			MUIA_Window_Title, "AmiMarkdown",
@@ -508,10 +519,12 @@ static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI
 
 			IIntuition -> IDoMethod (about_box_p, MUIM_Notify, MUIA_Window_CloseRequest, TRUE, MUIV_Notify_Self, 3, MUIM_Set, MUIA_Window_Open, FALSE);
 			
-			if (image_editor_p)
+			if (image_editor_window_p)
 				{
-					IIntuition -> IDoMethod (toolbar_p, MUIM_TheBar_DoOnButton, BID_IMAGE, MUIM_Notify, MUIA_Pressed, FALSE, image_editor_p, 3, MUIM_Set, MUIA_Window_Open, TRUE);
-					IIntuition -> IDoMethod (image_editor_p, MUIM_Notify, MUIA_Window_CloseRequest, TRUE, MUIV_Notify_Self, 3, MUIM_Set, MUIA_Window_Open, FALSE);
+					IIntuition -> IDoMethod (toolbar_p, MUIM_TheBar_DoOnButton, BID_IMAGE, MUIM_Notify, MUIA_Pressed, FALSE, image_editor_window_p, 3, MUIM_Set, MUIA_Window_Open, TRUE);
+					IIntuition -> IDoMethod (image_editor_window_p, MUIM_Notify, MUIA_Window_CloseRequest, TRUE, MUIV_Notify_Self, 3, MUIM_Set, MUIA_Window_Open, FALSE);
+					
+					IIntuition -> SetAttrs (image_editor_p, IEA_Editor, s_editor_p, TAG_DONE);
 				}
 			
 			if (toolbar_p)

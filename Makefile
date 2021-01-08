@@ -4,7 +4,7 @@
 #
 # Project: AmiMarkdown
 #
-# Created on: 08-01-2021 16:17:46
+# Created on: 08-01-2021 16:40:16
 #
 #
 
@@ -19,7 +19,7 @@ AmiMarkdown_OBJ := \
 	 src/md_to_html.o src/settings_gadget.o src/viewer_gadget.o \
 	 md4c/src/entity.o md4c/src/md4c.o md4c/src/md4c-html.o \
 	 src/prefs.o src/byte_buffer.o src/string_utils.o \
-	
+	 src/image_editor.o
 
 
 ###################################################################
@@ -111,4 +111,7 @@ src/prefs.o: src/prefs.c
 
 src/settings_gadget.o: src/settings_gadget.c
 	$(CC) -c src/settings_gadget.c -o src/settings_gadget.o $(CFLAGS)
+
+src/image_editor.o: src/image_editor.c
+	$(CC) -c src/image_editor.c -o src/image_editor.o $(CFLAGS)
 

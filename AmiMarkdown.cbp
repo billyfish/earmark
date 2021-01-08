@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<CodeBench_Project name="AmiMarkdown" path="DH6:Projects&#047;ami-markdown&#047;AmiMarkdown.cbp" created="1357141115" lastmodified="1357661949">
+<CodeBench_Project name="AmiMarkdown" path="DH6:Projects&#047;ami-markdown&#047;AmiMarkdown.cbp" created="1357141115" lastmodified="1357668471">
 	<plugin name="PROGDIR:Plugins&#047;AmigaOS4SDK.CCPlugin" flags="528"/>
 	<target/>
 	<homedir name="DH6:Projects&#047;ami-markdown"/>
@@ -13,36 +13,38 @@
 		<file name="include&#047;byte_buffer.h" open="0"/>
 		<file name="include&#047;string_utils.h" open="0"/>
 		<file name="include&#047;md_to_html.h" open="0"/>
-		<file name="include&#047;debugging_utils.h" open="1" current="1" top="0" left="0" line="10" row="0"/>
-		<file name="include&#047;editor_gadget.h" open="0"/>
+		<file name="include&#047;debugging_utils.h" open="1" top="0" left="0" line="10" row="0"/>
+		<file name="include&#047;editor_gadget.h" open="1" top="21" left="0" line="45" row="0"/>
 		<file name="include&#047;viewer_gadget.h" open="1" top="0" left="0" line="21" row="0"/>
 		<file name="include&#047;gui.h" open="1" top="0" left="0" line="25" row="41"/>
 		<file name="md4c&#047;src&#047;entity.h" open="0"/>
 		<file name="md4c&#047;src&#047;md4c.h" open="0"/>
 		<file name="md4c&#047;src&#047;md4c-html.h" open="0"/>
 		<file name="include&#047;prefs.h" open="1" top="0" left="0" line="43" row="8"/>
-		<file name="include&#047;settings_gadget.h" open="1" top="18" left="0" line="69" row="23"/>
+		<file name="include&#047;settings_gadget.h" open="1" top="18" left="0" line="77" row="0"/>
+		<file name="DH6:Projects&#047;ami-markdown&#047;include&#047;image_editor.h" open="1" current="1" top="0" left="0" line="52" row="20"/>
 	</headers>
 	<sources>
 		<file name="src&#047;byte_buffer.c" open="0"/>
 		<file name="src&#047;string_utils.c" open="0"/>
 		<file name="src&#047;amimd.c" open="1" top="103" left="0" line="119" row="6"/>
-		<file name="src&#047;editor_gadget.c" open="1" top="435" left="0" line="446" row="16"/>
-		<file name="src&#047;gui.c" open="1" top="159" left="0" line="176" row="5"/>
-		<file name="src&#047;md_to_html.c" open="1" top="95" left="0" line="131" row="23"/>
+		<file name="src&#047;editor_gadget.c" open="1" top="180" left="0" line="197" row="10"/>
+		<file name="src&#047;gui.c" open="1" top="481" left="0" line="525" row="0"/>
+		<file name="src&#047;md_to_html.c" open="1" top="64" left="0" line="85" row="14"/>
 		<file name="src&#047;viewer_gadget.c" open="0"/>
 		<file name="md4c&#047;src&#047;entity.c" open="0"/>
 		<file name="md4c&#047;src&#047;md4c.c" open="0"/>
 		<file name="md4c&#047;src&#047;md4c-html.c" open="0"/>
 		<file name="src&#047;prefs.c" open="1" top="18" left="0" line="67" row="11"/>
-		<file name="src&#047;settings_gadget.c" open="1" top="127" left="0" line="138" row="37"/>
+		<file name="src&#047;settings_gadget.c" open="1" top="365" left="0" line="424" row="0"/>
+		<file name="src&#047;image_editor.c" open="1" top="175" left="0" line="175" row="0"/>
 	</sources>
-	<flags value="0x0000000002078045"/>
+	<flags value="0x0000000002078041"/>
 	<buildscript name="Makefile" depth="3" open="0"/>
 	<projectnotes open="0"/>
 	<buildwindow open="1"/>
 	<targets>
-		<target name="AmiMarkdown" linker="gcc:bin&#047;gcc" flags="0x00000002">
+		<target name="AmiMarkdown" linker="gcc:bin&#047;gcc" switches="-lauto" flags="0x00000002">
 			<file name="src&#047;amimd.c"/>
 			<file name="src&#047;editor_gadget.c"/>
 			<file name="src&#047;gui.c"/>
@@ -55,8 +57,9 @@
 			<file name="src&#047;prefs.c"/>
 			<file name="src&#047;byte_buffer.c"/>
 			<file name="src&#047;string_utils.c"/>
+			<file name="src&#047;image_editor.c"/>
 		</target>
 	</targets>
 	<logfile name="RAM Disk:Build.log"/>
-	<search lastsearch="filename_length" sensecase="1" replace_state="0" replace_string="MarkdownSettings "/>
+	<search lastsearch="MarkdownSettings_" sensecase="1" replace_state="1" replace_string="ImageEditor"/>
 </CodeBench_Project>
