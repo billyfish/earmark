@@ -28,7 +28,7 @@ ByteBuffer *AllocateByteBuffer (size_t initial_size)
 	
 	if (data_p)
 		{
-			ByteBuffer *buffer_p = (ByteBuffer *) IExec -> AllocVecTags (sizeof (ByteBuffer)), TAG_DONE;
+			ByteBuffer *buffer_p = (ByteBuffer *) IExec -> AllocVecTags (sizeof (ByteBuffer), TAG_DONE);
 			
 			if (buffer_p)
 				{

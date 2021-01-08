@@ -37,7 +37,7 @@
 
 
 #include "byte_buffer.h"
-
+#include "string_utils.h"
 
 
 static void AppendChunk (const MD_CHAR *text_s, MD_SIZE size, void *data_p);
@@ -58,7 +58,7 @@ BOOL ConvertText (const char *in_s, char **out_ss, uint16 parser_flags, uint16 r
 
 			if (success_flag == 0)
 				{
-					STRPTR html_s = DetachByteBufferData (buffer_p);
+					STRPTR html_s = DetachByteBufferData (output_buffer_p);
 
 					/* Write down the document in the HTML format. */
 					if (full_html_flag) 
@@ -67,7 +67,7 @@ BOOL ConvertText (const char *in_s, char **out_ss, uint16 parser_flags, uint16 r
 								"<html>\n"
 				  			"<head>\n"
 				    		"<title></title>\n"
-				    		"<meta name=\"generator\" content=\"amimarkdown\">\n"
+								"<meta name=\"generator\" content=\"md4c from AmiMarkdown\">\n"
 				    		"</head>\n"
 				    		"<body>\n";
 				  
@@ -75,7 +75,7 @@ BOOL ConvertText (const char *in_s, char **out_ss, uint16 parser_flags, uint16 r
 				  			"</body>\n"
 				  			"</html>\n";
 				  
-				  		char *output_s = ConcatenateVarArgsStrings (header_s, html_s, footer_s, NULL);
+				  		char *output_s = ConcatenateVarargsStrings (header_s, html_s, footer_s, NULL);
 
 							/*
 							printf ("header length %lu\n", header_length);

@@ -42,6 +42,8 @@
 #include "gui.h"
 #include "prefs.h"
 
+#include "string_utils.h"
+
 typedef struct MarkdownEditorData
 {
 	Object *med_viewer_p;
@@ -205,7 +207,7 @@ static uint32 MarkdownEditor_Set (Class *class_p, Object *object_p, Msg msg_p)
 							
 							if (filename_s)
 								{									
-									STRPTR copied_filename_s = EasyCOpyToNewString (fileame_s);
+									STRPTR copied_filename_s = EasyCopyToNewString (filename_s);
 									
 									if (copied_filename_s)
 										{
@@ -232,34 +234,113 @@ static uint32 MarkdownEditor_Set (Class *class_p, Object *object_p, Msg msg_p)
 					 * function understands */
 					case MEA_SurroundSelection:
 						{
-							CONST_STRPTR surround_s = (CONST_STRPTR) tag_data;	
-							STRPTR marked_text_s = (STRPTR) IIntuition -> IDoMethod (object_p, MUIM_TextEditor_ExportBlock, 0 /*, MUIF_TextEditor_ExportBlock_TakeBlock, x1, y1, x2, y2 */);
+							const char *before_s = NULL;
+							const char *after_s = NULL;
+							STRPTR marked_text_s = NULL;
+							
+							switch (tag_data)
+								{
+									case MEV_MDEditor_Style_Bold:
+										before_s = after_s = "**";
+										break;
+
+									case MEV_MDEditor_Style_Italic:
+										before_s = after_s = "*";
+										break;
+
+									case MEV_MDEditor_Style_Strikethrough:
+										before_s = after_s = "~~";
+										break;
+
+									case MEV_MDEditor_Style_Code:
+										before_s = after_s = "`";
+										break;
+
+									case MEV_MDEditor_Style_IndentedCode:
+										before_s = "\n```\n{\n";
+										after_s = "\n}\n```\n";
+										break;
+
+									default:
+										break;
+								}
+
+							marked_text_s = (STRPTR) IIntuition -> IDoMethod (object_p, MUIM_TextEditor_ExportBlock, 0 /*, MUIF_TextEditor_ExportBlock_TakeBlock, x1, y1, x2, y2 */);
 							
 							if (marked_text_s)
 								{									
-									STRPTR replacement_s; 
-
-									DB (KPRINTF ("%s %ld - ti_Tag: MarkdownEditor_Set MEA_SurroundSelection marked text = \"%s\"\n", __FILE__, __LINE__, marked_text_s));				
-
-									replacement_s =  ConcatenateVarArgsStrings (surround_s, marked_text_s, surround_s, NULL); 
-									
-									if (replacement_s)
+									if (before_s)
 										{
-											IIntuition -> IDoMethod (object_p, MUIM_TextEditor_Replace, replacement_s);
-											
-											IExec -> FreeVec (replacement_s);	
-										} 											
+											if (after_s)
+												{
+													STRPTR replacement_s;
+													
+													DB (KPRINTF ("%s %ld - ti_Tag: MarkdownEditor_Set MEA_SurroundSelection marked text = \"%s\", before_s = \"%s\", after_s = \"%s\"\n",
+														__FILE__, __LINE__, marked_text_s, before_s, after_s));
+
+													replacement_s =  ConcatenateVarargsStrings (before_s, marked_text_s, after_s, NULL);
+
+													if (replacement_s)
+														{
+															IIntuition -> IDoMethod (object_p, MUIM_TextEditor_Replace, replacement_s);
+
+															IExec -> FreeVec (replacement_s);
+														}
+
+
+												}
+		    							else
+												{
+													DB (KPRINTF ("%s %ld - ti_Tag: MarkdownEditor_Set MEA_SurroundSelection failed to get after_s", __FILE__, __LINE__));
+												}
+										}
+    							else
+										{
+											DB (KPRINTF ("%s %ld - ti_Tag: MarkdownEditor_Set MEA_SurroundSelection failed to get before_s\n", __FILE__, __LINE__));
+										}
 																		
 									IExec -> FreeVec (marked_text_s);
 								}
 							else
 								{
 									DB (KPRINTF ("%s %ld - ti_Tag: MarkdownEditor_Set MEA_SurroundSelection failed to get marked text\n", __FILE__, __LINE__));											
-								}
-		
-
+								}	
 							
 							//IIntuition -> IDoMethod (object_p, MUIM_TextEditor_InsertText, surround_s, MUIV_TextEditor_InsertText_Cursor);
+						}
+						break;
+
+					case MEA_InsertItem:
+						{
+							const char *item_s = NULL;
+
+							switch (tag_data)
+								{
+									case MEV_MDEditor_HorizontalRule:
+										item_s = "\n---\n";
+										break;
+
+									case MEV_MDEditor_Image:
+										{
+											DB (KPRINTF ("%s %ld - ti_Tag: MarkdownEditor_Set MEV_MDEditor_Image\n", __FILE__, __LINE__));		
+
+										}
+										break;
+									
+									case MEV_MDEditor_Table:
+										break;
+										
+									case MEV_MDEditor_Hyperlink:
+										break;
+
+									default:
+										break;
+								}
+
+							if (item_s)
+								{
+									IIntuition -> IDoMethod (object_p, MUIM_TextEditor_InsertText, item_s, MUIV_TextEditor_InsertText_Cursor);
+								}
 						}
 						break;
 
@@ -373,8 +454,9 @@ static uint32 MarkdownEditor_Convert (Class *class_p, Object *editor_p)
 					if (md_p -> med_filename_s)
 						{
  							const char *prefix_s = "URL:file=";
+ 							const size_t prefix_length = strlen (prefix_s);
 							const char *suffix_s = ".html";
- 							STRPTR html_filename_s = (STRPTR)  ConcatenateVarArgsStrings (prefix)s, md_p -> med_filename_s, suffix_s, NULL);
+ 							STRPTR html_filename_s = (STRPTR)  ConcatenateVarargsStrings (prefix_s, md_p -> med_filename_s, suffix_s, NULL);
 							
 							if (html_filename_s)
 								{

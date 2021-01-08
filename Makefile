@@ -4,7 +4,7 @@
 #
 # Project: AmiMarkdown
 #
-# Created on: 07-01-2021 17:58:53
+# Created on: 08-01-2021 16:17:46
 #
 #
 
@@ -16,9 +16,10 @@
 
 AmiMarkdown_OBJ := \
 	 src/amimd.o src/editor_gadget.o src/gui.o \
-	 src/md_to_html.o src/memory_buffer.o src/settings_gadget.o \
-	 src/viewer_gadget.o md4c/src/entity.o md4c/src/md4c.o \
-	 md4c/src/md4c-html.o src/prefs.o
+	 src/md_to_html.o src/settings_gadget.o src/viewer_gadget.o \
+	 md4c/src/entity.o md4c/src/md4c.o md4c/src/md4c-html.o \
+	 src/prefs.o src/byte_buffer.o src/string_utils.o \
+	
 
 
 ###################################################################
@@ -74,6 +75,12 @@ AmiMarkdown: $(AmiMarkdown_OBJ)
 ##
 ###################################################################
 
+src/byte_buffer.o: src/byte_buffer.c
+	$(CC) -c src/byte_buffer.c -o src/byte_buffer.o $(CFLAGS)
+
+src/string_utils.o: src/string_utils.c
+	$(CC) -c src/string_utils.c -o src/string_utils.o $(CFLAGS)
+
 src/amimd.o: src/amimd.c
 	$(CC) -c src/amimd.c -o src/amimd.o $(CFLAGS)
 
@@ -85,9 +92,6 @@ src/gui.o: src/gui.c
 
 src/md_to_html.o: src/md_to_html.c
 	$(CC) -c src/md_to_html.c -o src/md_to_html.o $(CFLAGS)
-
-src/memory_buffer.o: src/memory_buffer.c
-	$(CC) -c src/memory_buffer.c -o src/memory_buffer.o $(CFLAGS)
 
 src/viewer_gadget.o: src/viewer_gadget.c
 	$(CC) -c src/viewer_gadget.c -o src/viewer_gadget.o $(CFLAGS)

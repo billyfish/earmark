@@ -152,7 +152,7 @@ char *ConcatenateStrings (const char * const first_s, const char * const second_
 	const size_t len1 = (first_s != NULL) ? strlen (first_s) : 0;
 	const size_t len2 = (second_s != NULL) ? strlen (second_s) : 0;
 
-	char *result_s = (char *) IExec -> AllocVecTags (sizeof (char) * (len1 + len2 + 1)), TAG_DONE;
+	char *result_s = (char *) IExec -> AllocVecTags (sizeof (char) * (len1 + len2 + 1), TAG_DONE);
 
 	if (result_s)
 		{

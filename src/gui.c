@@ -36,6 +36,7 @@
 //#include "memwatch.h"
 #include "prefs.h"
 
+#include "string_utils.h"
 
 #define GUI_DEBUG
 
@@ -216,16 +217,11 @@ static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI
 {
 	APTR app_p = NULL;
 	APTR strip_p = NULL;
-	Object *about_box_p = NULL;
-	Object *load_button_p = NULL;
-	Object *save_button_p = NULL;
-	Object *bold_button_p = NULL;
-	Object *italic_button_p = NULL;
-	Object *code_button_p = NULL;
-	Object *update_button_p = NULL;
 	Object *editor_scrollbar_p = NULL;
 	Object *toolbar_p = NULL;
-
+	Object *about_box_p = NULL;
+	Object *image_editor_p = NULL;
+	
 	static const char * const used_classes [] =
 		{
 			"TextEditor.mcc",
@@ -244,7 +240,10 @@ static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI
 			BID_REDO,
 			BID_FONT_BOLD,
 			BID_FONT_ITALIC,
-			BID_CANCEL,
+			BID_FONT_CODE,
+			BID_FONT_STRIKETHROUGH,
+			BID_INDENTED_CODE,
+			BID_HORIZONTAL_RULE,
 			BID_HYPERLINK,
 			BID_IMAGE,
 			BID_FOOTNOTE,
@@ -259,10 +258,13 @@ static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI
 			"save",
 			"convert",
 			"undo",
-			"redo,
+			"redo",
 			"font_bold",
 			"font_italic",
+			"font_color",
 			"font_cancel",
+			"braces",
+			"forcenewpage",
 			"hyperlink",
 			"image",
 			"insertfootnote",		
@@ -276,10 +278,13 @@ static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI
 			"save_s",
 			"convert_s",
 			"undo_s",
-			"redo_s,
+			"redo_s",
 			"font_bold_s",
 			"font_italic_s",
+			"font_color_s",
 			"font_cancel_s",
+			"braces_s",
+			"forcenewpage_s",
 			"hyperlink_s",
 			"image_s",
 			"insertfootnote_s",		
@@ -293,10 +298,13 @@ static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI
 			"save_g",
 			"convert_g",
 			"undo_g",
-			"redo_g,
+			"redo_g",
 			"font_bold_g",
 			"font_italic_g",
+			"font_color_g",			
 			"font_cancel_g",
+			"braces_g",
+			"forcenewpage_g",
 			"hyperlink_g",
 			"image_g",
 			"insertfootnote_g",		
@@ -315,7 +323,11 @@ static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI
 			{ MUIV_TheBar_BarSpacer, -1, NULL, NULL, 0, 0, NULL, NULL },
 			{ BID_FONT_BOLD, BID_FONT_BOLD, "_Bold", "Make the selected text bold.", 0, 0, NULL, NULL },
 			{ BID_FONT_ITALIC, BID_FONT_ITALIC, "_Italic", "Make the selected text italic.", 0, 0, NULL, NULL },
-			{ BID_FONT_STRIKETHOUGH,  BID_FONT_STRIKETHOUGH, "Stri_kethrough", "Strike through the selected text.", 0, 0, NULL, NULL },
+			{ BID_FONT_STRIKETHROUGH,  BID_FONT_STRIKETHROUGH, "Stri_kethrough", "Strike through the selected text.", 0, 0, NULL, NULL },
+			{ BID_FONT_CODE,  BID_FONT_CODE, "Co_de", "Make the selected text code.", 0, 0, NULL, NULL },
+			{ MUIV_TheBar_BarSpacer, -1, NULL, NULL, 0, 0, NULL, NULL },
+			{ BID_HORIZONTAL_RULE, BID_HORIZONTAL_RULE, "Horizontal Rule", "Insert a Horizontal Rule.", 0, 0, NULL, NULL },
+			{ BID_INDENTED_CODE,  BID_INDENTED_CODE, "Indented Code", "Make an indented code block.", 0, 0, NULL, NULL },
 			{ MUIV_TheBar_BarSpacer, -1, NULL, NULL, 0, 0, NULL, NULL },
 			{ BID_HYPERLINK, BID_HYPERLINK, "_Hyperlink", "Insert a hyperlink.", 0, 0, NULL, NULL },
 			{ BID_IMAGE, BID_IMAGE, "_Image", "Insert an image.", 0, 0, NULL, NULL },
@@ -345,6 +357,30 @@ static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI
 			//MUIA_Aboutbox_LogoData, boing_bz2,
 		TAG_DONE),
 
+		/*
+		SubWindow, image_editor_p = IMUIMaster -> MUI_NewObject (MUIC_Window,
+			MUIA_Window_Title, "Insert Image",
+ 			MUIA_ShortHelp, (uint32) "Edit Image Details",
+			
+			WindowContents, IMUIMaster -> MUI_NewObject (MUIC_Group,
+				MUIA_Group_Child, IMUIMaster -> MUI_NewObject (MUIC_String,
+					MUIA_String_Contents, (uint32) "path",
+				TAG_DONE),
+
+				MUIA_Group_Child, IMUIMaster -> MUI_NewObject (MUIC_String,
+					MUIA_String_Contents, (uint32) "alt",
+				TAG_DONE),
+				
+				MUIA_Group_Child, IMUIMaster -> MUI_NewObject (MUIC_String,
+					MUIA_String_Contents, (uint32) "title",
+				TAG_DONE),
+								
+				
+			TAG_DONE),
+			
+		TAG_DONE),
+		*/
+
 		SubWindow, s_window_p = IMUIMaster -> MUI_NewObject (MUIC_Window,
 			MUIA_Window_Title, "AmiMarkdown",
 			MUIA_Window_ID, MAKE_ID('A','M','M','D'),
@@ -363,6 +399,7 @@ static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI
 						MUIA_Group_Horiz, FALSE,
 		
 						/* tool bar */
+						/*
 						MUIA_Group_Child, IMUIMaster -> MUI_NewObject (MUIC_Group,
 							MUIA_Group_Horiz, TRUE,
 		
@@ -373,8 +410,10 @@ static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI
 							MUIA_Group_Child, italic_button_p = IMUIMaster -> MUI_MakeObject (MUIO_Button, "_Italic"),							
 							MUIA_Group_Child, code_button_p = IMUIMaster -> MUI_MakeObject (MUIO_Button, "_Code"),	
 						TAG_DONE),
+						*/
 		
 						/* TheBar tool bar */
+						
 						MUIA_Group_Child, toolbar_p = IMUIMaster -> MUI_NewObject (MUIC_TheBar,
               MUIA_Group_Horiz,             TRUE,
               MUIA_TheBar_IgnoreAppearance, TRUE,
@@ -382,10 +421,10 @@ static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI
               MUIA_TheBar_Buttons,          buttons,
               MUIA_TheBar_PicsDrawer,       "tbimages:",
               MUIA_TheBar_Pics,             pics_ss,
-              MUIA_TheBar_SelPics,          selcted_pics,
-              MUIA_TheBar_DisPics,          ghosted_pics,
+              MUIA_TheBar_SelPics,          selected_pics_ss,
+              MUIA_TheBar_DisPics,          ghosted_pics_ss,
 						TAG_DONE),
-
+						
 
 						/* Editor  */
 						MUIA_Group_Child, IMUIMaster -> MUI_NewObject (MUIC_Group,
@@ -429,13 +468,9 @@ static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI
 		{
 			Object *menu_item_p;
 			MDPrefs *prefs_p = NULL;
-			const char * const font_bold_s = "**";
-			const char * const font_italic_s = "*";
-			const char * const font_code_s = "`";
-					
-
 
   		DB (KPRINTF ("%s %ld - Application created\n", __FILE__, __LINE__));
+
 
 			/*
 			** Call the AppMsgHook when an icon is dropped on the application
@@ -466,36 +501,42 @@ static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI
 			IIntuition -> IDoMethod (menu_item_p, MUIM_Notify, MUIA_Menuitem_Trigger, MUIV_EveryTime,
 				s_editor_p, 1, MEM_MDEditor_Convert);
 
-//			IIntuition -> SetAttrs (s_editor_p, MEA_Viewer, s_viewer_p, TAG_DONE);
-
 			IIntuition -> GetAttrs (s_settings_p, MSA_Prefs, &prefs_p);
 			IIntuition -> SetAttrs (s_editor_p, MEA_Prefs, prefs_p, TAG_DONE);
 					
 			IIntuition -> SetAttrs (s_editor_p, MUIA_TextEditor_Slider, editor_scrollbar_p, TAG_DONE);
 
 			IIntuition -> IDoMethod (about_box_p, MUIM_Notify, MUIA_Window_CloseRequest, TRUE, MUIV_Notify_Self, 3, MUIM_Set, MUIA_Window_Open, FALSE);
-
-			IIntuition -> SetAttrs (load_button_p, MUIA_ShortHelp, "Load a Markdown file", TAG_DONE);
-			IIntuition -> IDoMethod (load_button_p, MUIM_Notify, MUIA_Pressed, FALSE, s_editor_p, 1, MEM_MDEditor_Load);
-
-			IIntuition -> SetAttrs (save_button_p, MUIA_ShortHelp, "Save the editor content to a Markdown file", TAG_DONE);
-			IIntuition -> IDoMethod (save_button_p, MUIM_Notify, MUIA_Pressed, FALSE, s_editor_p, 1, MEM_MDEditor_Save);
-
-			IIntuition -> SetAttrs (update_button_p, MUIA_ShortHelp, "Update and view the generated HTML for the Markdown", TAG_DONE);
-      IIntuition -> IDoMethod (update_button_p, MUIM_Notify, MUIA_Pressed, FALSE, s_editor_p, 1, MEM_MDEditor_Convert);
-
-			IIntuition -> SetAttrs (bold_button_p, MUIA_ShortHelp, "Make the selected text bold", TAG_DONE);
-      IIntuition -> IDoMethod (bold_button_p, MUIM_Notify, MUIA_Pressed, FALSE, s_editor_p, 3, MUIM_Set, MEA_SurroundSelection, font_bold_s);
-
-			IIntuition -> SetAttrs (italic_button_p, MUIA_ShortHelp, "Make the selected text italic", TAG_DONE);
-      IIntuition -> IDoMethod (italic_button_p, MUIM_Notify, MUIA_Pressed, FALSE, s_editor_p, 3, MUIM_Set, MEA_SurroundSelection, font_italic_s);					
-
-			IIntuition -> SetAttrs (code_button_p, MUIA_ShortHelp, "Make the selected text code", TAG_DONE);
-      IIntuition -> IDoMethod (code_button_p, MUIM_Notify, MUIA_Pressed, FALSE, s_editor_p, 3, MUIM_Set, MEA_SurroundSelection, font_code_s);	
+			
+			if (image_editor_p)
+				{
+					IIntuition -> IDoMethod (toolbar_p, MUIM_TheBar_DoOnButton, BID_IMAGE, MUIM_Notify, MUIA_Pressed, FALSE, image_editor_p, 3, MUIM_Set, MUIA_Window_Open, TRUE);
+					IIntuition -> IDoMethod (image_editor_p, MUIM_Notify, MUIA_Window_CloseRequest, TRUE, MUIV_Notify_Self, 3, MUIM_Set, MUIA_Window_Open, FALSE);
+				}
+			
+			if (toolbar_p)
+				{		
+		      IIntuition -> IDoMethod (toolbar_p, MUIM_TheBar_DoOnButton, BID_OPEN, MUIM_Notify, MUIA_Pressed, FALSE, s_editor_p, 1, MEM_MDEditor_Load);
+		      IIntuition -> IDoMethod (toolbar_p, MUIM_TheBar_DoOnButton, BID_SAVE, MUIM_Notify, MUIA_Pressed, FALSE, s_editor_p, 1, MEM_MDEditor_Save);
+		      IIntuition -> IDoMethod (toolbar_p, MUIM_TheBar_DoOnButton, BID_CONVERT, MUIM_Notify, MUIA_Pressed, FALSE, s_editor_p, 1, MEM_MDEditor_Convert);
+					
+		      IIntuition -> IDoMethod (toolbar_p, MUIM_TheBar_DoOnButton, BID_UNDO, MUIM_Notify, MUIA_Pressed, FALSE, s_editor_p, 2, MUIM_TextEditor_ARexxCmd, "Undo");
+		      IIntuition -> IDoMethod (toolbar_p, MUIM_TheBar_DoOnButton, BID_REDO, MUIM_Notify, MUIA_Pressed, FALSE, s_editor_p, 2, MUIM_TextEditor_ARexxCmd, "Redo");
+		            			
+					IIntuition -> IDoMethod (toolbar_p, MUIM_TheBar_DoOnButton, BID_FONT_BOLD, MUIM_Notify, MUIA_Pressed, FALSE, s_editor_p, 3, MUIM_Set, MEA_SurroundSelection, MEV_MDEditor_Style_Bold);
+					IIntuition -> IDoMethod (toolbar_p, MUIM_TheBar_DoOnButton, BID_FONT_ITALIC, MUIM_Notify, MUIA_Pressed, FALSE, s_editor_p, 3, MUIM_Set, MEA_SurroundSelection, MEV_MDEditor_Style_Italic);
+					IIntuition -> IDoMethod (toolbar_p, MUIM_TheBar_DoOnButton, BID_FONT_CODE, MUIM_Notify, MUIA_Pressed, FALSE, s_editor_p, 3, MUIM_Set, MEA_SurroundSelection, MEV_MDEditor_Style_Code);
+					IIntuition -> IDoMethod (toolbar_p, MUIM_TheBar_DoOnButton, BID_FONT_STRIKETHROUGH, MUIM_Notify, MUIA_Pressed, FALSE, s_editor_p, 3, MUIM_Set, MEA_SurroundSelection, MEV_MDEditor_Style_Strikethrough);
+					IIntuition -> IDoMethod (toolbar_p, MUIM_TheBar_DoOnButton, BID_INDENTED_CODE, MUIM_Notify, MUIA_Pressed, FALSE, s_editor_p, 3, MUIM_Set, MEA_SurroundSelection, MEV_MDEditor_Style_IndentedCode);
 		
-      IIntuition -> IDoMethod (toolbar_p, MUIM_TheBar_DoOnButton, BID_FONT_BOLD, MUIM_Notify, MUIA_Pressed, FALSE, s_editor_p, 3, MUIM_Set, MEA_SurroundSelection, font_bold_s);	
-
-
+					IIntuition -> IDoMethod (toolbar_p, MUIM_TheBar_DoOnButton, BID_HORIZONTAL_RULE, MUIM_Notify, MUIA_Pressed, FALSE, s_editor_p, 3, MUIM_Set, MEA_InsertItem, MEV_MDEditor_HorizontalRule);
+					IIntuition -> IDoMethod (toolbar_p, MUIM_TheBar_DoOnButton, BID_TABLE, MUIM_Notify, MUIA_Pressed, FALSE, s_editor_p, 3, MUIM_Set, MEA_InsertItem, MEV_MDEditor_Table);
+					IIntuition -> IDoMethod (toolbar_p, MUIM_TheBar_DoOnButton, BID_IMAGE, MUIM_Notify, MUIA_Pressed, FALSE, s_editor_p, 3, MUIM_Set, MEA_InsertItem, MEV_MDEditor_Image);
+					
+					IIntuition -> IDoMethod (toolbar_p, MUIM_TheBar_DoOnButton, BID_HYPERLINK, MUIM_Notify, MUIA_Pressed, FALSE, s_editor_p, 3, MUIM_Set, MEA_InsertItem, MEV_MDEditor_Hyperlink);
+				}
+				
+						
 		}		/* if (app_p) */
 
 
@@ -532,7 +573,7 @@ BOOL LoadFile (STRPTR filename_s)
 									IIntuition -> IDoMethod (s_editor_p, MUIM_TextEditor_ClearText);
 									IIntuition -> SetAttrs (s_editor_p, MUIA_TextEditor_Contents, content_s, TAG_DONE);
 													
-									title_s = ConcatenateVarArgsStrings (s_app_name_s, join_s, filename_s, NULL);
+									title_s = ConcatenateVarargsStrings (s_app_name_s, join_s, filename_s, NULL);
 									
 									if (title_s)
 										{											

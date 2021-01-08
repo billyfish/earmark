@@ -36,6 +36,8 @@
 
 #define MEA_SurroundSelection (ME_Dummy + 4)
 
+#define MEA_InsertItem (ME_Dummy + 5)
+
 /*************************/
 /******** METHODS ********/
 /*************************/
@@ -50,6 +52,32 @@
 
 
 #define MEM_MDEditor_ReplaceText (ME_Dummy + 4)
+
+
+
+/*************************/
+/********* VALUES ********/
+/*************************/
+
+
+#define MEV_MDEditor_Style_Bold   (ME_Dummy + 1)
+
+#define MEV_MDEditor_Style_Italic   (ME_Dummy + 2)
+
+#define MEV_MDEditor_Style_Strikethrough   (ME_Dummy + 3)
+
+#define MEV_MDEditor_Style_Code   (ME_Dummy + 4)
+
+#define MEV_MDEditor_Style_IndentedCode   (ME_Dummy + 5)
+
+#define MEV_MDEditor_HorizontalRule   (ME_Dummy + 6)
+
+#define MEV_MDEditor_Table   (ME_Dummy + 7)
+
+#define MEV_MDEditor_Hyperlink   (ME_Dummy + 8)
+
+#define MEV_MDEditor_Image   (ME_Dummy + 9)
+
 
 /*************************/
 /***** API FUNCTIONS *****/

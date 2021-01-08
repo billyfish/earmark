@@ -39,6 +39,16 @@ And here is a local one
 
 ---
 
+
+### definition lists
+
+First Term
+: This is the defintion of the first term.
+
+Second Term
+: This is one definition of the second term.
+: This is another definition of the second term.
+
 ### Code block
 
 ```
