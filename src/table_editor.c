@@ -89,6 +89,8 @@ void FreeTableEditorClass (struct MUI_CustomClass *mui_class_p)
 }
 
 
+
+
 /**********************************/
 /******* STATIC FUNCTIONS ********/
 /**********************************/
@@ -129,56 +131,27 @@ static uint32 TableEditorDispatcher (Class *class_p,  Object *object_p, Msg msg_
 
 									if (buffer_p)
 										{
-											STRPTR table_s = NULL;
-											const char * const heading_s = "       ";
-											const char * const left_s = " :---  ";
-											const char * const right_s = "  ---: ";
-											const char * const centre_s = " :---: ";
 
-											BOOL success_flag = true;
-
-											uint32 i = 0 ;
-											uint32 j = 0 ;
-
-											while (success_flag && (j < num_cols))
+											if (GenerateEmptyRow (buffer_p, num_cols))
 												{
-													success_flag = AppendStringToByteBuffer (buffer_p, heading_s)
-													 ++ j;
-												}
+													CONST STRPTR alignments_s = NULL;
 
-											if (success_flag)
-												{
-
-												}
-
-											while (success_flag && (i < num_rows))
-												{
-													j = 0;
-
-													while (success_flag && (j < num_cols))
+													if (GenerateAlignmentRow (buffer_p, num_cols, alignments_s))
 														{
-															++ j;
+															BOOL success_flag = TRUE;
+															uint32 i = 0;
+
+															while (success_flag && (i < num_rows))
+																{
+																	success_flag = GenerateEmptyRow (buffer_p, num_cols);
+																}
+
+															if (success_flag)
+																{
+																	const char *table_s = GetByteBufferData (buffer_p);
+																	res = IIntuition -> IDoMethod (data_p -> ted_text_editor_p, MUIM_TextEditor_InsertText, table_s, MUIV_TextEditor_InsertText_Cursor);
+																}
 														}
-
-
-													++ i;
-												}
-
-
-											if (AppendStringToByteBuffer (buffer_p, "\n|      |      |\n|"))
-
-											if (data_p -> ted_title_s)
-												{
-													table_s = ConcatenateVarargsStrings ("![", data_p -> ted_alt_s, "](", data_p -> ted_path_s, " \"", data_p -> ted_title_s, "\")", NULL);
-												}
-											else
-												{
-													image_s = ConcatenateVarargsStrings ("![", data_p -> ted_alt_s, "](", data_p -> ted_path_s, ")", NULL);
-												}
-
-											if (table_s)
-												{
-													res = IIntuition -> IDoMethod (data_p -> ted_text_editor_p, MUIM_TextEditor_InsertText, table_s, MUIV_TextEditor_InsertText_Cursor);
 												}
 
 												FreeByteBuffer (buffer_p);
@@ -364,4 +337,92 @@ static uint32 TableEditor_Set (Class *class_p, Object *object_p, Msg msg_p)
 
 
 	return retval;
+}
+
+
+
+static BOOL GenerateEmptyRow (ByteBuffer *buffer_p, const uint32 num_cols)
+{
+	BOOL success_flag = AppendStringToByteBuffer ("\n|");
+
+	if (success_flag)
+		{
+			uint32 i = 0 ;
+			uint32 j = 0 ;
+			const char * const heading_s = "       |";
+
+			while (success_flag && (j < num_cols))
+				{
+					success_flag = AppendStringToByteBuffer (buffer_p, heading_s);
+					 ++ j;
+				}
+
+			if (success_flag)
+				{
+					success_flag = AppendStringToByteBuffer (buffer_p, "\n");
+				}
+		}
+
+	return success_flag;
+}
+
+
+static BOOL GenerateAlignmentRow (ByteBuffer *buffer_p, const uint32 num_cols, const char *alignments_s)
+{
+	BOOL success_flag = FALSE;
+
+	if ((alignments_s == NULL) || (strlen (alignments_s) == num_cols))
+		{
+			success_flag = AppendStringToByteBuffer ("|");
+
+			if (success_flag)
+				{
+					const char *format_s = alignments_s;
+					const char * const left_s = " :---  ";
+					const char * const right_s = "  ---: ";
+					const char * const centre_s = " :---: ";
+					uint32 j = 0 ;
+
+					while (success_flag && (j < num_cols))
+						{
+							const char *alignment_s = centre_s;
+
+							if (format_s)
+								{
+									const char c = *alignments_s;
+
+									if (c == 'l')
+										{
+											alignment_s = left_s;
+										}
+									else if (c == 'c')
+										{
+											alignment_s = centre_s;
+										}
+									else if (c == 'r')
+										{
+											alignment_s = right_s;
+										}
+									else
+										{
+
+										}
+
+									++ format_s;
+								}
+
+							success_flag = AppendStringToByteBuffer (buffer_p, heading_s);
+
+							++ j;
+						}
+
+					if (success_flag)
+						{
+							success_flag = AppendStringToByteBuffer (buffer_p, "\n");
+						}
+				}
+
+		}		/* if ((alignments_s == NULL) || (strlen (alignments_s) == num_cols)) */
+
+	return success_flag;
 }
