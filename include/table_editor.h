@@ -31,18 +31,19 @@
 
 #define TE_Dummy (TAGBASE_BILLY | 0x00000400)
 
-#define TEA_Editor (IE_Dummy + 1)
+#define TEA_Editor (TE_Dummy + 1)
 
-#define TEA_Columns (IE_Dummy + 2)
+#define TEA_Columns (TE_Dummy + 2)
 
-#define TEA_Rows (IE_Dummy + 3)
+#define TEA_Rows (TE_Dummy + 3)
 
+#define TEA_Alignments (TE_Dummy + 4)
 
 /*************************/
 /******** METHODS ********/
 /*************************/
 
-#define TEM_Insert   (IE_Dummy + 1)
+#define TEM_Insert   (TE_Dummy + 1)
 
 /*************************/
 /***** API FUNCTIONS *****/

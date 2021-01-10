@@ -62,7 +62,8 @@ static uint32 ImageEditor_Set (Class *class_p, Object *object_p, Msg msg_p);
 static uint32 ImageEditor_Dispose (Class *class_p, Object *object_p, Msg msg_p);
 
 
-static Object *GetImageEditorObject (Object *parent_p);
+static Object *GetImageEditorObject (Object *parent_p, ImageEditorData *data_p);
+
 
 /**************************************************/
 /**************** PUBLIC FUNCTIONS ****************/
@@ -222,7 +223,7 @@ static Object *GetImageEditorObject (Object *parent_p, ImageEditorData *data_p)
 			IIntuition -> IDoMethod (title_p, MUIM_Notify, MUIA_String_Contents, MUIV_EveryTime, parent_p, 3, MUIM_Set, IEA_Title, MUIV_TriggerValue);
 
 			IIntuition -> IDoMethod (ok_p, MUIM_Notify, MUIA_Pressed, FALSE, parent_p, 1, IEM_Insert);
-
+			IIntuition -> IDoMethod (cancel_p, MUIM_Notify, MUIA_Pressed, FALSE, MUIV_Notify_Window, 3, MUIM_Set, MUIA_Window_CloseRequest, TRUE);
 		}
 
 
@@ -244,7 +245,7 @@ static uint32 ImageEditor_New (Class *class_p, Object *object_p, Msg msg_p)
 			data_p -> ied_alt_s = NULL;
 			data_p -> ied_title_s = NULL;
 
-			child_p = GetImageEditorObject (parent_p);
+			child_p = GetImageEditorObject (parent_p, data_p);
 
 			if (child_p)
 				{

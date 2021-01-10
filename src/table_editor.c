@@ -15,12 +15,15 @@
 */
 
 
+#include <string.h>
+#include <ctype.h>
 
 #include <clib/alib_protos.h>
 
 #include <exec/memory.h>
 #include <exec/types.h>
 
+#include <proto/dos.h>
 #include <proto/exec.h>
 #include <proto/muimaster.h>
 #include <proto/utility.h>
@@ -42,7 +45,7 @@ typedef struct TableEditorData
 	Object *ted_text_editor_p;
 	uint32 ted_num_rows;
 	uint32 ted_num_columns;
-	STRPTR ted_column_alignments_s;
+ 	STRPTR ted_column_alignments_s;
 } TableEditorData;
 
 
@@ -62,7 +65,12 @@ static uint32 TableEditor_Set (Class *class_p, Object *object_p, Msg msg_p);
 static uint32 TableEditor_Dispose (Class *class_p, Object *object_p, Msg msg_p);
 
 
-static Object *GetTableEditorObject (Object *parent_p);
+static Object *GetTableEditorObject (Object *parent_p, TableEditorData *data_p);
+
+static BOOL GenerateEmptyRow (ByteBuffer *buffer_p, const uint32 num_cols);
+
+
+static BOOL GenerateAlignmentRow (ByteBuffer *buffer_p, const uint32 num_cols, const char *alignments_s);
 
 /**************************************************/
 /**************** PUBLIC FUNCTIONS ****************/
@@ -125,39 +133,64 @@ static uint32 TableEditorDispatcher (Class *class_p,  Object *object_p, Msg msg_
 
 					if (data_p -> ted_text_editor_p)
 						{
-							if ((data_p -> ted_path_s) && (data_p -> ted_alt_s))
+							ByteBuffer *buffer_p = AllocateByteBuffer (1024);
+
+							if (buffer_p)
 								{
-									ByteBuffer *buffer_p = AllocateByteBuffer (1024);
-
-									if (buffer_p)
+									if (AppendStringToByteBuffer (buffer_p, "\n"))
 										{
-
-											if (GenerateEmptyRow (buffer_p, num_cols))
-												{
-													CONST STRPTR alignments_s = NULL;
-
-													if (GenerateAlignmentRow (buffer_p, num_cols, alignments_s))
+											if (GenerateEmptyRow (buffer_p, data_p -> ted_num_columns))
+												{		
+													DB (KPRINTF ("%s %ld - TableEditor Dispatcher: GenerateEmptyRow table \"%s\"\n", __FILE__, __LINE__, GetByteBufferData (buffer_p)));
+		
+													if (GenerateAlignmentRow (buffer_p, data_p -> ted_num_columns, data_p -> ted_column_alignments_s))
 														{
 															BOOL success_flag = TRUE;
 															uint32 i = 0;
-
-															while (success_flag && (i < num_rows))
+		
+															DB (KPRINTF ("%s %ld - TableEditor Dispatcher: GenerateAlignmentRow table \"%s\"\n", __FILE__, __LINE__, GetByteBufferData (buffer_p)));
+		
+															while (success_flag && (i < (data_p -> ted_num_rows)))
 																{
-																	success_flag = GenerateEmptyRow (buffer_p, num_cols);
+																	success_flag = GenerateEmptyRow (buffer_p, data_p -> ted_num_columns);
+																	
+																	++ i;
 																}
-
+		
 															if (success_flag)
 																{
 																	const char *table_s = GetByteBufferData (buffer_p);
+																	
+																	DB (KPRINTF ("%s %ld - TableEditor Dispatcher: table_s \"%s\"\n", __FILE__, __LINE__, table_s));
+																	
 																	res = IIntuition -> IDoMethod (data_p -> ted_text_editor_p, MUIM_TextEditor_InsertText, table_s, MUIV_TextEditor_InsertText_Cursor);
 																}
+															else
+																{
+																	DB (KPRINTF ("%s %ld - TableEditor Dispatcher: GenerateEmptyRows failed\n", __FILE__, __LINE__));	
+																}
+														}
+													else
+														{
+															DB (KPRINTF ("%s %ld - TableEditor Dispatcher: GenerateAlignmentRow failed\n", __FILE__, __LINE__));	
 														}
 												}
-
-												FreeByteBuffer (buffer_p);
-										}		/* ( if (buffer_p) */
-
+											else
+												{
+													DB (KPRINTF ("%s %ld - TableEditor Dispatcher: GenerateEmptyRow failed\n", __FILE__, __LINE__));	
+												}											
+										} 	/* if (AppendStringToByteBuffer (buffer_p, "\n")) */
+											
+									FreeByteBuffer (buffer_p);
+								}		/* ( if (buffer_p) */
+							else
+								{
+									IDOS -> PutStr ("not enough memory\n");
 								}
+						}
+					else
+						{
+							DB (KPRINTF ("%s %ld - TableEditor Dispatcher: TEM_Insert no editor set\n", __FILE__, __LINE__));	
 						}
 				}
 				break;
@@ -173,10 +206,11 @@ static uint32 TableEditorDispatcher (Class *class_p,  Object *object_p, Msg msg_
 }
 
 
-static Object *GetTableEditorObject (Object *parent_p)
+static Object *GetTableEditorObject (Object *parent_p, TableEditorData *data_p)
 {
 	Object *num_rows_p = NULL;
-	Object *num_cols_p = NULL;
+	Object *num_columns_p = NULL;
+	Object *alignments_p = NULL;
 	Object *ok_p = NULL;
 	Object *cancel_p = NULL;
 
@@ -188,14 +222,19 @@ static Object *GetTableEditorObject (Object *parent_p)
 
 			MUIA_Group_Child, IMUIMaster -> MUI_MakeObject (MUIO_Label, "Number of rows:", TAG_DONE),
 			MUIA_Group_Child, num_rows_p = IMUIMaster -> MUI_NewObject (MUIC_Numericbutton,
-	      MUIA_Numeric_Min, 2,
-	      MUIA_Numeric_Value, 2,
+	      MUIA_Numeric_Min, 1,
+	      MUIA_Numeric_Value, data_p -> ted_num_rows,
 			TAG_DONE),
 
 			MUIA_Group_Child, IMUIMaster -> MUI_MakeObject (MUIO_Label, "Number of columns:", TAG_DONE),
 			MUIA_Group_Child, num_columns_p = IMUIMaster -> MUI_NewObject (MUIC_Numericbutton,
-	      MUIA_Numeric_Min, 2,
-	      MUIA_Numeric_Value, 2,
+	      MUIA_Numeric_Min, 1,
+	      MUIA_Numeric_Value, data_p -> ted_num_columns,
+			TAG_DONE),
+
+			MUIA_Group_Child, IMUIMaster -> MUI_MakeObject (MUIO_Label, "Alignments:", TAG_DONE),
+			MUIA_Group_Child, alignments_p = IMUIMaster -> MUI_NewObject (MUIC_String,
+				MUIA_String_Contents, (uint32) data_p -> ted_column_alignments_s,
 			TAG_DONE),
 
 		TAG_DONE),
@@ -217,14 +256,16 @@ static Object *GetTableEditorObject (Object *parent_p)
 
 			IIntuition -> IDoMethod (parent_p, OM_ADDMEMBER, child_object_p);
 
-			IIntuition -> SetAttrs (num_rows_p, MUIA_ShortHelp, "Path to the image.", TAG_DONE);
-			IIntuition -> SetAttrs (num_cols_p, MUIA_ShortHelp, "The alternative text for the image", TAG_DONE);
-
-			IIntuition -> IDoMethod (num_rows_p, MUIM_Notify, MUIA_String_Contents, MUIV_EveryTime, parent_p, 3, MUIM_Set, TEA_Path, MUIV_TriggerValue);
-			IIntuition -> IDoMethod (num_cols_p, MUIM_Notify, MUIA_String_Contents, MUIV_EveryTime, parent_p, 3, MUIM_Set, TEA_Alt, MUIV_TriggerValue);
+			IIntuition -> SetAttrs (num_rows_p, MUIA_ShortHelp, "Number of rows in ther table.", TAG_DONE);
+			IIntuition -> SetAttrs (num_columns_p, MUIA_ShortHelp, "Number of columns in the table", TAG_DONE);
+			IIntuition -> SetAttrs (alignments_p, MUIA_ShortHelp, "The alignment of each column", TAG_DONE);
+			
+			IIntuition -> IDoMethod (num_rows_p, MUIM_Notify, MUIA_Numeric_Value, MUIV_EveryTime, parent_p, 3, MUIM_Set, TEA_Rows, MUIV_TriggerValue);
+			IIntuition -> IDoMethod (num_columns_p, MUIM_Notify, MUIA_Numeric_Value, MUIV_EveryTime, parent_p, 3, MUIM_Set, TEA_Columns, MUIV_TriggerValue);
+			IIntuition -> IDoMethod (alignments_p, MUIM_Notify, MUIA_String_Contents, MUIV_EveryTime, parent_p, 3, MUIM_Set, TEA_Alignments, MUIV_TriggerValue);
 
 			IIntuition -> IDoMethod (ok_p, MUIM_Notify, MUIA_Pressed, FALSE, parent_p, 1, TEM_Insert);
-
+			IIntuition -> IDoMethod (cancel_p, MUIM_Notify, MUIA_Pressed, FALSE, MUIV_Notify_Window, 3, MUIM_Set, MUIA_Window_CloseRequest, TRUE);
 		}
 
 
@@ -242,10 +283,11 @@ static uint32 TableEditor_New (Class *class_p, Object *object_p, Msg msg_p)
 			Object *child_p;
 
 			data_p -> ted_text_editor_p = NULL;
-			data_p -> ted_num_rows = 2;
+			data_p -> ted_num_rows = 1;
 			data_p -> ted_num_columns = 2;
+			data_p -> ted_column_alignments_s = NULL;
 
-			child_p = GetTableEditorObject (parent_p);
+			child_p = GetTableEditorObject (parent_p, data_p);
 
 			if (child_p)
 				{
@@ -263,20 +305,6 @@ static uint32 TableEditor_Dispose (Class *class_p, Object *object_p, Msg msg_p)
 	uint32 retval = IIntuition->IDoSuperMethodA (class_p, object_p, msg_p);
 	TableEditorData *data_p = INST_DATA (class_p, object_p);
 
-	if (data_p -> ted_path_s)
-		{
-		//	FreeCopiedString (data_p -> ted_path_s);
-		}
-
-	if (data_p -> ted_alt_s)
-		{
-		//	FreeCopiedString (data_p -> ted_alt_s);
-		}
-
-	if (data_p -> ted_title_s)
-		{
-		//	FreeCopiedString (data_p -> ted_title_s);
-		}
 
 	return retval;
 }
@@ -307,25 +335,24 @@ static uint32 TableEditor_Set (Class *class_p, Object *object_p, Msg msg_p)
 					/* Put a case statement here for each attribute that your
 					 * function understands */
 					case TEA_Editor:
-						DB (KPRINTF ("%s %ld - TableEditor_Set -> ted_text_editor_p to %lu", __FILE__, __LINE__, tag_data));
+						DB (KPRINTF ("%s %ld - TableEditor_Set -> ted_text_editor_p to %lu\n", __FILE__, __LINE__, tag_data));
 						data_p -> ted_text_editor_p = (Object *) tag_data;
 						break;
 
-					case TEA_Path:
-						DB (KPRINTF ("%s %ld - TableEditor_Set -> ted_path_s to %s", __FILE__, __LINE__, (STRPTR) tag_data));
-						data_p -> ted_path_s = (STRPTR) tag_data;
+					case TEA_Columns:
+						DB (KPRINTF ("%s %ld - TableEditor_Set -> ted_num_columns to %lu\n", __FILE__, __LINE__, tag_data));
+						data_p -> ted_num_columns = tag_data;
 						break;
 
-					case TEA_Alt:
-						DB (KPRINTF ("%s %ld - TableEditor_Set -> ted_alt_s to %s", __FILE__, __LINE__, (STRPTR) tag_data));
-						data_p -> ted_alt_s = (STRPTR) tag_data;
+					case TEA_Rows:
+						DB (KPRINTF ("%s %ld - TableEditor_Set -> ted_num_rows to %lu\n", __FILE__, __LINE__, tag_data));
+						data_p -> ted_num_rows = tag_data;
 						break;
 
-					case TEA_Title:
-						DB (KPRINTF ("%s %ld - TableEditor_Set -> ted_title_s to %s", __FILE__, __LINE__, (STRPTR) tag_data));
-						data_p -> ted_title_s = (STRPTR) tag_data;
+					case TEA_Alignments:
+						DB (KPRINTF ("%s %ld - TableEditor_Set -> ted_alignments to %s\n", __FILE__, __LINE__, (STRPTR) tag_data));
+						data_p -> ted_column_alignments_s = (STRPTR) tag_data;
 						break;
-
 
 					/* We don't understand this attribute */
 					default:
@@ -343,7 +370,7 @@ static uint32 TableEditor_Set (Class *class_p, Object *object_p, Msg msg_p)
 
 static BOOL GenerateEmptyRow (ByteBuffer *buffer_p, const uint32 num_cols)
 {
-	BOOL success_flag = AppendStringToByteBuffer ("\n|");
+	BOOL success_flag = AppendStringToByteBuffer (buffer_p, "|");
 
 	if (success_flag)
 		{
@@ -370,59 +397,61 @@ static BOOL GenerateEmptyRow (ByteBuffer *buffer_p, const uint32 num_cols)
 static BOOL GenerateAlignmentRow (ByteBuffer *buffer_p, const uint32 num_cols, const char *alignments_s)
 {
 	BOOL success_flag = FALSE;
+	const char *format_s = alignments_s;
 
-	if ((alignments_s == NULL) || (strlen (alignments_s) == num_cols))
+	success_flag = AppendStringToByteBuffer (buffer_p, "|");
+
+	if (success_flag)
 		{
-			success_flag = AppendStringToByteBuffer ("|");
+			const char * const left_s = " :---  |";
+			const char * const right_s = "  ---: |";
+			const char * const centre_s = " :---: |";
+			uint32 j = 0 ;
+
+			while (success_flag && (j < num_cols))
+				{
+					const char *alignment_s = left_s;
+
+					if (format_s)
+						{
+							const char c = tolower (*format_s);
+
+							if (c == 'l')
+								{
+									alignment_s = left_s;
+								}
+							else if (c == 'c')
+								{
+									alignment_s = centre_s;
+								}
+							else if (c == 'r')
+								{
+									alignment_s = right_s;
+								}
+							else
+								{
+
+								}
+
+							++ format_s;
+							if (*format_s == '\0')
+								{
+									format_s = NULL;
+								}
+						}		/* if (format_s) */
+
+					success_flag = AppendStringToByteBuffer (buffer_p, alignment_s);
+
+					++ j;
+				}
 
 			if (success_flag)
 				{
-					const char *format_s = alignments_s;
-					const char * const left_s = " :---  ";
-					const char * const right_s = "  ---: ";
-					const char * const centre_s = " :---: ";
-					uint32 j = 0 ;
-
-					while (success_flag && (j < num_cols))
-						{
-							const char *alignment_s = centre_s;
-
-							if (format_s)
-								{
-									const char c = *alignments_s;
-
-									if (c == 'l')
-										{
-											alignment_s = left_s;
-										}
-									else if (c == 'c')
-										{
-											alignment_s = centre_s;
-										}
-									else if (c == 'r')
-										{
-											alignment_s = right_s;
-										}
-									else
-										{
-
-										}
-
-									++ format_s;
-								}
-
-							success_flag = AppendStringToByteBuffer (buffer_p, heading_s);
-
-							++ j;
-						}
-
-					if (success_flag)
-						{
-							success_flag = AppendStringToByteBuffer (buffer_p, "\n");
-						}
+					success_flag = AppendStringToByteBuffer (buffer_p, "\n");
 				}
+				
 
-		}		/* if ((alignments_s == NULL) || (strlen (alignments_s) == num_cols)) */
+		}		
 
 	return success_flag;
 }
