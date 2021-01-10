@@ -1,11 +1,11 @@
-Short:        Edit and view Markdown documents
-Uploader:     tyrrell.simon@gmail.com (Simon Tyrrell)
-Author:       tyrrell.simon@gmail.com (Simon Tyrrell)
-Type:         text/edit
-Version:      0.8
-Architecture: ppc-amigaos >= 4.1
-Distribution: Aminet
-Requires: dev/mui/MCC_TextEditor, dev/mui/MCC_BetterString, dev/mui/MCC_TheBar,  Launch-Handler
+Short:        Edit and view Markdown documents  
+Uploader:     tyrrell.simon@gmail.com (Simon Tyrrell)  
+Author:       tyrrell.simon@gmail.com (Simon Tyrrell)  
+Type:         text/edit  
+Version:      0.8  
+Architecture: ppc-amigaos >= 4.1  
+Distribution: Aminet  
+Requires: dev/mui/MCC_TextEditor, dev/mui/MCC_BetterString, dev/mui/MCC_TheBar,  Launch-Handler  
 
 This is a tool to allow you to edit and view Markdown documents.  It uses a customised version of 
 md4c at https://github.com/mity/md4c by Martin Mitáš available to do the actual conversion of 
@@ -43,7 +43,7 @@ By default, each column is left-aligned, however you can alter that here. The st
 
 If the String is empty or has fewer characters than the number of specified columns, the remaining columns will default to being left-aligned. For example *crlc* would specify that the first four columns of the table would have centre-, right-, left- and centre-aligned respectively.
  
-## Settings:
+### Settings:
 
 On this page you can configure some of the options for converting the md4c Markdown to HTML. For more information on these, view the [md4c documentation](https://github.com/mity/md4c) 
 
@@ -51,7 +51,7 @@ On this page you can configure some of the options for converting the md4c Markd
 
  * Getting the buttons to become selected for given bits of text, e.g. the bold button being highlighted when the cursor is in a piece of bold text, etc. 
  * Syntax highlighting would be nice too. 
- * Adding more elements to the md4c Markdown to HTML conversion code such as definition lists, footnotes, etc. This would then get added to md4c via pull requests.
+ * Adding more elements to the md4c Markdown to HTML conversion code such as definition lists, footnotes, *etc.* This would then get added to md4c via pull requests.
  * The ability to save and load customised conversion settings.
  * Get the *Convert* function to re-use an existing browser window rather than launch a new one each time.
 
