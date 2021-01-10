@@ -39,7 +39,7 @@ code will be shown. The text editor is a subclass of the [text editor custom cla
 By default, each column is left-aligned, however you can alter that here. The string here will be read where the first character defines the alignment for the first column, the second character for the second column, *etc.* 
     * *l* will make the column left-aligned, 
     * *r* will make the column right-aligned
-    * *c* will make the column centre-aligned. 
+    * *c* will make the column centre-aligned.
 If the String is empty or has fewer characters than the number of specified columns, the remaining columns will default to being left-aligned. For example *crlc* would specify that the first four columns of the table would be centre-, right-, left- and centre-aligned respectively.
  
 ### Settings:
