@@ -60,20 +60,18 @@ Any other ideas are welcome. :-)
 ## CHANGELOG
 
 ### 0.8 - (10/01/2021)
-
-	* Moved to using TheBar to give a graphical toolbar along with many more functions.
-	* Added Undo, Redo, Strikethrough, Code, Fenced Code Blocks, Horizontal Rule, Table, Image and Link functions
+ * Moved to using TheBar to give a graphical toolbar along with many more functions.
+ * Added Undo, Redo, Strikethrough, Code, Fenced Code Blocks, Horizontal Rule, Table, Image and Link functions
 	
 ### 0.5 - (07/01/2021):
-	* Changed from using HTMLview to using Launch-Handler which comes with OS4.
-	* Added the settings page to allow configuration of the Markdown to HTML conversion settings. 
-	* Added a (very!) :-)) rudimentary set of buttons on the toolbar to allow the setting of bold, 
-	  italic and code sections. 
-	* Added a test Markdown file.
-	* Bug fixes.
+ * Changed from using HTMLview to using Launch-Handler which comes with OS4.
+ * Added the settings page to allow configuration of the Markdown to HTML conversion settings. 
+ * Added a (very!) :-)) rudimentary set of buttons on the toolbar to allow the setting of bold, italic and code sections. 
+ * Added a test Markdown file.
+ * Bug fixes.
 
 ### 0.1 - (05/01/2021):
-	* Initial release
+ * Initial release
 
 ## LICENSE:
 
