@@ -28,6 +28,7 @@
 #include <libraries/mui.h>
 
 #include <mui/TextEditor_mcc.h>
+#include <mui/BetterString_mcc.h>
 
 #include "debugging_utils.h"
 
@@ -181,18 +182,21 @@ static Object *GetImageEditorObject (Object *parent_p, ImageEditorData *data_p)
 			MUIA_Group_Columns, 2,
 
 			MUIA_Group_Child, IMUIMaster -> MUI_MakeObject (MUIO_Label, "Path:", TAG_DONE),
-			MUIA_Group_Child, path_p = IMUIMaster -> MUI_NewObject (MUIC_String,
+			MUIA_Group_Child, path_p = IMUIMaster -> MUI_NewObject (MUIC_BetterString,
 				MUIA_String_Contents, (uint32) data_p -> ied_path_s,
+				MUIA_Frame, MUIV_Frame_String,
 			TAG_DONE),
 
 			MUIA_Group_Child, IMUIMaster -> MUI_MakeObject (MUIO_Label, "Alt:", TAG_DONE),
-			MUIA_Group_Child, alt_p = IMUIMaster -> MUI_NewObject (MUIC_String,
+			MUIA_Group_Child, alt_p = IMUIMaster -> MUI_NewObject (MUIC_BetterString,
 				MUIA_String_Contents, (uint32) data_p -> ied_alt_s,
+				MUIA_Frame, MUIV_Frame_String,				
 			TAG_DONE),
 
 			MUIA_Group_Child, IMUIMaster -> MUI_MakeObject (MUIO_Label, "Title:", TAG_DONE),
-			MUIA_Group_Child, title_p = IMUIMaster -> MUI_NewObject (MUIC_String,
+			MUIA_Group_Child, title_p = IMUIMaster -> MUI_NewObject (MUIC_BetterString,
 				MUIA_String_Contents, (uint32) data_p -> ied_title_s,
+				MUIA_Frame, MUIV_Frame_String,				
 			TAG_DONE),
 
 		TAG_DONE),

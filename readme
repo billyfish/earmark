@@ -2,10 +2,10 @@ Short:        Edit and view Markdown documents
 Uploader:     tyrrell.simon@gmail.com (Simon Tyrrell)
 Author:       tyrrell.simon@gmail.com (Simon Tyrrell)
 Type:         text/edit
-Version:      0.5
+Version:      0.8
 Architecture: ppc-amigaos >= 4.1
 Distribution: Aminet
-Requires: dev/mui/MCC_TextEditor-15.55.lha, Launch-Handler
+Requires: dev/mui/MCC_TextEditor-15.55.lha, dev/mui/MCC_BetterString, dev/mui/MCC_TheBar,  Launch-Handler
 
 This is a tool to allow you to edit and view Markdown documents.  It uses a customised version of 
 md4c at https://github.com/mity/md4c by Martin Mitas available to do the actual conversion of 
@@ -42,6 +42,10 @@ Syntax highlighting would be nice too. Any other ideas are welcome. :-)
 
 CHANGELOG
 
+0.8 - (10/01/2021)
+	* Moved to using TheBar to give a graphical toolbar
+	* Added Undo, Redo, Strikethrough, Code, Fenced Code Blocks, Horizontal Rule, Table, Image and Link functions
+	
 0.5 - (07/01/2021):
 	* Changed from using HTMLview to using Launch-Handler which comes with OS4.
 	* Added the settings page to allow configuration of the Markdown to HTML conversion settings. 

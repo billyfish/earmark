@@ -30,6 +30,7 @@
 #include "settings_gadget.h"
 #include "image_editor.h"
 #include "table_editor.h"
+#include "hyperlink_editor.h"
 
 
 #include "debugging_utils.h"
@@ -63,7 +64,8 @@ enum
 
 static void FreeGUIObjects (APTR app_p);
 
-static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI_CustomClass *settings_class_p, struct MUI_CustomClass *image_editor_class_p, struct MUI_CustomClass *table_editor_class_p, MDPrefs *prefs_p);
+static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI_CustomClass *settings_class_p, struct MUI_CustomClass *image_editor_class_p, 
+	struct MUI_CustomClass *table_editor_class_p, struct MUI_CustomClass *hyperlink_editor_class_p, MDPrefs *prefs_p);
 
 static void RunMD (APTR app_p);
 
@@ -138,49 +140,64 @@ BOOL CreateMUIInterface (MDPrefs *prefs_p)
 
 							if (table_editor_class_p)
 								{
-									APTR app_p;
+ 									struct MUI_CustomClass *hyperlink_editor_class_p;
 		
-									DB (KPRINTF ("%s %ld - Inited Image Editor\n", __FILE__, __LINE__));
-	
-									app_p = CreateGUIObjects (editor_class_p, settings_class_p, image_editor_class_p, table_editor_class_p, prefs_p);
+									DB (KPRINTF ("%s %ld - Inited Table Editor\n", __FILE__, __LINE__));
 		
-									if (app_p)
+									hyperlink_editor_class_p = InitHyperlinkEditorClass ();
+		
+									if (hyperlink_editor_class_p)
 										{
-											CONST CONST_STRPTR md_reg_s = "#?.md";
-											const size_t md_reg_length = strlen (md_reg_s);
-											const size_t size = (md_reg_length + 1) << 1;
-		
-											DB (KPRINTF ("%s %ld - Created GUI Objects\n", __FILE__, __LINE__));
-		
-											s_file_pattern_s = (STRPTR) IExec -> AllocVecTags (size, TAG_DONE);
-		
-											if (s_file_pattern_s)
+											APTR app_p;
+				
+											DB (KPRINTF ("%s %ld - Inited Hyperlink Editor\n", __FILE__, __LINE__));
+			
+											app_p = CreateGUIObjects (editor_class_p, settings_class_p, image_editor_class_p, table_editor_class_p, hyperlink_editor_class_p, prefs_p);
+				
+											if (app_p)
 												{
-													DB (KPRINTF ("%s %ld - Created File Pattern\n", __FILE__, __LINE__));
-		
-													if (IDOS -> ParsePattern (md_reg_s, s_file_pattern_s, size) >= 0)
+													CONST CONST_STRPTR md_reg_s = "#?.md";
+													const size_t md_reg_length = strlen (md_reg_s);
+													const size_t size = (md_reg_length + 1) << 1;
+				
+													DB (KPRINTF ("%s %ld - Created GUI Objects\n", __FILE__, __LINE__));
+				
+													s_file_pattern_s = (STRPTR) IExec -> AllocVecTags (size, TAG_DONE);
+				
+													if (s_file_pattern_s)
 														{
-															DB (KPRINTF ("%s %ld - Parsed File Pattern\n", __FILE__, __LINE__));
-		
-															RunMD (app_p);
-															success_flag = TRUE;
-		
-															/*
-															** save the current weights of all Balance objects until the next reboot
-															** if the weights are to be saved permanently the MUIV_Application_Save_ENVARC must be used instead
-															*/
-															IIntuition -> IDoMethod (app_p, MUIM_Application_Save, MUIV_Application_Save_ENV);
-		
-															IExec -> FreeVec (s_file_pattern_s);
+															DB (KPRINTF ("%s %ld - Created File Pattern\n", __FILE__, __LINE__));
+				
+															if (IDOS -> ParsePattern (md_reg_s, s_file_pattern_s, size) >= 0)
+																{
+																	DB (KPRINTF ("%s %ld - Parsed File Pattern\n", __FILE__, __LINE__));
+				
+																	RunMD (app_p);
+																	success_flag = TRUE;
+				
+																	/*
+																	** save the current weights of all Balance objects until the next reboot
+																	** if the weights are to be saved permanently the MUIV_Application_Save_ENVARC must be used instead
+																	*/
+																	IIntuition -> IDoMethod (app_p, MUIM_Application_Save, MUIV_Application_Save_ENV);
+				
+																	IExec -> FreeVec (s_file_pattern_s);
+																}
 														}
-												}
-		
-											FreeGUIObjects (app_p);
-										}		/* if (CreateGUIObjects (screen_p, app_port_p, hook_p)) */
+				
+													FreeGUIObjects (app_p);
+												}		/* if (app_p) */
+											else
+												{
+													IDOS -> PutStr ("Failed to create the user interface\n");
+												}	
+																									
+											FreeTableEditorClass (hyperlink_editor_class_p);			
+										}		/* hyperlink_editor_class_p) */
 									else
 										{
-											IDOS -> PutStr ("Failed to create the user interface\n");
-										}					
+											IDOS -> PutStr ("Failed to set up the hyperlink editor class\n");
+										}
 														
 									FreeTableEditorClass (table_editor_class_p);
 								}
@@ -244,8 +261,8 @@ HOOKPROTONH(DroppedFile, uint32, APTR object_p, struct AppMessage **msg_pp)
 MakeStaticHook(DroppedFileHook, DroppedFile);
 
 
-
-static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI_CustomClass *settings_class_p, struct MUI_CustomClass *image_editor_class_p, struct MUI_CustomClass *table_editor_class_p, MDPrefs *prefs_p)
+static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI_CustomClass *settings_class_p, struct MUI_CustomClass *image_editor_class_p, 
+	struct MUI_CustomClass *table_editor_class_p, struct MUI_CustomClass *hyperlink_editor_class_p, MDPrefs *prefs_p)
 {
 	APTR app_p = NULL;
 	APTR strip_p = NULL;
@@ -256,11 +273,14 @@ static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI
 	Object *image_editor_window_p = NULL;
 	Object *table_editor_p = NULL;
 	Object *table_editor_window_p = NULL;
-
+	Object *hyperlink_editor_p = NULL;
+	Object *hyperlink_editor_window_p = NULL;
+	
 	static const char * const used_classes [] =
 		{
 			"TextEditor.mcc",
 			"TheBar.mcc",
+			"BetterString.mcc",
 			NULL
 		};
 
@@ -376,7 +396,7 @@ static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI
 
 	app_p = IMUIMaster -> MUI_NewObject (MUIC_Application,
 		MUIA_Application_Title      , s_app_name_s,
-		MUIA_Application_Version    , "$VER: AmiMarkdown 0.5",
+		MUIA_Application_Version    , "$VER: AmiMarkdown 0.8",
 		MUIA_Application_Copyright  , "(c) 2021, Simon Tyrrell",
 		MUIA_Application_Author     , "Simon Tyrrell",
 		MUIA_Application_Description, "Edit and view Markdown documents.",
@@ -417,6 +437,20 @@ static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI
 
 				MUIA_Group_Child, table_editor_p = IIntuition -> NewObject (table_editor_class_p -> mcc_Class, NULL,
 					MUIA_ShortHelp, (uint32) "Table Editor",
+				TAG_DONE),
+			TAG_DONE),
+
+		TAG_DONE),
+
+		SubWindow, hyperlink_editor_window_p = IMUIMaster -> MUI_NewObject (MUIC_Window,
+			MUIA_Window_Title, "Insert Link",
+ 			MUIA_ShortHelp, (uint32) "Edit Link Details",
+
+			WindowContents, IMUIMaster -> MUI_NewObject (MUIC_Group,
+				MUIA_Group_Horiz, FALSE,
+
+				MUIA_Group_Child, hyperlink_editor_p = IIntuition -> NewObject (hyperlink_editor_class_p -> mcc_Class, NULL,
+					MUIA_ShortHelp, (uint32) "Link Editor",
 				TAG_DONE),
 			TAG_DONE),
 
@@ -565,6 +599,14 @@ static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI
 					IIntuition -> SetAttrs (table_editor_p, TEA_Editor, s_editor_p, TAG_DONE);
 				}
 
+			if (hyperlink_editor_window_p)
+				{
+					IIntuition -> IDoMethod (toolbar_p, MUIM_TheBar_DoOnButton, BID_HYPERLINK, MUIM_Notify, MUIA_Pressed, FALSE, hyperlink_editor_window_p, 3, MUIM_Set, MUIA_Window_Open, TRUE);
+					IIntuition -> IDoMethod (hyperlink_editor_window_p, MUIM_Notify, MUIA_Window_CloseRequest, TRUE, MUIV_Notify_Self, 3, MUIM_Set, MUIA_Window_Open, FALSE);
+
+					IIntuition -> SetAttrs (hyperlink_editor_p, HEA_Editor, s_editor_p, TAG_DONE);
+				}
+
 
 			if (toolbar_p)
 				{
@@ -582,8 +624,6 @@ static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI
 					IIntuition -> IDoMethod (toolbar_p, MUIM_TheBar_DoOnButton, BID_INDENTED_CODE, MUIM_Notify, MUIA_Pressed, FALSE, s_editor_p, 3, MUIM_Set, MEA_SurroundSelection, MEV_MDEditor_Style_IndentedCode);
 
 					IIntuition -> IDoMethod (toolbar_p, MUIM_TheBar_DoOnButton, BID_HORIZONTAL_RULE, MUIM_Notify, MUIA_Pressed, FALSE, s_editor_p, 3, MUIM_Set, MEA_InsertItem, MEV_MDEditor_HorizontalRule);
-
-					IIntuition -> IDoMethod (toolbar_p, MUIM_TheBar_DoOnButton, BID_HYPERLINK, MUIM_Notify, MUIA_Pressed, FALSE, s_editor_p, 3, MUIM_Set, MEA_InsertItem, MEV_MDEditor_Hyperlink);
 				}
 
 

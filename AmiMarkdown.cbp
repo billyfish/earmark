@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<CodeBench_Project name="AmiMarkdown" path="DH6:Projects&#047;ami-markdown&#047;AmiMarkdown.cbp" created="1357141115" lastmodified="1357824020">
+<CodeBench_Project name="AmiMarkdown" path="DH6:Projects&#047;ami-markdown&#047;AmiMarkdown.cbp" created="1357141115" lastmodified="1357832501">
 	<plugin name="PROGDIR:Plugins&#047;AmigaOS4SDK.CCPlugin" flags="528"/>
 	<target/>
 	<homedir name="DH6:Projects&#047;ami-markdown"/>
@@ -10,7 +10,8 @@
 	<builder name="SDK:c&#047;make -f"/>
 	<environment tabsize="2"/>
 	<headers>
-		<file name="DH6:Projects&#047;ami-markdown&#047;include&#047;table_editor.h" open="1" current="1" top="0" left="0" line="1" row="0"/>
+		<file name="DH6:Projects&#047;ami-markdown&#047;include&#047;hyperlink_editor.h" open="0"/>
+		<file name="DH6:Projects&#047;ami-markdown&#047;include&#047;table_editor.h" open="1" top="0" left="0" line="28" row="27"/>
 		<file name="include&#047;byte_buffer.h" open="0"/>
 		<file name="include&#047;string_utils.h" open="0"/>
 		<file name="include&#047;md_to_html.h" open="0"/>
@@ -26,7 +27,8 @@
 		<file name="DH6:Projects&#047;ami-markdown&#047;include&#047;image_editor.h" open="0"/>
 	</headers>
 	<sources>
-		<file name="src&#047;table_editor.c" open="1" top="235" left="0" line="246" row="32"/>
+		<file name="src&#047;hyperlink_editor.c" open="0"/>
+		<file name="src&#047;table_editor.c" open="1" current="1" top="299" left="0" line="317" row="0"/>
 		<file name="src&#047;byte_buffer.c" open="0"/>
 		<file name="src&#047;string_utils.c" open="0"/>
 		<file name="src&#047;amimd.c" open="0"/>
@@ -41,7 +43,7 @@
 		<file name="src&#047;settings_gadget.c" open="0"/>
 		<file name="src&#047;image_editor.c" open="1" top="175" left="0" line="175" row="0"/>
 	</sources>
-	<flags value="0x0000000002078041"/>
+	<flags value="0x0000000002078045"/>
 	<buildscript name="Makefile" depth="3" open="0"/>
 	<projectnotes open="0"/>
 	<buildwindow open="1"/>
@@ -61,6 +63,7 @@
 			<file name="src&#047;string_utils.c"/>
 			<file name="src&#047;image_editor.c"/>
 			<file name="src&#047;table_editor.c"/>
+			<file name="src&#047;hyperlink_editor.c"/>
 		</target>
 	</targets>
 	<logfile name="RAM Disk:Build.log"/>

@@ -17,6 +17,8 @@
 
 #include <string.h>
 #include <ctype.h>
+#include <stdlib.h>
+#include <stdint.h>
 
 #include <clib/alib_protos.h>
 
@@ -31,6 +33,7 @@
 #include <libraries/mui.h>
 
 #include <mui/TextEditor_mcc.h>
+#include <mui/BetterString_mcc.h>
 
 #include "debugging_utils.h"
 
@@ -71,6 +74,10 @@ static BOOL GenerateEmptyRow (ByteBuffer *buffer_p, const uint32 num_cols);
 
 
 static BOOL GenerateAlignmentRow (ByteBuffer *buffer_p, const uint32 num_cols, const char *alignments_s);
+
+
+static BOOL ConvertStringToUInt32 (CONST_STRPTR value_s, uint32 *store_p);
+
 
 /**************************************************/
 /**************** PUBLIC FUNCTIONS ****************/
@@ -220,21 +227,23 @@ static Object *GetTableEditorObject (Object *parent_p, TableEditorData *data_p)
 		MUIA_Group_Child, IMUIMaster -> MUI_NewObject (MUIC_Group,
 			MUIA_Group_Columns, 2,
 
-			MUIA_Group_Child, IMUIMaster -> MUI_MakeObject (MUIO_Label, "Number of rows:", TAG_DONE),
-			MUIA_Group_Child, num_rows_p = IMUIMaster -> MUI_NewObject (MUIC_Numericbutton,
-	      MUIA_Numeric_Min, 1,
-	      MUIA_Numeric_Value, data_p -> ted_num_rows,
+			MUIA_Group_Child, IMUIMaster -> MUI_MakeObject (MUIO_Label, "Number of rows:", TAG_DONE),				
+			MUIA_Group_Child, num_rows_p = IMUIMaster -> MUI_NewObject (MUIC_BetterString,
+				MUIA_String_Accept, "0123456789",	
+	      MUIA_String_Integer, data_p -> ted_num_rows,
 			TAG_DONE),
 
 			MUIA_Group_Child, IMUIMaster -> MUI_MakeObject (MUIO_Label, "Number of columns:", TAG_DONE),
-			MUIA_Group_Child, num_columns_p = IMUIMaster -> MUI_NewObject (MUIC_Numericbutton,
-	      MUIA_Numeric_Min, 1,
-	      MUIA_Numeric_Value, data_p -> ted_num_columns,
+			MUIA_Group_Child, num_columns_p = IMUIMaster -> MUI_NewObject (MUIC_BetterString,
+				MUIA_String_Accept, "0123456789",	
+	      MUIA_String_Integer, data_p -> ted_num_columns,
 			TAG_DONE),
 
 			MUIA_Group_Child, IMUIMaster -> MUI_MakeObject (MUIO_Label, "Alignments:", TAG_DONE),
-			MUIA_Group_Child, alignments_p = IMUIMaster -> MUI_NewObject (MUIC_String,
+			MUIA_Group_Child, alignments_p = IMUIMaster -> MUI_NewObject (MUIC_BetterString,
 				MUIA_String_Contents, (uint32) data_p -> ted_column_alignments_s,
+				MUIA_Frame, MUIV_Frame_String,
+	      MUIA_String_Accept, "lcrLCR",				
 			TAG_DONE),
 
 		TAG_DONE),
@@ -256,12 +265,12 @@ static Object *GetTableEditorObject (Object *parent_p, TableEditorData *data_p)
 
 			IIntuition -> IDoMethod (parent_p, OM_ADDMEMBER, child_object_p);
 
-			IIntuition -> SetAttrs (num_rows_p, MUIA_ShortHelp, "Number of rows in ther table.", TAG_DONE);
+			IIntuition -> SetAttrs (num_rows_p, MUIA_ShortHelp, "Number of rows in the table.", TAG_DONE);
 			IIntuition -> SetAttrs (num_columns_p, MUIA_ShortHelp, "Number of columns in the table", TAG_DONE);
-			IIntuition -> SetAttrs (alignments_p, MUIA_ShortHelp, "The alignment of each column", TAG_DONE);
+			IIntuition -> SetAttrs (alignments_p, MUIA_ShortHelp, "The alignment of each column:\n\n\tl for left-aligned\n\tr for right-aligned\n\tc for central-aligned", TAG_DONE);
 			
-			IIntuition -> IDoMethod (num_rows_p, MUIM_Notify, MUIA_Numeric_Value, MUIV_EveryTime, parent_p, 3, MUIM_Set, TEA_Rows, MUIV_TriggerValue);
-			IIntuition -> IDoMethod (num_columns_p, MUIM_Notify, MUIA_Numeric_Value, MUIV_EveryTime, parent_p, 3, MUIM_Set, TEA_Columns, MUIV_TriggerValue);
+			IIntuition -> IDoMethod (num_rows_p, MUIM_Notify, MUIA_String_Contents, MUIV_EveryTime, parent_p, 3, MUIM_Set, TEA_Rows, MUIV_TriggerValue);
+			IIntuition -> IDoMethod (num_columns_p, MUIM_Notify, MUIA_String_Contents, MUIV_EveryTime, parent_p, 3, MUIM_Set, TEA_Columns, MUIV_TriggerValue);
 			IIntuition -> IDoMethod (alignments_p, MUIM_Notify, MUIA_String_Contents, MUIV_EveryTime, parent_p, 3, MUIM_Set, TEA_Alignments, MUIV_TriggerValue);
 
 			IIntuition -> IDoMethod (ok_p, MUIM_Notify, MUIA_Pressed, FALSE, parent_p, 1, TEM_Insert);
@@ -340,13 +349,27 @@ static uint32 TableEditor_Set (Class *class_p, Object *object_p, Msg msg_p)
 						break;
 
 					case TEA_Columns:
-						DB (KPRINTF ("%s %ld - TableEditor_Set -> ted_num_columns to %lu\n", __FILE__, __LINE__, tag_data));
-						data_p -> ted_num_columns = tag_data;
+						{
+							CONST_STRPTR value_s = (CONST_STRPTR) tag_data;
+							DB (KPRINTF ("%s %ld - TableEditor_Set -> ted_num_columns to %s\n", __FILE__, __LINE__, value_s));
+							
+							if (!ConvertStringToUInt32 (value_s, & (data_p -> ted_num_columns)))
+								{
+									IDOS -> Printf ("Failed to convert column count from \"%s\"\n", value_s);
+								}
+						}
 						break;
 
 					case TEA_Rows:
-						DB (KPRINTF ("%s %ld - TableEditor_Set -> ted_num_rows to %lu\n", __FILE__, __LINE__, tag_data));
-						data_p -> ted_num_rows = tag_data;
+						{
+							CONST_STRPTR value_s = (CONST_STRPTR) tag_data;
+							DB (KPRINTF ("%s %ld - TableEditor_Set -> ted_num_rows to %s\n", __FILE__, __LINE__, value_s));
+	
+							if (!ConvertStringToUInt32 (value_s, & (data_p -> ted_num_rows)))
+								{
+									IDOS -> Printf ("Failed to convert column count from \"%s\"\n", value_s);
+								}
+						}
 						break;
 
 					case TEA_Alignments:
@@ -365,6 +388,26 @@ static uint32 TableEditor_Set (Class *class_p, Object *object_p, Msg msg_p)
 
 	return retval;
 }
+
+
+static BOOL ConvertStringToUInt32 (CONST_STRPTR value_s, uint32 *store_p)
+{
+	BOOL success_flag = FALSE;
+	
+							
+	if (value_s)
+		{
+			uint32 l = strtoul (value_s, NULL, 10);	
+			
+			if (l != UINT32_MAX)
+				{
+					*store_p = l;
+					success_flag = TRUE;
+				}
+		}	
+		
+	return success_flag;
+}	
 
 
 
