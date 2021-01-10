@@ -41,7 +41,7 @@ By default, each column is left-aligned, however you can alter that here. The st
     * *r* will make the column right-aligned
     * *c* will make the column centre-aligned. 
 
-If the String is empty or has fewer characters than the number of specified columns, the remaining columns will default to being left-aligned. For example *crlc* would specify that the first four columns of the table would have centre-, right-, left- and centre-aligned respectively.
+If the String is empty or has fewer characters than the number of specified columns, the remaining columns will default to being left-aligned. For example *crlc* would specify that the first four columns of the table would be centre-, right-, left- and centre-aligned respectively.
  
 ### Settings:
 
