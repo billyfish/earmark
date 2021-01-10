@@ -18,7 +18,7 @@ The window consists of two pages; an Editor page and a Settings page.
 ### Editor:
 
 The Editor page consists of a tool bar and a text editor gadget which is where the Markdown source
-code will be shown. The Text editor is a subclass of the [text editor custom class](https://github.com/amiga-mui/texteditor) so all of its key shortcuts are available too.
+code will be shown. The text editor is a subclass of the [text editor custom class](https://github.com/amiga-mui/texteditor) so all of its key shortcuts are available too.
 
 #### Toolbar
 
