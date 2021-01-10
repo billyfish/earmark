@@ -35,19 +35,17 @@ code will be shown. The Text editor is a subclass of the [text editor custom cla
  * **Fenced Code**: Make a fenced code block.
  * **Hyperlink**: Insert a hyperlink. This will open a new window where you can enter the link text and address. 
  * **Image**: Insert an image. This will open a new window where you can enter the image path, its alternative text and an optional title. 
- * **Table**: Insert a table. This will open a new window where you can enter the number of rows and columns that you require. Also there is an *Alignments* string gadget where you can specify the alignment for each column. By default, each column is left-aligned, however you can alter that here. The string here will be read where the first character defines the alignment for the first column, the second character for the second column, etc. An *l* specifies left-aligned, *r* will make the column right-aligned and *c* will make it centre-aligned. If the String is empty or has fewer characters than the number of specified columns, the remaining columns will default to being left-aligned.
+ * **Table**: Insert a table. This will open a new window where you can enter the number of rows and columns that you require. Also there is an *Alignments* string gadget where you can specify the alignment for each column. 
+By default, each column is left-aligned, however you can alter that here. The string here will be read where the first character defines the alignment for the first column, the second character for the second column, *etc.* 
+    * *l* will make the column left-aligned, 
+    * *r* will make the column right-aligned
+    * *c* will make the column centre-aligned. 
+
+If the String is empty or has fewer characters than the number of specified columns, the remaining columns will default to being left-aligned. For example *crlc* would specify that the first four columns of the table would have centre-, right-, left- and centre-aligned respectively.
  
-This will load it into the editor gadget. You can make any changes in the editor that you want and click 
-on the "Save" button or use the menu item to save your updated file. If you want to see how it looks, 
-click on the "Update" button or menu item and the latest version of your file will get saved as an HTML 
-file and you will be prompted to choose which Browser you wish to use to view it.
+## Settings:
 
-The toolbar also adds some basic buttons for setting a selection of text to be bold, italic or code. They
-all work be highlighting some text and clicking them.
-
-Settings:
-
-On this page you can configure some of the options for converting the Markdown to HTML. These are 
+On this page you can configure some of the options for converting the md4c Markdown to HTML. For more information on these, view the [md4c documentation](https://github.com/mity/md4c) 
 
 ## FUTURE:
 
