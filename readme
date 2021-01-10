@@ -5,23 +5,39 @@ Type:         text/edit
 Version:      0.8
 Architecture: ppc-amigaos >= 4.1
 Distribution: Aminet
-Requires: dev/mui/MCC_TextEditor-15.55.lha, dev/mui/MCC_BetterString, dev/mui/MCC_TheBar,  Launch-Handler
+Requires: dev/mui/MCC_TextEditor, dev/mui/MCC_BetterString, dev/mui/MCC_TheBar,  Launch-Handler
 
 This is a tool to allow you to edit and view Markdown documents.  It uses a customised version of 
-md4c at https://github.com/mity/md4c by Martin Mitas available to do the actual conversion of 
+md4c at https://github.com/mity/md4c by Martin Mitáš available to do the actual conversion of 
 Markdown to HTML.
 
-USAGE:
+## USAGE:
 
 The window consists of two pages; an Editor page and a Settings page.
 
-Editor:
+### Editor:
 
 The Editor page consists of a tool bar and a text editor gadget which is where the Markdown source
-code will be shown .
+code will be shown. The Text editor is a subclass of the [text editor custom class](https://github.com/amiga-mui/texteditor) so all of its key shortcuts are available too.
 
-You can either drag and drop a markdown file onto the window or use the "Load" button or menu item. 
-This will load it into the editor gadge. You can make any changes in the editor that you want and click 
+#### Toolbar
+
+ * **Load**: Load a Markdown file. Alternatively you can either drag and drop a markdown file onto the window.
+ * **Save**: Save the contents of the text editor to a file.
+ * **Convert**: Convert to HTML and view in a browser. This will save a new file with ".html" appended to the name of the markdown file and open it in a browser.
+ * **Undo**: Undo the latest changes.
+ * **Redo**: Redo the latest reverted changes.
+ * **Bold**: Make the selected text bold.
+ * **Italic**: Make the selected text italic.
+ * **Strikethrough**: Strike through the selected text.
+ * **Code**: Make the selected text code.
+ * **Horizontal Rule**: Insert a Horizontal Rule.
+ * **Fenced Code**: Make a fenced code block.
+ * **Hyperlink**: Insert a hyperlink. This will open a new window where you can enter the link text and address. 
+ * **Image**: Insert an image. This will open a new window where you can enter the image path, its alternative text and an optional title. 
+ * **Table**: Insert a table. This will open a new window where you can enter the number of rows and columns that you require. Also there is an *Alignments* string gadget where you can specify the alignment for each column. By default, each column is left-aligned, however you can alter that here. The string here will be read where the first character defines the alignment for the first column, the second character for the second column, etc. An *l* specifies left-aligned, *r* will make the column right-aligned and *c* will make it centre-aligned. If the String is empty or has fewer characters than the number of specified columns, the remaining columns will default to being left-aligned.
+ 
+This will load it into the editor gadget. You can make any changes in the editor that you want and click 
 on the "Save" button or use the menu item to save your updated file. If you want to see how it looks, 
 click on the "Update" button or menu item and the latest version of your file will get saved as an HTML 
 file and you will be prompted to choose which Browser you wish to use to view it.
@@ -31,22 +47,25 @@ all work be highlighting some text and clicking them.
 
 Settings:
 
-On this page you can configure some of the options for converting the Markdown to HTML.
+On this page you can configure some of the options for converting the Markdown to HTML. These are 
 
-FUTURE:
+## FUTURE:
 
-Moving to an image-based toolbar too, adding more editing functionality and getting the buttons
-to become selected for given bits of text, e.g. the bold button being highlighted when the cursor
-is in a piece of bold text, etc. is next. 
-Syntax highlighting would be nice too. Any other ideas are welcome. :-)
+ * Getting the buttons to become selected for given bits of text, e.g. the bold button being highlighted when the cursor is in a piece of bold text, etc. 
+ * Syntax highlighting would be nice too. 
+ * Adding more elements to the md4c Markdown to HTML conversion code such as definition lists, footnotes, etc. This would then get added to md4c via pull requests.
+ * The ability to save and load customised conversion settings.
+ * Get the *Convert* function to re-use an existing browser window rather than launch a new one each time.
 
-CHANGELOG
+Any other ideas are welcome. :-)
 
-0.8 - (10/01/2021)
-	* Moved to using TheBar to give a graphical toolbar
+## CHANGELOG
+
+### 0.8 - (10/01/2021)
+	* Moved to using TheBar to give a graphical toolbar along with many more functions.
 	* Added Undo, Redo, Strikethrough, Code, Fenced Code Blocks, Horizontal Rule, Table, Image and Link functions
 	
-0.5 - (07/01/2021):
+### 0.5 - (07/01/2021):
 	* Changed from using HTMLview to using Launch-Handler which comes with OS4.
 	* Added the settings page to allow configuration of the Markdown to HTML conversion settings. 
 	* Added a (very!) :-)) rudimentary set of buttons on the toolbar to allow the setting of bold, 
@@ -54,12 +73,12 @@ CHANGELOG
 	* Added a test Markdown file.
 	* Bug fixes.
 
-0.1 - (05/01/2021):
+### 0.1 - (05/01/2021):
 	* Initial release
 
-LICENSE:
+## LICENSE:
 
-The code is available under the MIT license. The md4c parts are copyright Martin Mitas and the rest 
+The code is available under the MIT license. The md4c parts are copyright Martin Mitáš and the rest 
 is copyright (c) 2021  by Simon Tyrrell. The emoticon_bigsmile image is copyright to Martin Merz, 
 go to http://www.masonicons.info for more information and to get his awesome artwork.
 
