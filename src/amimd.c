@@ -20,6 +20,8 @@
 #include <proto/dos.h>
 #include <proto/asl.h>
 
+#include <proto/amijansson.h>
+
 #define ALLOCATE_GLOBALS
 
 #include "debugging_utils.h"
@@ -60,6 +62,8 @@ struct MUIMasterIFace *IMUIMaster = NULL;
 struct Library *AslBase = NULL;
 struct AslIFace *IAsl = NULL;
 
+struct Library *JanssonBase = NULL;
+struct JanssonIFace *IJansson = NULL;
 
 static const char USED min_stack[] = "$STACK:102400";
 
@@ -77,12 +81,15 @@ static BOOL OpenLibs (void)
 								{
 									if (OpenLib (&MUIMasterBase, "muimaster.library", 19L, (struct Interface **) &IMUIMaster, "main", 1))
 										{
-											return TRUE;
+											if (OpenLib (&JanssonBase, "jansson.library", 2L, (struct Interface **) &IJansson, "main", 1))
+												{
+													return TRUE;
+												}
+											CloseLib (JanssonBase, (struct Interface *) IJansson);
 										}
-
 									CloseLib (AslBase, (struct Interface *) IAsl);
 								}
-								CloseLib (DOSBase, (struct Interface *) IDOS);
+							CloseLib (DOSBase, (struct Interface *) IDOS);
 						}
 				 	CloseLib (UtilityBase, (struct Interface *) IUtility);
 				}
@@ -95,6 +102,7 @@ static BOOL OpenLibs (void)
 
 static void CloseLibs (void)
 {
+	CloseLib (JanssonBase, (struct Interface *) IJansson);
 	CloseLib (MUIMasterBase, (struct Interface *) IMUIMaster);
 	CloseLib (AslBase, (struct Interface *) IAsl);
 	CloseLib (DOSBase, (struct Interface *) IDOS);

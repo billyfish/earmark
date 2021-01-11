@@ -38,6 +38,8 @@
 
 #define MEA_InsertItem (ME_Dummy + 5)
 
+#define MEA_PrefixMarkedLines (ME_Dummy + 6)
+
 /*************************/
 /******** METHODS ********/
 /*************************/
@@ -78,6 +80,7 @@
 
 #define MEV_MDEditor_Image   (ME_Dummy + 9)
 
+#define MEV_MDEditor_BlockQuote   (ME_Dummy + 10)
 
 /*************************/
 /***** API FUNCTIONS *****/

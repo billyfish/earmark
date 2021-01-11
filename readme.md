@@ -59,6 +59,9 @@ Any other ideas are welcome. :-)
 
 ## CHANGELOG
 
+### 0.9
+ * Added Blockquote function
+
 ### 0.8 - (10/01/2021)
  * Moved to using TheBar to give a graphical toolbar along with many more functions.
  * Added Undo, Redo, Strikethrough, Code, Fenced Code Blocks, Horizontal Rule, Table, Image and Link functions

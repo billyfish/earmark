@@ -297,6 +297,7 @@ static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI
 			BID_FONT_ITALIC,
 			BID_FONT_CODE,
 			BID_FONT_STRIKETHROUGH,
+			BID_BLOCKQUOTE,
 			BID_INDENTED_CODE,
 			BID_HORIZONTAL_RULE,
 			BID_HYPERLINK,
@@ -318,6 +319,7 @@ static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI
 			"font_italic",
 			"font_color",
 			"font_cancel",
+			"quote",
 			"braces",
 			"forcenewpage",
 			"hyperlink",
@@ -338,6 +340,7 @@ static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI
 			"font_italic_s",
 			"font_color_s",
 			"font_cancel_s",
+			"quote_s",
 			"braces_s",
 			"forcenewpage_s",
 			"hyperlink_s",
@@ -358,6 +361,7 @@ static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI
 			"font_italic_g",
 			"font_color_g",
 			"font_cancel_g",
+			"quote_g",
 			"braces_g",
 			"forcenewpage_g",
 			"hyperlink_g",
@@ -383,6 +387,7 @@ static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI
 			{ MUIV_TheBar_BarSpacer, -1, NULL, NULL, 0, 0, NULL, NULL },
 			{ BID_HORIZONTAL_RULE, BID_HORIZONTAL_RULE, "Horizontal Rule", "Insert a Horizontal Rule.", 0, 0, NULL, NULL },
 			{ BID_INDENTED_CODE,  BID_INDENTED_CODE, "Fenced Code", "Make a fenced code block.", 0, 0, NULL, NULL },
+			{ BID_BLOCKQUOTE,  BID_BLOCKQUOTE, "Blockquote", "Make the selected text a blockquote.", 0, 0, NULL, NULL },			
 			{ MUIV_TheBar_BarSpacer, -1, NULL, NULL, 0, 0, NULL, NULL },
 			{ BID_HYPERLINK, BID_HYPERLINK, "_Hyperlink", "Insert a hyperlink.", 0, 0, NULL, NULL },
 			{ BID_IMAGE, BID_IMAGE, "_Image", "Insert an image.", 0, 0, NULL, NULL },
@@ -624,6 +629,14 @@ static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI
 					IIntuition -> IDoMethod (toolbar_p, MUIM_TheBar_DoOnButton, BID_INDENTED_CODE, MUIM_Notify, MUIA_Pressed, FALSE, s_editor_p, 3, MUIM_Set, MEA_SurroundSelection, MEV_MDEditor_Style_IndentedCode);
 
 					IIntuition -> IDoMethod (toolbar_p, MUIM_TheBar_DoOnButton, BID_HORIZONTAL_RULE, MUIM_Notify, MUIA_Pressed, FALSE, s_editor_p, 3, MUIM_Set, MEA_InsertItem, MEV_MDEditor_HorizontalRule);
+
+					IIntuition -> IDoMethod (toolbar_p, MUIM_TheBar_DoOnButton, BID_BLOCKQUOTE, MUIM_Notify, MUIA_Pressed, FALSE, s_editor_p, 3, MUIM_Set, MEA_PrefixMarkedLines, MEV_MDEditor_BlockQuote);
+					
+					/*
+					 * Both of these cause a lock up when the app is closed. Don't know why!
+					 */
+					//IIntuition -> IDoMethod (s_editor_p, MUIM_Notify, MUIA_TextEditor_UndoAvailable, MUIV_EveryTime, toolbar_p, MUIM_TheBar_SetAttr, BID_UNDO, MUIV_TheBar_Attr_Disabled, MUIV_NotTriggerValue);
+					//IIntuition -> IDoMethod (s_editor_p, MUIM_Notify, MUIA_TextEditor_UndoAvailable, MUIV_EveryTime, toolbar_p, MUIM_TheBar_DoOnButton, BID_UNDO, MUIM_Set, MUIV_TheBar_Attr_Disabled, MUIV_NotTriggerValue);
 				}
 
 

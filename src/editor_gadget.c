@@ -344,6 +344,80 @@ static uint32 MarkdownEditor_Set (Class *class_p, Object *object_p, Msg msg_p)
 						}
 						break;
 
+
+					case MEA_PrefixMarkedLines:
+						{
+							CONST_STRPTR before_s = NULL;
+							CONST_STRPTR initial_before_s = NULL;
+							STRPTR marked_text_s = NULL;
+
+							
+							switch (tag_data)
+								{
+									case MEV_MDEditor_BlockQuote:
+										initial_before_s = "> ";
+										before_s = "\n> ";
+										break;
+
+									default:
+										break;
+								}
+
+							DB (KPRINTF ("%s %ld - ti_Tag: MarkdownEditor_Set MEA_PrefixMarkedLines tag %lu before \"%s\"\n",	__FILE__, __LINE__, tag_data, before_s ? before_s : "NULL"));
+
+							marked_text_s = (STRPTR) IIntuition -> IDoMethod (object_p, MUIM_TextEditor_ExportBlock, 0 /*, MUIF_TextEditor_ExportBlock_TakeBlock, x1, y1, x2, y2 */);
+							
+							if (marked_text_s && (strlen (marked_text_s) > 0))
+								{									
+									if (before_s)
+										{
+											STRPTR replacement_s = NULL;
+											BOOL b = FALSE;
+											
+											DB (KPRINTF ("%s %ld - ti_Tag: MarkdownEditor_Set MEA_PrefixMarkedLines marked text = \"%s\", before_s = \"%s\"\n",
+												__FILE__, __LINE__, marked_text_s, before_s));
+
+//											replacement_s = ConcatenateVarargsStrings (before_s, marked_text_s, NULL);
+
+											if (!SearchAndReplaceInString (marked_text_s, &replacement_s, "\n", before_s))
+												{
+													replacement_s = marked_text_s;
+												}
+
+											DB (KPRINTF ("%s %ld - ti_Tag: MarkdownEditor_Set MEA_PrefixMarkedLines tag %lu b %lu replacement_s \"%s\"\n",	__FILE__, __LINE__, tag_data, b, replacement_s ? replacement_s : "NULL"));
+												
+											if (replacement_s)
+												{
+													STRPTR full_s = ConcatenateStrings (initial_before_s, replacement_s);
+													
+													if (full_s)
+														{														
+															IIntuition -> IDoMethod (object_p, MUIM_TextEditor_Replace, full_s);
+														
+															FreeCopiedString (full_s);
+														}
+
+													IExec -> FreeVec (replacement_s);
+												}
+										}
+    							else
+										{
+											DB (KPRINTF ("%s %ld - ti_Tag: MarkdownEditor_Set MEA_SurroundSelection failed to get before_s\n", __FILE__, __LINE__));
+										}
+																		
+									IExec -> FreeVec (marked_text_s);
+								}
+							else
+								{
+									DB (KPRINTF ("%s %ld - ti_Tag: MarkdownEditor_Set MEA_PrefixMarkedLines no marked text\n", __FILE__, __LINE__));		
+									IIntuition -> IDoMethod (object_p, MUIM_TextEditor_InsertText, before_s, MUIV_TextEditor_InsertText_Cursor);									
+								}	
+							
+							//IIntuition -> IDoMethod (object_p, MUIM_TextEditor_InsertText, surround_s, MUIV_TextEditor_InsertText_Cursor);
+						}							
+						break;
+						
+
 					/* We don't understand this attribute */
 					default:
 						break;

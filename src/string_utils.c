@@ -24,6 +24,7 @@
 
 #include "string_utils.h"
 #include "byte_buffer.h"
+#include "debugging_utils.h"
 
 
 
@@ -206,7 +207,7 @@ BOOL SearchAndReplaceInString (const char *src_s, char **dest_ss, const char *to
 	// sanity checks and initialization
 	if (!IsStringEmpty (src_s))
 		{
-			if (!IsStringEmpty (to_replace_s))
+			if (to_replace_s)
 				{
 					size_t to_replace_length = strlen (to_replace_s);
 					size_t with_length;
@@ -231,42 +232,49 @@ BOOL SearchAndReplaceInString (const char *src_s, char **dest_ss, const char *to
 							insert_p = tmp_p + to_replace_length;
 						}
 
-					if (count > 0)
+					DB (KPRINTF ("%s %ld - SearchAndReplaceInString  \"%s\" , \"%s\", %lu matches\n",	__FILE__, __LINE__, src_s, to_replace_s, count));
+
+
+					result_s = (char *) IExec -> AllocVecTags (strlen (src_s) + ((with_length - to_replace_length) * count) + 1, TAG_DONE);
+
+					if (result_s)
 						{
-							result_s = (char *) IExec -> AllocVecTags (strlen (src_s) + ((with_length - to_replace_length) * count) + 1, TAG_DONE);
+							tmp_p = result_s;
 
-							if (result_s)
+							// first time through the loop, all the variable are set correctly
+							// from here on,
+							//    tmp points to the end of the result string
+							//    insert_p points to the next occurrence of rep in src_s
+							//    src_s points to the remainder of src_s after "end of rep"
+							while (count --)
 								{
-									tmp_p = result_s;
-
-									// first time through the loop, all the variable are set correctly
-									// from here on,
-									//    tmp points to the end of the result string
-									//    insert_p points to the next occurrence of rep in src_s
-									//    src_s points to the remainder of src_s after "end of rep"
-									while (count --)
-										{
-											insert_p = strstr (src_s, to_replace_s);
-											len_front = insert_p - src_s;
-											tmp_p = strncpy (tmp_p, src_s, len_front) + len_front;
-											tmp_p = strcpy (tmp_p, with_s) + with_length;
-											src_s += len_front + to_replace_length; // move to next "end of rep"
-										}
-									strcpy (tmp_p, src_s);
-
-									*dest_ss = result_s;
+									insert_p = strstr (src_s, to_replace_s);
+									len_front = insert_p - src_s;
+									tmp_p = strncpy (tmp_p, src_s, len_front) + len_front;
+									tmp_p = strcpy (tmp_p, with_s) + with_length;
+									src_s += len_front + to_replace_length; // move to next "end of rep"
 								}
-							else
-								{
-									success_flag = FALSE;
-								}
+							strcpy (tmp_p, src_s);
 
-						}		/* if (count > 0) */
+							*dest_ss = result_s;
+						}
+					else
+						{
+							success_flag = FALSE;
+						}
+
 
 				}		/* if (!IsStringEmpty (to_replace_s)) */
-
+			else
+				{
+					DB (KPRINTF ("%s %ld - SearchAndReplaceInString empty replace\n",	__FILE__, __LINE__));
+				}
 		}		/* if (!IsStringEmpty (src_s)) */
-
+	else
+		{
+			DB (KPRINTF ("%s %ld - SearchAndReplaceInString empty src\n",	__FILE__, __LINE__));
+		}
+		
 	return success_flag;
 }
 

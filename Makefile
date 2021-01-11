@@ -4,7 +4,7 @@
 #
 # Project: AmiMarkdown
 #
-# Created on: 10-01-2021 15:32:15
+# Created on: 11-01-2021 18:15:38
 #
 #
 
@@ -20,7 +20,7 @@ AmiMarkdown_OBJ := \
 	 md4c/src/entity.o md4c/src/md4c.o md4c/src/md4c-html.o \
 	 src/prefs.o src/byte_buffer.o src/string_utils.o \
 	 src/image_editor.o src/table_editor.o src/hyperlink_editor.o \
-	
+	 src/json_util.o
 
 
 ###################################################################
@@ -33,7 +33,7 @@ CC := gcc:bin/gcc
 
 INCPATH := -I.
 
-CFLAGS := $(INCPATH) -gstabs  -Werror -Wwrite-strings -I SDK:MUI/C/Include -Iinclude -Imd4c/src -DAMIGA=1 -D_DBUG=1
+CFLAGS := $(INCPATH) -gstabs  -Werror -Wwrite-strings -I SDK:MUI/C/Include -Iinclude -Imd4c/src -ISDK:include/include_h/jansson -DAMIGA=1 -D_DBUG=1
 
 
 ###################################################################
@@ -75,6 +75,9 @@ AmiMarkdown: $(AmiMarkdown_OBJ)
 ##////  Standard rules
 ##
 ###################################################################
+
+src/json_util.o: src/json_util.c
+	$(CC) -c src/json_util.c -o src/json_util.o $(CFLAGS)
 
 src/hyperlink_editor.o: src/hyperlink_editor.c
 	$(CC) -c src/hyperlink_editor.c -o src/hyperlink_editor.o $(CFLAGS)
