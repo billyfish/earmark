@@ -91,7 +91,7 @@ static BOOL OpenLibs (void)
 														{											
 															return TRUE;
 														}
-													CloseLib (RequesterBase, (struct Interface *) IRequester);
+													CloseLib (JanssonBase, (struct Interface *) IJansson);
 												}
 											CloseLib (MUIMasterBase, (struct Interface *) IMUIMaster);
 										}
@@ -110,6 +110,7 @@ static BOOL OpenLibs (void)
 
 static void CloseLibs (void)
 {
+	CloseLib (RequesterBase, (struct Interface *) IRequester);
 	CloseLib (JanssonBase, (struct Interface *) IJansson);
 	CloseLib (MUIMasterBase, (struct Interface *) IMUIMaster);
 	CloseLib (AslBase, (struct Interface *) IAsl);

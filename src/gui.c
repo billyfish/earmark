@@ -854,48 +854,20 @@ void UpdateWindowActiveFilename (CONST CONST_STRPTR filename_s)
 int32 ShowRequester (CONST CONST_STRPTR title_s, CONST CONST_STRPTR text_s, CONST CONST_STRPTR buttons_s)
 {
 	int32 res;
-	struct orRequest reqmsg;
-	struct TagItem   tags[10];
-	char             buffer[100] = "Default string";
-
 	struct Window *window_p = GetAppWindow ();
-
-	reqmsg.MethodID  = RM_OPENREQ;
-	reqmsg.or_Attrs  = tags;
-	reqmsg.or_Window = window_p;
-	reqmsg.or_Screen = NULL;
-	
-	tags[0].ti_Tag   = REQ_Type;
-	tags[0].ti_Data  = REQTYPE_STRING;
-	tags[1].ti_Tag   = REQ_TitleText;
-	tags[1].ti_Data  = (Tag)"Requesting a string";
-	tags[2].ti_Tag   = REQ_BodyText;
-	tags[2].ti_Data  = (Tag)"Please enter a string";
-	tags[3].ti_Tag   = REQ_GadgetText;
-	tags[3].ti_Data  = (Tag)"_Ok|_Cancel";
-	tags[4].ti_Tag   = REQS_Buffer;
-	tags[4].ti_Data  = (Tag)buffer;
-	tags[5].ti_Tag   = REQS_MaxChars;
-	tags[5].ti_Data  = sizeof(buffer) - 1;
-	tags[6].ti_Tag   = REQS_ShowDefault;
-	tags[6].ti_Data  = TRUE;
-	tags[7].ti_Tag   = REQS_AllowEmpty;
-	tags[7].ti_Data  = FALSE;
-	tags[8].ti_Tag   = REQS_Invisible;
-	tags[8].ti_Data  = FALSE;
-	tags[9].ti_Tag   = TAG_END;
-	tags[9].ti_Data  = 0;
-
 	Object *requester_p = IIntuition -> NewObject (NULL, "requester.class",
 		REQ_Type, REQTYPE_INFO,
+		REQ_Image, REQIMAGE_WARNING,
 		REQ_TitleText, title_s,
 		REQ_BodyText, text_s,
-		REQP_CenterWindow, window_p,
+		REQ_GadgetText, "_Ok",
 		TAG_DONE);
 		
 	if (requester_p)
 		{
-			res = IIntuition -> IDoMethod (requester_p, RM_OPENREQ);
+			res = IIntuition -> IDoMethod (requester_p, RM_OPENREQ, NULL, window_p, NULL);
+
+			IIntuition -> DisposeObject (requester_p);
 		}
 
 	
