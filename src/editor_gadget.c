@@ -139,7 +139,7 @@ static uint32 MarkdownEditorDispatcher (Class *class_p,  Object *object_p, Msg m
 						}
 					else
 						{
-							ShowRequester ("Conversion problem", "You need to save the Markdown file before you can convert it", "_Ok");
+							ShowWarning ("Conversion problem", "You need to save the Markdown file before you can convert it", "_Ok");
 						}
 				}
 				break;
@@ -226,19 +226,46 @@ static uint32 MarkdownEditor_Set (Class *class_p, Object *object_p, Msg msg_p)
 							CONST_STRPTR filename_s = (CONST_STRPTR) tag_data;
 							
 							if (filename_s)
-								{									
-									STRPTR copied_filename_s = EasyCopyToNewString (filename_s);
+								{
+									BOOL changed_filename_flag = FALSE;
+									MarkdownEditorData *md_p = INST_DATA (class_p, object_p); 
 									
-									if (copied_filename_s)
+									if (md_p -> med_filename_s)
 										{
-											if (md_p -> med_filename_s)
-												{
-													IExec -> FreeVec (md_p -> med_filename_s);	
+											/* Has the filename changed? */
+											if (strcmp (filename_s, md_p -> med_filename_s) != 0)
+												{													
+													changed_filename_flag = TRUE;
 												}
-												
-											md_p -> med_filename_s = copied_filename_s;
 										}
-								}
+									else
+										{
+											/* This appears to be the first save so store the filename */
+											changed_filename_flag = TRUE;
+										}
+										
+									if (changed_filename_flag)
+										{
+											STRPTR new_filename_s = EasyCopyToNewString (filename_s);
+											
+											if (new_filename_s)
+												{
+													if (md_p -> med_filename_s)
+														{
+															FreeCopiedString (md_p -> med_filename_s);	
+														}
+												
+													md_p -> med_filename_s = new_filename_s;												
+													UpdateWindowActiveFilename (md_p -> med_filename_s);	
+												}
+											else
+												{
+													ShowError ("Application Error", "Failed to set active filename for editor", "_Ok");
+												}
+											
+										}		
+
+								}		/* if (filename_s) */
 							else
 								{
 									if (md_p -> med_filename_s)
@@ -543,7 +570,7 @@ static uint32 MarkdownEditor_Convert (Class *class_p, Object *editor_p)
 			if (res)
 				{ 
 					DB (KPRINTF ("%s %ld - MarkdownEditor_Convert: filename \"%s\"\n", __FILE__, __LINE__, md_p -> med_filename_s ? md_p -> med_filename_s : "NULL"));
-					DB (KPRINTF ("%s %ld - MarkdownEditor_Convert: html:\n%s\n\n", __FILE__, __LINE__, html_s));
+					//DB (KPRINTF ("%s %ld - MarkdownEditor_Convert: html:\n%s\n\n", __FILE__, __LINE__, html_s));
 					
 					if (md_p -> med_filename_s)
 						{
@@ -563,6 +590,7 @@ static uint32 MarkdownEditor_Convert (Class *class_p, Object *editor_p)
 											*/
 									    APTR old_win_p = IDOS -> SetProcWindow ((APTR) -1); 
 		    							BPTR url_handle_p = IDOS -> Open ("URL:NIL:", MODE_OLDFILE);
+		                  BOOL success_flag = FALSE;
 		                  
 		                  IDOS -> SetProcWindow (old_win_p);
 	 
@@ -576,19 +604,20 @@ static uint32 MarkdownEditor_Convert (Class *class_p, Object *editor_p)
 		    									if (url_handle_p)  /* Check return value and Close() immediately. */
 		    										{	
 											        IDOS -> Close (url_handle_p);
-									        	}
-									        else
-									        	{
-									        		IDOS -> PutStr ("URL: is not functioning, LaunchHandler is required.\n");
-									        	}
-									        	
-									    	}
-									    else
-									    	{
-													IDOS -> PutStr ("URL: is not functioning, LaunchHandler is required.\n");
-									    	}
+											        success_flag = TRUE;
+														}
+												}
+												
+											if (!success_flag)
+												{
+													ShowWarning ("View Error", "Failed to open browser to view converted file", "_Ok");
+												}												
 										}
-									
+									else
+										{
+											ShowError ("Conversion Error", "Failed to save converted HTML file", "_Ok");
+										}
+										
 									IExec -> FreeVec (html_filename_s);	
 								}		/* if (html_filename_s) */	
 						}
@@ -599,8 +628,12 @@ static uint32 MarkdownEditor_Convert (Class *class_p, Object *editor_p)
 						}
 
 					IExec -> FreeVec (html_s);
-				}
-
+				}	
+			else
+				{
+					ShowError ("Conversion Error", "Failed to convert Markdown to HTML", "_Ok");
+				}	
+			
 			IExec -> FreeVec (text_s);
 		}
 
@@ -617,6 +650,7 @@ static uint32 MarkdownEditor_Load (Class *class_p, Object *editor_p)
 	if (filename_s)
 		{
 			LoadFile (filename_s);
+					
 			IExec -> FreeVec (filename_s);
 		}
 

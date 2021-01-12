@@ -57,7 +57,7 @@ The Editor page consists of a tool bar and a text editor gadget which is where
     * *r* will make the column right-aligned
     * *c* will make the column centre-aligned.
 
-If the *Alignments* is empty or has fewer characters than the number of 
+If *Alignments* is empty or has fewer characters than the number of 
 specified  columns, the remaining columns will default to being left-aligned. 
 For example *crlc* would specify that the first four columns of the table 
 would be centre-, right-, left- and centre-aligned respectively.
@@ -66,7 +66,9 @@ would be centre-, right-, left- and centre-aligned respectively.
 
 On this page you can configure some of the options for converting the md4c 
 Markdown to HTML. For more information on these, view the 
-[md4c documentation](https://github.com/mity/md4c) 
+[md4c documentation](https://github.com/mity/md4c).You can use the 
+*Save Settings* and *Load Settings* buttons to save and load any customised 
+conversion settings if you wish. 
 
 ## FUTURE:
 
@@ -85,21 +87,21 @@ Any other ideas are welcome. :-)
 ## CHANGELOG
 
 ### 0.9
- * Added Blockquote function
- * BUGFIX: Load and Save menu options had the same shortcut (@walkero) 
- * BUGFIX: "Allow blocks" and "Allow spans" had the same help bubble text 
- (@walkero)
- * Added shortucut for Update, now named Convert (@walkero)
- * Choices that open a new window, like adding a link, maybe it would be good 
- to close after the user press OK.(@walkero)
+ * Added Blockquote function.
+ * Added shortucut for Update, now named Convert (@walkero).
+ * Image, table and link editors now close when you click OK (@walkero).
+ * Conversion settings can be saved/loaded. (@walkero). 
  * BUGFIX: Choosing the Github dialect conversion setting wasn't being set.
- * Conversion settings can be saved/loaded .(@walkero)
- 
+ * BUGFIX: New projects would not save the converted html and launch the preview. (@walkero).
+ * BUGFIX: Load and Save menu options had the same shortcut (@walkero). 
+ * BUGFIX: "Allow blocks" and "Allow spans" had the same help bubble text
+ (@walkero).
+  
 ### 0.8 - (10/01/2021)
  * Moved to using TheBar to give a graphical toolbar along with many more 
  functions.
  * Added Undo, Redo, Strikethrough, Code, Fenced Code Blocks, Horizontal Rule,
- Table, Image and Link functions
+ Table, Image and Link functions.
 	
 ### 0.5 - (07/01/2021):
  * Changed from using HTMLview to using Launch-Handler which comes with OS4.

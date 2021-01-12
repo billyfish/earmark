@@ -107,10 +107,6 @@ BOOL ConvertText (const char *in_s, char **out_ss, uint16 parser_flags, uint16 r
 
 		} /* if (output_buffer_p) */
 
-	else
-		{
-			IDOS -> PutStr ("Failed to convert Markdown to HTML");
-  	}
 
 	return success_flag;	
 }

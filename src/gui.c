@@ -74,10 +74,9 @@ static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI
 
 static void RunMD (APTR app_p);
 
-static uint32 Convert (void);
-
 static struct Window *GetAppWindow (void);
 
+static int32 ShowRequester (CONST CONST_STRPTR title_s, CONST CONST_STRPTR text_s, CONST CONST_STRPTR buttons_s, const uint32 image);
 
 /***************************************/
 /********** STATIC VARIABLES ***********/
@@ -190,49 +189,56 @@ BOOL CreateMUIInterface (MDPrefs *prefs_p)
 				
 																	IExec -> FreeVec (s_file_pattern_s);
 																}
+															else
+																{
+																	ShowError ("Launch Error", "Failed to create the user interface:\n Could not parse the default file pattern", "_Ok");
+																}
 														}
-				
+													else
+														{
+															ShowError ("Launch Error", "Failed to create the user interface:\n Could not create the default file pattern", "_Ok");
+														}
+														
 													FreeGUIObjects (app_p);
 												}		/* if (app_p) */
 											else
 												{
-													IDOS -> PutStr ("Failed to create the user interface\n");
+													ShowError ("Launch Error", "Failed to create the user interface:\n Could not start the application", "_Ok");
 												}	
 																									
 											FreeTableEditorClass (hyperlink_editor_class_p);			
 										}		/* hyperlink_editor_class_p) */
 									else
 										{
-											IDOS -> PutStr ("Failed to set up the hyperlink editor class\n");
+											ShowError ("Launch Error", "Failed to create the user interface:\n Could not initialise the hyperlink editor class", "_Ok");
 										}
 														
 									FreeTableEditorClass (table_editor_class_p);
 								}
 							else
 								{
-									IDOS -> PutStr ("Failed to set up the table editor class\n");
+									ShowError ("Launch Error", "Failed to create the user interface:\n Could not initialise the table editor class", "_Ok");
 								}
 
 							FreeImageEditorClass (image_editor_class_p);
 						}
 					else
 						{
-							IDOS -> PutStr ("Failed to set up the image editor class\n");
+							ShowError ("Launch Error", "Failed to create the user interface:\n Could not initialise the image editor class", "_Ok");
 						}
 
 					FreeMarkdownSettingsClass (settings_class_p);
 				}		/* if (settings_class_p) */
 			else
 				{
-					IDOS -> PutStr ("Failed to set up the settings class\n");
+					ShowError ("Launch Error", "Failed to create the user interface:\n Could not initialise the settings  class", "_Ok");
 				}
-
 
 			FreeMarkdownEditorClass (editor_class_p);
 		}		/* if (mol_viewer_class_p)*/
 	else
 		{
-			IDOS -> PutStr ("Failed to set up the editor, pleae install TextEditor.mcc\n");
+			ShowError ("Launch Error", "Failed to create the user interface:\n Could not initialise the text editor class", "_Ok");
 		}
 
 	return success_flag;
@@ -683,8 +689,9 @@ BOOL LoadFile (STRPTR filename_s)
 
 									IIntuition -> IDoMethod (s_editor_p, MUIM_TextEditor_ClearText);
 									IIntuition -> SetAttrs (s_editor_p, MUIA_TextEditor_Contents, content_s, TAG_DONE);
+								
+									IIntuition -> SetAttrs (s_editor_p, MEA_Filename, filename_s, TAG_DONE);
 
-									UpdateWindowActiveFilename (filename_s);
 
 									success_flag = TRUE;
 								}
@@ -712,6 +719,8 @@ BOOL SaveFile (STRPTR filename_s, CONST CONST_STRPTR text_s)
 			if (IDOS -> FWrite (fh_p, text_s, size, 1) == 1)
 				{
 					success_flag = TRUE;
+					
+					IIntuition -> SetAttrs (s_editor_p, MEA_Filename, filename_s, TAG_DONE);
 				}
 
 			IDOS -> FClose (fh_p);
@@ -832,7 +841,7 @@ STRPTR RequestFilename (const BOOL save_flag, CONST CONST_STRPTR title_s, CONST 
 		}
 
 
-	IDOS -> Printf ("filename: %s\n", filename_s ? filename_s : "NULL");
+	//IDOS -> Printf ("filename: %s\n", filename_s ? filename_s : "NULL");
 	return filename_s;
 }
 
@@ -851,13 +860,24 @@ void UpdateWindowActiveFilename (CONST CONST_STRPTR filename_s)
 }
 
 
-int32 ShowRequester (CONST CONST_STRPTR title_s, CONST CONST_STRPTR text_s, CONST CONST_STRPTR buttons_s)
+int32 ShowWarning (CONST CONST_STRPTR title_s, CONST CONST_STRPTR text_s, CONST CONST_STRPTR buttons_s)
+{
+	return ShowRequester (title_s, text_s, buttons_s, REQIMAGE_WARNING);
+}
+
+int32 ShowError (CONST CONST_STRPTR title_s, CONST CONST_STRPTR text_s, CONST CONST_STRPTR buttons_s)
+{
+	return ShowRequester (title_s, text_s, buttons_s, REQIMAGE_ERROR);
+}
+
+
+static int32 ShowRequester (CONST CONST_STRPTR title_s, CONST CONST_STRPTR text_s, CONST CONST_STRPTR buttons_s, const uint32 image)
 {
 	int32 res;
 	struct Window *window_p = GetAppWindow ();
 	Object *requester_p = IIntuition -> NewObject (NULL, "requester.class",
 		REQ_Type, REQTYPE_INFO,
-		REQ_Image, REQIMAGE_WARNING,
+		REQ_Image, image,
 		REQ_TitleText, title_s,
 		REQ_BodyText, text_s,
 		REQ_GadgetText, "_Ok",
@@ -874,34 +894,6 @@ int32 ShowRequester (CONST CONST_STRPTR title_s, CONST CONST_STRPTR text_s, CONS
 	return res;
 }
 
-
-/*
-int32 ShowRequesterOld (CONST CONST_STRPTR title_s, CONST CONST_STRPTR text_s, CONST CONST_STRPTR buttons_s)
-{
-	int32 res = 0;
-	
-	struct Window *window_p = GetAppWindow ();
-	
-	if (window_p)
-		{
-			struct EasyStruct es;
-			
-			es.es_StructSize = sizeof (struct EasyStruct);
-			es.es_Flags = 0;
-			es.es_Title = title_s;
-			es.es_TextFormat = text_s;
-			es.es_GadgetFormat = buttons_s;
-			
-			res = IIntuition -> EasyRequest (window_p, &es, NULL);
-		}
-	else
-		{
-			res = -1;	
-		}
-			
-	return res;
-}
-*/
 
 
 static struct Window *GetAppWindow (void)

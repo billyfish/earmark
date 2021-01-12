@@ -38,6 +38,7 @@
 #include "debugging_utils.h"
 
 #include "table_editor.h"
+#include "gui.h"
 
 #include "byte_buffer.h"
 
@@ -193,7 +194,7 @@ static uint32 TableEditorDispatcher (Class *class_p,  Object *object_p, Msg msg_
 								}		/* ( if (buffer_p) */
 							else
 								{
-									IDOS -> PutStr ("not enough memory\n");
+									ShowError ("Insert Error", "Failed to insert table", "_Ok");
 								}
 						}
 					else
