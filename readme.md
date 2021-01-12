@@ -8,7 +8,7 @@ Distribution: Aminet
 Requires: dev/mui/MCC_TextEditor, dev/mui/MCC_BetterString, dev/mui/MCC_TheBar,  Launch-Handler  
 
 This is a tool to allow you to edit and view Markdown documents.  It uses a customised version of 
-md4c at https://github.com/mity/md4c by Martin Mitáš available to do the actual conversion of 
+md4c at https://github.com/mity/md4c by Martin Mitas available to do the actual conversion of 
 Markdown to HTML.
 
 ## USAGE:
@@ -82,7 +82,7 @@ Any other ideas are welcome. :-)
 
 ## LICENSE:
 
-The code is available under the MIT license. The md4c parts are copyright Martin Mitáš and the rest 
+The code is available under the MIT license. The md4c parts are copyright Martin Mitas and the rest 
 is copyright (c) 2021  by Simon Tyrrell. The emoticon_bigsmile image is copyright to Martin Merz, 
 go to http://www.masonicons.info for more information and to get his awesome artwork.
 

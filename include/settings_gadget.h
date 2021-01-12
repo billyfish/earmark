@@ -61,6 +61,10 @@
 /******** METHODS ********/
 /*************************/
 
+#define MSM_SaveSettings (MS_Dummy + 1)
+
+#define MSM_LoadSettings (MS_Dummy + 2)
+
 /*************************/
 /***** API FUNCTIONS *****/
 /*************************/

@@ -57,6 +57,9 @@ static uint32 MarkdownSettings_Get (Class *class_p, Object *object_p, Msg msg_p)
 
 static uint32 MarkdownSettings_Dispose (Class *class_p, Object *object_p, Msg msg_p);
 
+static uint32 MarkdownSettings_Load (Class *class_p, Object *settings_p);
+
+static uint32 MarkdownSettings_Save (Class *class_p, Object *settings_p);
 
 static Object *GetSettingsObject (MDPrefs *prefs_p, Object *parent_p);
 
@@ -116,6 +119,19 @@ static uint32 MarkdownSettingsDispatcher (Class *class_p,  Object *object_p, Msg
 				res = MarkdownSettings_Get (class_p, object_p, msg_p);				
 				break;
 
+			case MSM_LoadSettings:
+				{
+					DB (KPRINTF ("%s %ld - MarkdownSettings Dispatcher: MSM_LoadSettings\n", __FILE__, __LINE__));	
+				}
+				break;
+
+			case MSM_SaveSettings:
+				{
+					DB (KPRINTF ("%s %ld - MarkdownSettings Dispatcher: MSM_SaveSettings\n", __FILE__, __LINE__));						
+				}
+				break;
+
+
 			default:
 				//DB (KPRINTF ("%s %ld - MoleculeInfoDispatcher: %x\n", __FILE__, __LINE__, msg_p -> MethodID));
 				res = IIntuition -> IDoSuperMethodA (class_p, object_p, msg_p);
@@ -141,60 +157,70 @@ static Object *GetSettingsObject (MDPrefs *prefs_p, Object *parent_p)
 	Object *raw_html_spans_cb_p = NULL;
 	Object *indented_code_blocks_cb_p = NULL;	
 	Object *translate_entities_cb_p = NULL;				
-
+	Object *save_p = NULL;
+	Object *load_p = NULL;
 	
 	Object *child_object_p = IMUIMaster -> MUI_NewObject (MUIC_Group,
-		MUIA_Group_Horiz, TRUE,
-		MUIA_Group_VertCenter, MUIV_Group_VertCenter_Top,
-			
-		MUIA_Group_Child, dialect_p = IMUIMaster -> MUI_NewObject (MUIC_Radio,
-			MUIA_Frame, MUIV_Frame_Group,
-			MUIA_FrameTitle, "Markdown Dialect",
-			MUIA_Radio_Entries, dialects_ss,
-		TAG_DONE),
-
 		MUIA_Group_Child, IMUIMaster -> MUI_NewObject (MUIC_Group,
-			MUIA_Frame, MUIV_Frame_Group,
-			MUIA_FrameTitle, "Markdown Extensions",
-			MUIA_Group_Columns, 2,
-						
-			MUIA_Group_Child, IMUIMaster -> MUI_MakeObject (MUIO_Label, "Tables", TAG_DONE),
-			MUIA_Group_Child, tables_cb_p = IMUIMaster -> MUI_MakeObject (MUIO_Checkmark, TAG_DONE),
-			
-			MUIA_Group_Child, IMUIMaster -> MUI_MakeObject (MUIO_Label, "Task lists", TAG_DONE),
-			MUIA_Group_Child, task_lists_cb_p = IMUIMaster -> MUI_MakeObject (MUIO_Checkmark, TAG_DONE),
-			
-			MUIA_Group_Child, IMUIMaster -> MUI_MakeObject (MUIO_Label, "Collapse whitespace", TAG_DONE),
-			MUIA_Group_Child, collapse_whitespace_cb_p = IMUIMaster -> MUI_MakeObject (MUIO_Checkmark, TAG_DONE),
+			MUIA_Group_Horiz, TRUE,
+			MUIA_Group_VertCenter, MUIV_Group_VertCenter_Top,
 
-			MUIA_Group_Child, IMUIMaster -> MUI_MakeObject (MUIO_Label, "Strike-through spans", TAG_DONE),
-			MUIA_Group_Child, strike_through_cb_p = IMUIMaster -> MUI_MakeObject (MUIO_Checkmark, TAG_DONE),
-
-			MUIA_Group_Child, IMUIMaster -> MUI_MakeObject (MUIO_Label, "Underline spans", TAG_DONE),														
-			MUIA_Group_Child, underline_span_cb_p = IMUIMaster -> MUI_MakeObject (MUIO_Checkmark, TAG_DONE),
-
-			MUIA_Group_Child, IMUIMaster -> MUI_MakeObject (MUIO_Label, "LaTeX maths", TAG_DONE),
-			MUIA_Group_Child, latex_math_span_cb_p = IMUIMaster -> MUI_MakeObject (MUIO_Checkmark, TAG_DONE),														
-			
+			MUIA_Group_Child, dialect_p = IMUIMaster -> MUI_NewObject (MUIC_Radio,
+					MUIA_Frame, MUIV_Frame_Group,
+					MUIA_FrameTitle, "Markdown Dialect",
+					MUIA_Radio_Entries, dialects_ss,
+				TAG_DONE),
+		
+				MUIA_Group_Child, IMUIMaster -> MUI_NewObject (MUIC_Group,
+					MUIA_Frame, MUIV_Frame_Group,
+					MUIA_FrameTitle, "Markdown Extensions",
+					MUIA_Group_Columns, 2,
+								
+					MUIA_Group_Child, IMUIMaster -> MUI_MakeObject (MUIO_Label, "Tables", TAG_DONE),
+					MUIA_Group_Child, tables_cb_p = IMUIMaster -> MUI_MakeObject (MUIO_Checkmark, TAG_DONE),
+					
+					MUIA_Group_Child, IMUIMaster -> MUI_MakeObject (MUIO_Label, "Task lists", TAG_DONE),
+					MUIA_Group_Child, task_lists_cb_p = IMUIMaster -> MUI_MakeObject (MUIO_Checkmark, TAG_DONE),
+					
+					MUIA_Group_Child, IMUIMaster -> MUI_MakeObject (MUIO_Label, "Collapse whitespace", TAG_DONE),
+					MUIA_Group_Child, collapse_whitespace_cb_p = IMUIMaster -> MUI_MakeObject (MUIO_Checkmark, TAG_DONE),
+		
+					MUIA_Group_Child, IMUIMaster -> MUI_MakeObject (MUIO_Label, "Strike-through spans", TAG_DONE),
+					MUIA_Group_Child, strike_through_cb_p = IMUIMaster -> MUI_MakeObject (MUIO_Checkmark, TAG_DONE),
+		
+					MUIA_Group_Child, IMUIMaster -> MUI_MakeObject (MUIO_Label, "Underline spans", TAG_DONE),														
+					MUIA_Group_Child, underline_span_cb_p = IMUIMaster -> MUI_MakeObject (MUIO_Checkmark, TAG_DONE),
+		
+					MUIA_Group_Child, IMUIMaster -> MUI_MakeObject (MUIO_Label, "LaTeX maths", TAG_DONE),
+					MUIA_Group_Child, latex_math_span_cb_p = IMUIMaster -> MUI_MakeObject (MUIO_Checkmark, TAG_DONE),														
+					
+				TAG_DONE),
+		
+				MUIA_Group_Child, IMUIMaster -> MUI_NewObject (MUIC_Group,
+					MUIA_Frame, MUIV_Frame_Group,
+					MUIA_FrameTitle, "HTML Options",
+					MUIA_Group_Columns, 2,
+								
+					MUIA_Group_Child, IMUIMaster -> MUI_MakeObject (MUIO_Label, "Allow blocks", TAG_DONE),
+					MUIA_Group_Child, raw_html_blocks_cb_p = IMUIMaster -> MUI_MakeObject (MUIO_Checkmark, TAG_DONE),
+					
+					MUIA_Group_Child, IMUIMaster -> MUI_MakeObject (MUIO_Label, "Allow spans", TAG_DONE),
+					MUIA_Group_Child, raw_html_spans_cb_p = IMUIMaster -> MUI_MakeObject (MUIO_Checkmark, TAG_DONE),
+					
+					MUIA_Group_Child, IMUIMaster -> MUI_MakeObject (MUIO_Label, "Allow code blocks", TAG_DONE),
+					MUIA_Group_Child, indented_code_blocks_cb_p = IMUIMaster -> MUI_MakeObject (MUIO_Checkmark, TAG_DONE),											
+		
+					MUIA_Group_Child, IMUIMaster -> MUI_MakeObject (MUIO_Label, "Translate Entities", TAG_DONE),
+					MUIA_Group_Child, translate_entities_cb_p = IMUIMaster -> MUI_MakeObject (MUIO_Checkmark, TAG_DONE),			
+					
+				TAG_DONE),
 		TAG_DONE),
-
+			
 		MUIA_Group_Child, IMUIMaster -> MUI_NewObject (MUIC_Group,
-			MUIA_Frame, MUIV_Frame_Group,
-			MUIA_FrameTitle, "HTML Options",
-			MUIA_Group_Columns, 2,
-						
-			MUIA_Group_Child, IMUIMaster -> MUI_MakeObject (MUIO_Label, "Allow blocks", TAG_DONE),
-			MUIA_Group_Child, raw_html_blocks_cb_p = IMUIMaster -> MUI_MakeObject (MUIO_Checkmark, TAG_DONE),
-			
-			MUIA_Group_Child, IMUIMaster -> MUI_MakeObject (MUIO_Label, "Allow spans", TAG_DONE),
-			MUIA_Group_Child, raw_html_spans_cb_p = IMUIMaster -> MUI_MakeObject (MUIO_Checkmark, TAG_DONE),
-			
-			MUIA_Group_Child, IMUIMaster -> MUI_MakeObject (MUIO_Label, "Allow code blocks", TAG_DONE),
-			MUIA_Group_Child, indented_code_blocks_cb_p = IMUIMaster -> MUI_MakeObject (MUIO_Checkmark, TAG_DONE),											
+			MUIA_Group_Horiz, TRUE,
 
-			MUIA_Group_Child, IMUIMaster -> MUI_MakeObject (MUIO_Label, "Translate Entities", TAG_DONE),
-			MUIA_Group_Child, translate_entities_cb_p = IMUIMaster -> MUI_MakeObject (MUIO_Checkmark, TAG_DONE),			
-			
+			MUIA_Group_Child, save_p = IMUIMaster -> MUI_MakeObject (MUIO_Button, "\33I[5:TBimages:save] Save Settings"),
+			MUIA_Group_Child, load_p = IMUIMaster -> MUI_MakeObject (MUIO_Button, "\33I[5:TBimages:open] Load Settings"),	
 		TAG_DONE),
 		
 	TAG_DONE);		/* end settings group */
@@ -246,7 +272,14 @@ static Object *GetSettingsObject (MDPrefs *prefs_p, Object *parent_p)
 						
 			IIntuition -> SetAttrs (translate_entities_cb_p, MUIA_ShortHelp, "Translate HTML entities", TAG_DONE);	
 			IIntuition -> SetAttrs (translate_entities_cb_p, MUIA_Selected, prefs_p -> mdp_translate_html_entities, TAG_DONE); 			
-			IIntuition -> IDoMethod (translate_entities_cb_p, MUIM_Notify, MUIA_Selected, MUIV_EveryTime, parent_p, 3, MUIM_Set, MSA_TranslateEntities, MUIV_TriggerValue);			
+			IIntuition -> IDoMethod (translate_entities_cb_p, MUIM_Notify, MUIA_Selected, MUIV_EveryTime, parent_p, 3, MUIM_Set, MSA_TranslateEntities, MUIV_TriggerValue);		
+			
+			
+			IIntuition -> SetAttrs (save_p, MUIA_ShortHelp, "Save the current conversion settings", TAG_DONE);
+			IIntuition -> IDoMethod (save_p, MUIM_Notify, MUIA_Pressed, FALSE, parent_p, 1, MSM_SaveSettings);	
+
+			IIntuition -> SetAttrs (load_p, MUIA_ShortHelp, "Load  conversion settings", TAG_DONE);
+			IIntuition -> IDoMethod (load_p, MUIM_Notify, MUIA_Pressed, FALSE, parent_p, 1, MSM_LoadSettings);
 		}					
 					
 					
@@ -418,6 +451,44 @@ static uint32 MarkdownSettings_Get (Class *class_p, Object *object_p, Msg msg_p)
 		}
 
 	return retval;
+}
+
+
+
+static uint32 MarkdownSettings_Load (Class *class_p, Object *settings_p)
+{
+	uint32 res = 0;
+	STRPTR filename_s = RequestFilename (FALSE);
+
+	if (filename_s)
+		{
+			LoadFile (filename_s);
+			IExec -> FreeVec (filename_s);
+		}
+
+	return res;
+}
+
+
+
+static uint32 MarkdownSettings_Save (Class *class_p, Object *settings_p)
+{
+	uint32 res = 0;
+	STRPTR filename_s = RequestFilename (TRUE);
+
+	if (filename_s)
+		{
+			STRPTR text_s = (STRPTR) IIntuition -> IDoMethod (editor_p, MUIM_TextEditor_ExportText);
+
+			if (text_s)
+				{
+					SaveFile (filename_s, text_s);
+				}
+				
+			IExec -> FreeVec (filename_s);
+		}
+
+	return res;
 }
 
 

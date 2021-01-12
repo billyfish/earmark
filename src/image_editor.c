@@ -217,8 +217,8 @@ static Object *GetImageEditorObject (Object *parent_p, ImageEditorData *data_p)
 		MUIA_Group_Child, IMUIMaster -> MUI_NewObject (MUIC_Group,
 			MUIA_Group_Horiz, TRUE,
 
-			MUIA_Group_Child, ok_p = IMUIMaster -> MUI_MakeObject (MUIO_Button, "Ok"),
-			MUIA_Group_Child, cancel_p = IMUIMaster -> MUI_MakeObject (MUIO_Button, "Cancel"),
+			MUIA_Group_Child, ok_p = IMUIMaster -> MUI_MakeObject (MUIO_Button, "\33I[5:TBimages:ok] Ok"),
+			MUIA_Group_Child, cancel_p = IMUIMaster -> MUI_MakeObject (MUIO_Button, "\33I[5:TBimages:cancel] Cancel"),
 
 		TAG_DONE),
 
