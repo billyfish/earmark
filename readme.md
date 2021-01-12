@@ -65,6 +65,8 @@ Any other ideas are welcome. :-)
  * BUGFIX: "Allow blocks" and "Allow spans" had the same help bubble text (@walkero)
  * Added shortucut for Update, now named Convert (@walkero)
  * Choices that open a new window, like adding a link, maybe it would be good to close after the user press OK.(@walkero)
+ * BUGFIX: Choosing the Github dialect conversion setting wasn't being set.
+ * Conversion settings can be saved/loaded .(@walkero)
  
 ### 0.8 - (10/01/2021)
  * Moved to using TheBar to give a graphical toolbar along with many more functions.

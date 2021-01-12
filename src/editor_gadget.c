@@ -591,7 +591,8 @@ static uint32 MarkdownEditor_Convert (Class *class_p, Object *editor_p)
 static uint32 MarkdownEditor_Load (Class *class_p, Object *editor_p)
 {
 	uint32 res = 0;
-	STRPTR filename_s = RequestFilename (FALSE);
+	CONST CONST_STRPTR pattern_s = GetMarkdownFilePattern ();
+	STRPTR filename_s = RequestFilename (FALSE, "Load Markdown file", pattern_s);
 
 	if (filename_s)
 		{
@@ -607,7 +608,8 @@ static uint32 MarkdownEditor_Load (Class *class_p, Object *editor_p)
 static uint32 MarkdownEditor_Save (Class *class_p, Object *editor_p)
 {
 	uint32 res = 0;
-	STRPTR filename_s = RequestFilename (TRUE);
+	CONST CONST_STRPTR pattern_s = GetMarkdownFilePattern ();
+	STRPTR filename_s = RequestFilename (TRUE, "Save Markdown file", pattern_s);
 
 	if (filename_s)
 		{

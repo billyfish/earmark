@@ -261,6 +261,12 @@ HOOKPROTONH(DroppedFile, uint32, APTR object_p, struct AppMessage **msg_pp)
 MakeStaticHook(DroppedFileHook, DroppedFile);
 
 
+CONST CONST_STRPTR GetMarkdownFilePattern (void)
+{
+	return s_file_pattern_s;
+}
+
+
 static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI_CustomClass *settings_class_p, struct MUI_CustomClass *image_editor_class_p, 
 	struct MUI_CustomClass *table_editor_class_p, struct MUI_CustomClass *hyperlink_editor_class_p, MDPrefs *prefs_p)
 {
@@ -762,14 +768,13 @@ static void RunMD (APTR app_p)
 }
 
 
-STRPTR RequestFilename (const BOOL save_flag)
+STRPTR RequestFilename (const BOOL save_flag, CONST CONST_STRPTR title_s, CONST CONST_STRPTR file_pattern_s)
 {
 	STRPTR filename_s = NULL;
 	struct FileRequester *req_p = (struct FileRequester *) IAsl -> AllocAslRequest (ASL_FileRequest, NULL);
 
 	if (req_p)
 		{
-			CONST_STRPTR title_s = save_flag ? "Save Markdown File" : "Load Markdown File";
 			struct Window *window_p = NULL;
 
 		//	printf ("req win %lu\n", s_window_p);
@@ -791,7 +796,7 @@ STRPTR RequestFilename (const BOOL save_flag)
 						ASLFR_TitleText, title_s,
 						ASLFR_DoSaveMode, save_flag,
 						ASLFR_DoPatterns, TRUE,
-						ASLFR_InitialPattern, s_file_pattern_s,
+						ASLFR_InitialPattern, file_pattern_s ? file_pattern_s : NULL,
 						TAG_END))
 						{
 							#define FNAME_MAX (2048)
@@ -829,6 +834,6 @@ STRPTR RequestFilename (const BOOL save_flag)
 		}
 
 
-	//printf ("filename: %s\n", filename_s ? filename_s : "NULL");
+	IDOS -> Printf ("filename: %s\n", filename_s ? filename_s : "NULL");
 	return filename_s;
 }

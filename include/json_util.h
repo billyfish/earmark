@@ -85,6 +85,8 @@ BOOL GetJSONInteger (const json_t *json_p, const char * const key_s, int32 *valu
 
 BOOL SetJSONInteger (json_t *json_p, const char * const key_s, const int value);
 
+BOOL GetJSONUnsignedInteger (const json_t *json_p, const char * const key_s, uint32 *value_p);
+
 /**
  * Get the long value for a given key in a json_t object.
  *
