@@ -135,7 +135,8 @@ static uint32 TableEditorDispatcher (Class *class_p,  Object *object_p, Msg msg_
 			case TEM_Insert:
 				{
 					TableEditorData *data_p = INST_DATA (class_p, object_p);
-
+					Object *window_obj_p = NULL;
+					
 					DB (KPRINTF ("%s %ld - TableEditor Dispatcher: TEM_Insert\n", __FILE__, __LINE__));
 
 					if (data_p -> ted_text_editor_p)
@@ -199,6 +200,18 @@ static uint32 TableEditorDispatcher (Class *class_p,  Object *object_p, Msg msg_
 						{
 							DB (KPRINTF ("%s %ld - TableEditor Dispatcher: TEM_Insert no editor set\n", __FILE__, __LINE__));	
 						}
+						
+					IIntuition -> GetAttrs (object_p, MUIA_WindowObject, &window_obj_p);
+					
+					if (window_obj_p)
+						{ 	
+							DB (KPRINTF ("%s %ld - TableEditor Dispatcher: IEM_Insert  window %lu\n", __FILE__, __LINE__, (uint32) window_obj_p));
+							IIntuition -> IDoMethod (window_obj_p, MUIM_Set, MUIA_Window_CloseRequest, TRUE, TAG_DONE);
+						}
+					else
+						{
+							DB (KPRINTF ("%s %ld - TableEditor Dispatcher: IEM_Insert NO window\n", __FILE__, __LINE__));
+						}						
 				}
 				break;
 

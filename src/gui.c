@@ -80,16 +80,16 @@ static struct NewMenu s_menus_p [] =
 {
 	{ NM_TITLE, (STRPTR) "Project", NULL, 0, 0, NULL },
 
-	{ NM_ITEM, (STRPTR) "Load ..", (STRPTR) "O", 0, 0, (APTR) MENU_ID_LOAD},
-	{ NM_ITEM, (STRPTR) "Save ..", (STRPTR) "O", 0, 0, (APTR) MENU_ID_SAVE},
+	{ NM_ITEM, (STRPTR) "Open...", (STRPTR) "O", 0, 0, (APTR) MENU_ID_LOAD},
+	{ NM_ITEM, (STRPTR) "Save...", (STRPTR) "S", 0, 0, (APTR) MENU_ID_SAVE},
 
 	{ NM_ITEM,  NM_BARLABEL, NULL, 0, 0, NULL },
 
-	{ NM_ITEM, (STRPTR) "Update", NULL, 0, 0, (APTR) MENU_ID_UPDATE },
+	{ NM_ITEM, (STRPTR) "Convert", (STRPTR) "C", 0, 0, (APTR) MENU_ID_UPDATE },
 
 	{ NM_ITEM,  NM_BARLABEL, NULL, 0, 0, NULL },
 
- 	{ NM_ITEM, (STRPTR) "About...", (STRPTR) "A", 0, 0, (APTR) MENU_ID_ABOUT },
+ 	{ NM_ITEM, (STRPTR) "About...", (STRPTR) "?", 0, 0, (APTR) MENU_ID_ABOUT },
 	{ NM_ITEM, (STRPTR) "Quit", (STRPTR) "Q",   0, 0, (APTR) MENU_ID_QUIT },
 
 	{ NM_END, NULL, NULL, 0, 0, NULL }
@@ -373,7 +373,7 @@ static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI
 
 	struct MUIS_TheBar_Button buttons [] =
 		{
-			{ BID_OPEN, BID_OPEN,  "_Load", "Load a Markdown file.", 0, 0, NULL, NULL },
+			{ BID_OPEN, BID_OPEN,  "_Open", "Load a Markdown file.", 0, 0, NULL, NULL },
 			{ BID_SAVE, BID_SAVE,  "_Save", "Save the file.", 0, 0, NULL, NULL },
 			{ BID_CONVERT, BID_CONVERT,  "_Convert", "Convert to HTML and view.", 0, 0, NULL, NULL },
 			{ MUIV_TheBar_ButtonSpacer, -1, NULL, NULL, 0, 0, NULL, NULL },
@@ -401,8 +401,8 @@ static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI
 
 	app_p = IMUIMaster -> MUI_NewObject (MUIC_Application,
 		MUIA_Application_Title      , s_app_name_s,
-		MUIA_Application_Version    , "$VER: AmiMarkdown 0.8",
-		MUIA_Application_Copyright  , "(c) 2021, Simon Tyrrell",
+		MUIA_Application_Version    , "$VER: AmiMarkdown 0.9",
+		MUIA_Application_Copyright  , "(c) 2021, Simon Tyrrell, md4c code (c) Martin Mitas",
 		MUIA_Application_Author     , "Simon Tyrrell",
 		MUIA_Application_Description, "Edit and view Markdown documents.",
 		MUIA_Application_Base       , "AMIMD",
@@ -410,7 +410,7 @@ static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI
 
 		SubWindow, about_box_p = IMUIMaster -> MUI_NewObject (MUIC_Aboutbox,
 			MUIA_Aboutbox_Build,  __DATE__,
-			MUIA_Aboutbox_Credits, "This uses sections of code from md4c at http://github.com/mity/md4c by Martin Mit�s.\n\n Click the version string above to get the build date...\n",
+			MUIA_Aboutbox_Credits, "This uses sections of code from md4c at http://github.com/mity/md4c by Martin Mitas.\n\n Click the version string above to get the build date...\n",
 			// fallback to external image in case the program icon cannot be obtained
 			//MUIA_Aboutbox_LogoFile, "PROGDIR:boing.png",
 			// fallback to embedded image in case the external image cannot be loaded
@@ -477,20 +477,6 @@ static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI
 					/* main tools */
 					MUIA_Group_Child, IMUIMaster -> MUI_NewObject (MUIC_Group,
 						MUIA_Group_Horiz, FALSE,
-
-						/* tool bar */
-						/*
-						MUIA_Group_Child, IMUIMaster -> MUI_NewObject (MUIC_Group,
-							MUIA_Group_Horiz, TRUE,
-
-							MUIA_Group_Child, load_button_p = IMUIMaster -> MUI_MakeObject (MUIO_Button, "_Load"),
-							MUIA_Group_Child, save_button_p = IMUIMaster -> MUI_MakeObject (MUIO_Button, "_Save"),
-							MUIA_Group_Child, update_button_p = IMUIMaster -> MUI_MakeObject (MUIO_Button, "_Update"),
-							MUIA_Group_Child, bold_button_p = IMUIMaster -> MUI_MakeObject (MUIO_Button, "_Bold"),
-							MUIA_Group_Child, italic_button_p = IMUIMaster -> MUI_MakeObject (MUIO_Button, "_Italic"),
-							MUIA_Group_Child, code_button_p = IMUIMaster -> MUI_MakeObject (MUIO_Button, "_Code"),
-						TAG_DONE),
-						*/
 
 						/* TheBar tool bar */
 
@@ -563,6 +549,15 @@ static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI
 			IIntuition -> IDoMethod (s_window_p, MUIM_Notify, MUIA_Window_CloseRequest, TRUE,
 				app_p, 2, MUIM_Application_ReturnID, MUIV_Application_ReturnID_Quit);
 
+			/* LOAD */
+			menu_item_p = (Object *) IIntuition -> IDoMethod (strip_p, MUIM_FindUData, MENU_ID_LOAD);
+			IIntuition -> IDoMethod (menu_item_p, MUIM_Notify, MUIA_Menuitem_Trigger, MUIV_EveryTime,
+				s_editor_p, 1, MEM_MDEditor_Load);
+
+			/* SAVE */
+			menu_item_p = (Object *) IIntuition -> IDoMethod (strip_p, MUIM_FindUData, MENU_ID_SAVE);
+			IIntuition -> IDoMethod (menu_item_p, MUIM_Notify, MUIA_Menuitem_Trigger, MUIV_EveryTime,
+				s_editor_p, 1, MEM_MDEditor_Save);
 
 			/* QUIT */
 			menu_item_p = (Object *) IIntuition -> IDoMethod (strip_p, MUIM_FindUData, MENU_ID_QUIT);
@@ -593,6 +588,7 @@ static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI
 					IIntuition -> IDoMethod (toolbar_p, MUIM_TheBar_DoOnButton, BID_IMAGE, MUIM_Notify, MUIA_Pressed, FALSE, image_editor_window_p, 3, MUIM_Set, MUIA_Window_Open, TRUE);
 					IIntuition -> IDoMethod (image_editor_window_p, MUIM_Notify, MUIA_Window_CloseRequest, TRUE, MUIV_Notify_Self, 3, MUIM_Set, MUIA_Window_Open, FALSE);
 
+					DB (KPRINTF ("%s %ld - CreateGUIObjects: image_editor_window_p %lu\n", __FILE__, __LINE__, (uint32) image_editor_window_p));
 					IIntuition -> SetAttrs (image_editor_p, IEA_Editor, s_editor_p, TAG_DONE);
 				}
 

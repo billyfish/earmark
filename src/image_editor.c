@@ -120,7 +120,8 @@ static uint32 ImageEditorDispatcher (Class *class_p,  Object *object_p, Msg msg_
 			case IEM_Insert:
 				{
 					ImageEditorData *data_p = INST_DATA (class_p, object_p);
-
+					Object *window_obj_p = NULL;
+					
 					DB (KPRINTF ("%s %ld - ImageEditor Dispatcher: IEM_Insert\n", __FILE__, __LINE__));
 
 					if (data_p -> ied_text_editor_p)
@@ -152,6 +153,18 @@ static uint32 ImageEditorDispatcher (Class *class_p,  Object *object_p, Msg msg_
 											FreeCopiedString (image_s);
 										}
 								}
+						}
+						
+					IIntuition -> GetAttrs (object_p, MUIA_WindowObject, &window_obj_p);
+					
+					if (window_obj_p)
+						{ 	
+							DB (KPRINTF ("%s %ld - ImageEditor Dispatcher: IEM_Insert  window %lu\n", __FILE__, __LINE__, (uint32) window_obj_p));
+							IIntuition -> IDoMethod (window_obj_p, MUIM_Set, MUIA_Window_CloseRequest, TRUE, TAG_DONE);
+						}
+					else
+						{
+							DB (KPRINTF ("%s %ld - ImageEditor Dispatcher: IEM_Insert NO window\n", __FILE__, __LINE__));
 						}
 				}
 				break;

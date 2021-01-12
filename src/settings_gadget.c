@@ -232,7 +232,7 @@ static Object *GetSettingsObject (MDPrefs *prefs_p, Object *parent_p)
 			IIntuition -> SetAttrs (latex_math_span_cb_p, MUIA_Selected, prefs_p -> mdp_latex_maths, TAG_DONE); 
 			IIntuition -> IDoMethod (latex_math_span_cb_p, MUIM_Notify, MUIA_Selected, MUIV_EveryTime, parent_p, 3, MUIM_Set, MSA_LatexMaths, MUIV_TriggerValue);
 			
-			IIntuition -> SetAttrs (raw_html_blocks_cb_p, MUIA_ShortHelp, "Allow HTML span elements in the markdown source", TAG_DONE);
+			IIntuition -> SetAttrs (raw_html_blocks_cb_p, MUIA_ShortHelp, "Allow HTML block elements in the markdown source", TAG_DONE);
 			IIntuition -> SetAttrs (raw_html_blocks_cb_p, MUIA_Selected, prefs_p -> mdp_html_blocks, TAG_DONE); 
 			IIntuition -> IDoMethod (raw_html_blocks_cb_p, MUIM_Notify, MUIA_Selected, MUIV_EveryTime, parent_p, 3, MUIM_Set, MSA_HTMLBlocks, MUIV_TriggerValue);
 						

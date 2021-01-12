@@ -61,7 +61,11 @@ Any other ideas are welcome. :-)
 
 ### 0.9
  * Added Blockquote function
-
+ * BUGFIX: Load and Save menu options had the same shortcut (@walkero) 
+ * BUGFIX: "Allow blocks" and "Allow spans" had the same help bubble text (@walkero)
+ * Added shortucut for Update, now named Convert (@walkero)
+ * Choices that open a new window, like adding a link, maybe it would be good to close after the user press OK.(@walkero)
+ 
 ### 0.8 - (10/01/2021)
  * Moved to using TheBar to give a graphical toolbar along with many more functions.
  * Added Undo, Redo, Strikethrough, Code, Fenced Code Blocks, Horizontal Rule, Table, Image and Link functions
