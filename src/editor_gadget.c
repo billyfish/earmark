@@ -120,8 +120,28 @@ static uint32 MarkdownEditorDispatcher (Class *class_p,  Object *object_p, Msg m
 				break;
 
 			case MEM_MDEditor_Convert:
-				DB (KPRINTF ("%s %ld - MarkdownEditorDispatcher: Convert\n", __FILE__, __LINE__));
-				res = MarkdownEditor_Convert (class_p, object_p);
+				{
+					MarkdownEditorData *md_p = INST_DATA (class_p, object_p);
+							
+					DB (KPRINTF ("%s %ld - MarkdownEditorDispatcher: Convert 1 - file \"%s\"\n", __FILE__, __LINE__, md_p -> med_filename_s ? md_p -> med_filename_s: "NULL"));
+					
+					/* Do we have a valid filename? */
+					if (! (md_p -> med_filename_s))
+						{
+							MarkdownEditor_Save (class_p, object_p);
+						}
+					
+					DB (KPRINTF ("%s %ld - MarkdownEditorDispatcher: Convert 2 -  file \"%s\"\n", __FILE__, __LINE__, md_p -> med_filename_s ? md_p -> med_filename_s : "NULL"));					
+					
+					if (md_p -> med_filename_s)
+						{
+							res = MarkdownEditor_Convert (class_p, object_p);
+						}
+					else
+						{
+							ShowRequester ("Conversion problem", "You need to save the Markdown file before you can convert it", "_Ok");
+						}
+				}
 				break;
 
 			case MEM_MDEditor_Load:
@@ -617,10 +637,40 @@ static uint32 MarkdownEditor_Save (Class *class_p, Object *editor_p)
 
 			if (text_s)
 				{
-					SaveFile (filename_s, text_s);
+					if (SaveFile (filename_s, text_s))
+						{
+							BOOL changed_filename_flag = FALSE;
+							MarkdownEditorData *md_p = INST_DATA (class_p, editor_p);
+							
+							if (md_p -> med_filename_s)
+								{
+									/* Has the filename changed? */
+									if (strcmp (filename_s, md_p -> med_filename_s) != 0)
+										{
+											IExec -> FreeVec (md_p -> med_filename_s);
+											md_p -> med_filename_s = filename_s;
+											
+											changed_filename_flag = TRUE;
+										}
+									else
+										{
+											IExec -> FreeVec (filename_s);	
+										}
+								}
+							else
+								{
+									/* This appears to be the first save so store the filename */
+									md_p -> med_filename_s = filename_s;
+									changed_filename_flag = TRUE;
+								}
+								
+							if (changed_filename_flag)
+								{
+									UpdateWindowActiveFilename (md_p -> med_filename_s);	
+								}	
+						}
 				}
-				
-			IExec -> FreeVec (filename_s);
+			
 		}
 
 	return res;

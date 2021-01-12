@@ -19,6 +19,7 @@
 #include <proto/intuition.h>
 #include <proto/dos.h>
 #include <proto/asl.h>
+#include <proto/requester.h>
 
 #include <proto/amijansson.h>
 
@@ -65,6 +66,9 @@ struct AslIFace *IAsl = NULL;
 struct Library *JanssonBase = NULL;
 struct JanssonIFace *IJansson = NULL;
 
+struct Library *RequesterBase = NULL;
+struct RequesterIFace *IRequester = NULL;
+
 static const char USED min_stack[] = "$STACK:102400";
 
 /***************************************************************/
@@ -83,9 +87,13 @@ static BOOL OpenLibs (void)
 										{
 											if (OpenLib (&JanssonBase, "jansson.library", 2L, (struct Interface **) &IJansson, "main", 1))
 												{
-													return TRUE;
+													if (OpenLib (&RequesterBase, "requester.class", 53L, (struct Interface **) &IRequester, "main", 1))
+														{											
+															return TRUE;
+														}
+													CloseLib (RequesterBase, (struct Interface *) IRequester);
 												}
-											CloseLib (JanssonBase, (struct Interface *) IJansson);
+											CloseLib (MUIMasterBase, (struct Interface *) IMUIMaster);
 										}
 									CloseLib (AslBase, (struct Interface *) IAsl);
 								}

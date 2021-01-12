@@ -141,11 +141,11 @@ static uint32 MarkdownSettingsDispatcher (Class *class_p,  Object *object_p, Msg
 
 					DB (KPRINTF ("%s %ld - MarkdownSettings Dispatcher: MSM_LoadSettings\n", __FILE__, __LINE__));	
 											
-					PrintPrefs (prefs_p);
+					//PrintPrefs (prefs_p);
 
 					if (MarkdownSettings_Load (class_p, object_p) != 0)
 						{
-							PrintPrefs (prefs_p);
+							//PrintPrefs (prefs_p);
 
 							DB (KPRINTF ("%s %ld - MarkdownSettings Dispatcher: MSM_LoadSettings table %lu\n", __FILE__, __LINE__, prefs_p -> mdp_tables));	
 

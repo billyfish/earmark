@@ -11,6 +11,11 @@
 
 #include <libraries/asl.h>
 
+#include <intuition/intuition.h>
+
+#include <classes/requester.h>
+
+
 #include <proto/asl.h>
 #include <proto/dos.h>
 #include <proto/exec.h>
@@ -70,6 +75,8 @@ static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI
 static void RunMD (APTR app_p);
 
 static uint32 Convert (void);
+
+static struct Window *GetAppWindow (void);
 
 
 /***************************************/
@@ -672,21 +679,12 @@ BOOL LoadFile (STRPTR filename_s)
 									CONST_STRPTR join_s = " - ";
 									STRPTR title_s = NULL;
 
-
 									* (content_s + size) = '\0';
 
 									IIntuition -> IDoMethod (s_editor_p, MUIM_TextEditor_ClearText);
 									IIntuition -> SetAttrs (s_editor_p, MUIA_TextEditor_Contents, content_s, TAG_DONE);
 
-									title_s = ConcatenateVarargsStrings (s_app_name_s, join_s, filename_s, NULL);
-
-									if (title_s)
-										{
-											IIntuition -> SetAttrs (s_window_p, MUIA_Window_Title, title_s, TAG_DONE);
-
-											DB (KPRINTF ("%s %ld - LoadFile setting editor filename to %s (%lu)\n", __FILE__, __LINE__, filename_s, (uint32) filename_s));
-											IIntuition -> SetAttrs (s_editor_p, MEA_Filename, filename_s, TAG_DONE);
-										}
+									UpdateWindowActiveFilename (filename_s);
 
 									success_flag = TRUE;
 								}
@@ -837,3 +835,118 @@ STRPTR RequestFilename (const BOOL save_flag, CONST CONST_STRPTR title_s, CONST 
 	IDOS -> Printf ("filename: %s\n", filename_s ? filename_s : "NULL");
 	return filename_s;
 }
+
+
+void UpdateWindowActiveFilename (CONST CONST_STRPTR filename_s)
+{
+	CONST CONST_STRPTR join_s = " - ";
+	STRPTR title_s = ConcatenateVarargsStrings (s_app_name_s, join_s, filename_s, NULL);
+
+	if (title_s)
+		{
+			IIntuition -> SetAttrs (s_window_p, MUIA_Window_Title, title_s, TAG_DONE);
+
+			DB (KPRINTF ("%s %ld - UpdateWindowActiveFilename to %s (%lu)\n", __FILE__, __LINE__, title_s));
+		}
+}
+
+
+int32 ShowRequester (CONST CONST_STRPTR title_s, CONST CONST_STRPTR text_s, CONST CONST_STRPTR buttons_s)
+{
+	int32 res;
+	struct orRequest reqmsg;
+	struct TagItem   tags[10];
+	char             buffer[100] = "Default string";
+
+	struct Window *window_p = GetAppWindow ();
+
+	reqmsg.MethodID  = RM_OPENREQ;
+	reqmsg.or_Attrs  = tags;
+	reqmsg.or_Window = window_p;
+	reqmsg.or_Screen = NULL;
+	
+	tags[0].ti_Tag   = REQ_Type;
+	tags[0].ti_Data  = REQTYPE_STRING;
+	tags[1].ti_Tag   = REQ_TitleText;
+	tags[1].ti_Data  = (Tag)"Requesting a string";
+	tags[2].ti_Tag   = REQ_BodyText;
+	tags[2].ti_Data  = (Tag)"Please enter a string";
+	tags[3].ti_Tag   = REQ_GadgetText;
+	tags[3].ti_Data  = (Tag)"_Ok|_Cancel";
+	tags[4].ti_Tag   = REQS_Buffer;
+	tags[4].ti_Data  = (Tag)buffer;
+	tags[5].ti_Tag   = REQS_MaxChars;
+	tags[5].ti_Data  = sizeof(buffer) - 1;
+	tags[6].ti_Tag   = REQS_ShowDefault;
+	tags[6].ti_Data  = TRUE;
+	tags[7].ti_Tag   = REQS_AllowEmpty;
+	tags[7].ti_Data  = FALSE;
+	tags[8].ti_Tag   = REQS_Invisible;
+	tags[8].ti_Data  = FALSE;
+	tags[9].ti_Tag   = TAG_END;
+	tags[9].ti_Data  = 0;
+
+	Object *requester_p = IIntuition -> NewObject (NULL, "requester.class",
+		REQ_Type, REQTYPE_INFO,
+		REQ_TitleText, title_s,
+		REQ_BodyText, text_s,
+		REQP_CenterWindow, window_p,
+		TAG_DONE);
+		
+	if (requester_p)
+		{
+			res = IIntuition -> IDoMethod (requester_p, RM_OPENREQ);
+		}
+
+	
+	return res;
+}
+
+
+/*
+int32 ShowRequesterOld (CONST CONST_STRPTR title_s, CONST CONST_STRPTR text_s, CONST CONST_STRPTR buttons_s)
+{
+	int32 res = 0;
+	
+	struct Window *window_p = GetAppWindow ();
+	
+	if (window_p)
+		{
+			struct EasyStruct es;
+			
+			es.es_StructSize = sizeof (struct EasyStruct);
+			es.es_Flags = 0;
+			es.es_Title = title_s;
+			es.es_TextFormat = text_s;
+			es.es_GadgetFormat = buttons_s;
+			
+			res = IIntuition -> EasyRequest (window_p, &es, NULL);
+		}
+	else
+		{
+			res = -1;	
+		}
+			
+	return res;
+}
+*/
+
+
+static struct Window *GetAppWindow (void)
+{
+	struct Window *window_p = NULL;
+
+//	printf ("req win %lu\n", s_window_p);
+
+	if (s_window_p)
+		{
+	 		if (IIntuition -> GetAttr (MUIA_Window_Window, s_window_p, (uint32 *) &window_p) == 0)
+	 			{
+		 			IDOS -> PutStr ("Failed to get Window\n");
+	 			}
+		}
+
+
+	return window_p;
+}	
+

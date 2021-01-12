@@ -4,8 +4,6 @@
 5. At the main window, at the buttons, if you have assigned any shortcuts, it would be great if you show them on help bubbles as well(@walkero)
 6. If you start a new project, you cannot preview it. I guess because there is no way to run md4c while there is no file. Maybe create a new one only in Ram, and work with that.(@walkero)
 7. I don't know if you have this in your plans, but it would be good if there was a way to use always a specific browser and not open new tabs all the time. I am working on ideas on that, and I will be back with proposals. I guess a good candidate would be to use NetSurf, since it doesn't need to support Javascript. Which brings us maybe to a way to set if the user wants to use OpenURL (like it is now) or use ARexx to send the url to a specific browser. And let the user create it.(@walkero, @kas1e)
-
-9. The last version includes Makefile and the project file from Codebench, which might not needed.
 10. Convert CRLF to LF on load (@trixie)
 
 
@@ -16,3 +14,8 @@
 8. Choices that open a new window, like adding a link, maybe it would be good to close after the user press OK.(@walkero)
 4. In settings, "Allow blocks" and "Allow spans" have the same bubble help text(@walkero)
 3. There is no way to save the Settings, if you do a change. They are not saved on window close, nor there are any buttons to do that.(@walkero)
+
+
+# NOTHING TO DO
+
+9. The last version includes Makefile and the project file from Codebench, which might not needed.
