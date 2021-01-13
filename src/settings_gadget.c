@@ -160,8 +160,13 @@ static uint32 MarkdownSettingsDispatcher (Class *class_p,  Object *object_p, Msg
 							IIntuition -> SetAttrs (s_raw_html_spans_cb_p, MUIA_NoNotify, TRUE, MUIA_Selected, prefs_p -> mdp_html_spans, TAG_DONE);
 							IIntuition -> SetAttrs (s_indented_code_blocks_cb_p, MUIA_NoNotify, TRUE, MUIA_Selected, prefs_p -> mdp_indented_code_blocks, TAG_DONE);
 							IIntuition -> SetAttrs (s_translate_entities_cb_p, MUIA_NoNotify, TRUE, MUIA_Selected, prefs_p -> mdp_translate_html_entities, TAG_DONE);
-																												
+								
+							res = 0;																												
 						}	
+					else
+						{
+							res = -1;
+						}
 				}
 				break;
 

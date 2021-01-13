@@ -38,4 +38,6 @@ int32 ShowWarning (CONST CONST_STRPTR title_s, CONST CONST_STRPTR text_s, CONST 
 
 int32 ShowError (CONST CONST_STRPTR title_s, CONST CONST_STRPTR text_s, CONST CONST_STRPTR buttons_s);
 
+int32 ShowInformation (CONST CONST_STRPTR title_s, CONST CONST_STRPTR text_s, CONST CONST_STRPTR buttons_s);
+
 #endif

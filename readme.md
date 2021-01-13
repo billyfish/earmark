@@ -2,7 +2,7 @@ Short:        Edit and view Markdown documents
 Uploader:     tyrrell.simon@gmail.com (Simon Tyrrell)  
 Author:       tyrrell.simon@gmail.com (Simon Tyrrell)  
 Type:         text/edit  
-Version:      0.8  
+Version:      0.9
 Architecture: ppc-amigaos >= 4.1  
 Distribution: Aminet  
 Requires: dev/mui/MCC_TextEditor, dev/mui/MCC_BetterString, dev/mui/MCC_TheBar
@@ -33,10 +33,17 @@ The Editor page consists of a tool bar and a text editor gadget which is where
  browser.
  * **Undo**: Undo the latest changes.
  * **Redo**: Redo the latest reverted changes.
+ * **Cut**: Cut the selected text to the clipboard.
+ * **Copy**: Copy the selected text to the clipboard.
+ * **Paste**: Paste the selected text from the clipboard. 
  * **Bold**: Make the selected text bold.
  * **Italic**: Make the selected text italic.
  * **Strikethrough**: Strike through the selected text.
  * **Code**: Make the selected text code.
+ * **Search**: Search within the text. This will open a new window where you 
+ can enter a search string and choose where to search from within the 
+ editor, whether to do case sensitive search and whether to search forwards
+ or backwards.
  * **Horizontal Rule**: Insert a Horizontal Rule.
  * **Fenced Code**: Make a fenced code block.
  * **Blockquote**: This will either insert a blockquote or if you have some 
@@ -78,7 +85,6 @@ conversion settings if you wish.
  * Adding more elements to the md4c Markdown to HTML conversion code such as 
  definition lists, footnotes, *etc.* This would then get added to md4c via pull 
  requests.
- * The ability to save and load customised conversion settings.
  * Get the *Convert* function to re-use an existing browser window rather than 
  launch a new one each time.
 
@@ -86,11 +92,14 @@ Any other ideas are welcome. :-)
 
 ## CHANGELOG
 
-### 0.9
+### 1.0
  * Added Blockquote function.
+ * Added Search functionality.
+ * Added Cut, Copy and Paste buttons.
  * Added shortucut for Update, now named Convert (@walkero).
  * Image, table and link editors now close when you click OK (@walkero).
- * Conversion settings can be saved/loaded. (@walkero). 
+ * Conversion settings can be saved/loaded (@walkero). 
+ * The editor button shortcuts are now shown on the help bubbles as well (@walkero).
  * BUGFIX: Choosing the Github dialect conversion setting wasn't being set.
  * BUGFIX: New projects would not save the converted html and launch the preview. (@walkero).
  * BUGFIX: Load and Save menu options had the same shortcut (@walkero). 

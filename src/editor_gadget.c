@@ -104,7 +104,7 @@ void FreeMarkdownEditorClass (struct MUI_CustomClass *mui_class_p)
 
 static uint32 MarkdownEditorDispatcher (Class *class_p,  Object *object_p, Msg msg_p)
 {
-	uint32 res;
+	uint32 res = 0;
 
 	switch (msg_p -> MethodID)
 		{

@@ -1,7 +1,7 @@
 # TODO
 
 
-5. At the main window, at the buttons, if you have assigned any shortcuts, it would be great if you show them on help bubbles as well(@walkero)
+
 7. I don't know if you have this in your plans, but it would be good if there was a way to use always a specific browser and not open new tabs all the time. I am working on ideas on that, and I will be back with proposals. I guess a good candidate would be to use NetSurf, since it doesn't need to support Javascript. Which brings us maybe to a way to set if the user wants to use OpenURL (like it is now) or use ARexx to send the url to a specific browser. And let the user create it.(@walkero, @kas1e)
 10. Convert CRLF to LF on load (@trixie)
 
