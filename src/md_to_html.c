@@ -61,45 +61,49 @@ BOOL ConvertText (const char *in_s, char **out_ss, uint16 parser_flags, uint16 r
 					STRPTR html_s = DetachByteBufferData (output_buffer_p);
 
 					/* Write down the document in the HTML format. */
-					if (full_html_flag) 
+					if (full_html_flag)
 						{
-			 				const char * const header_s = 
+							const char * const html5_doctype_s = "<!DOCTYPE html>\n";
+							const char * const html4_doctype_s = "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\" \"http://www.w3.org/TR/html4/loose.dtd\">\n";
+							const char * const xhtml1_doctype_s = "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.1//EN\" \"http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd\">\n";
+
+			 				const char * const header_s =
 								"<html>\n"
 				  			"<head>\n"
 				    		"<title></title>\n"
 								"<meta name=\"generator\" content=\"md4c from AmiMarkdown\">\n"
 				    		"</head>\n"
 				    		"<body>\n";
-				  
-				  		const char * const footer_s = 
+
+				  		const char * const footer_s =
 				  			"</body>\n"
 				  			"</html>\n";
-				  
+
 				  		char *output_s = ConcatenateVarargsStrings (header_s, html_s, footer_s, NULL);
 
 							/*
 							printf ("header length %lu\n", header_length);
 							printf ("footer length %lu\n", footer_length);
-							printf ("output_buffer.mb_used_size %lu\n", output_buffer.mb_used_size);					
+							printf ("output_buffer.mb_used_size %lu\n", output_buffer.mb_used_size);
 				  		*/
-				  		
+
 				  		if (output_s)
-				  			{				
+				  			{
 									*out_ss = output_s;
-											  				
-				  				success_flag = TRUE; 
-				  			}      		
-				  
+
+				  				success_flag = TRUE;
+				  			}
+
 				  		FreeCopiedString (html_s);
-						} 	
-					else 
+						}
+					else
 						{
 							*out_ss = html_s;
 							success_flag = TRUE;
 						}
 
 
-				}		/* if (success_flag == 0) */		
+				}		/* if (success_flag == 0) */
 			else
 				{
 					FreeByteBuffer (output_buffer_p);
@@ -108,7 +112,7 @@ BOOL ConvertText (const char *in_s, char **out_ss, uint16 parser_flags, uint16 r
 		} /* if (output_buffer_p) */
 
 
-	return success_flag;	
+	return success_flag;
 }
 
 

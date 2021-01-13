@@ -69,7 +69,7 @@ enum
 
 static void FreeGUIObjects (APTR app_p);
 
-static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI_CustomClass *settings_class_p, struct MUI_CustomClass *image_editor_class_p, 
+static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI_CustomClass *settings_class_p, struct MUI_CustomClass *image_editor_class_p,
 	struct MUI_CustomClass *table_editor_class_p, struct MUI_CustomClass *hyperlink_editor_class_p, MDPrefs *prefs_p);
 
 static void RunMD (APTR app_p);
@@ -91,7 +91,7 @@ static struct NewMenu s_menus_p [] =
 
 	{ NM_ITEM,  NM_BARLABEL, NULL, 0, 0, NULL },
 
-	{ NM_ITEM, (STRPTR) "Convert", (STRPTR) "C", 0, 0, (APTR) MENU_ID_UPDATE },
+	{ NM_ITEM, (STRPTR) "Convert", (STRPTR) "R", 0, 0, (APTR) MENU_ID_UPDATE },
 
 	{ NM_ITEM,  NM_BARLABEL, NULL, 0, 0, NULL },
 
@@ -147,46 +147,46 @@ BOOL CreateMUIInterface (MDPrefs *prefs_p)
 							if (table_editor_class_p)
 								{
  									struct MUI_CustomClass *hyperlink_editor_class_p;
-		
+
 									DB (KPRINTF ("%s %ld - Inited Table Editor\n", __FILE__, __LINE__));
-		
+
 									hyperlink_editor_class_p = InitHyperlinkEditorClass ();
-		
+
 									if (hyperlink_editor_class_p)
 										{
 											APTR app_p;
-				
+
 											DB (KPRINTF ("%s %ld - Inited Hyperlink Editor\n", __FILE__, __LINE__));
-			
+
 											app_p = CreateGUIObjects (editor_class_p, settings_class_p, image_editor_class_p, table_editor_class_p, hyperlink_editor_class_p, prefs_p);
-				
+
 											if (app_p)
 												{
 													CONST CONST_STRPTR md_reg_s = "#?.md";
 													const size_t md_reg_length = strlen (md_reg_s);
 													const size_t size = (md_reg_length + 1) << 1;
-				
+
 													DB (KPRINTF ("%s %ld - Created GUI Objects\n", __FILE__, __LINE__));
-				
+
 													s_file_pattern_s = (STRPTR) IExec -> AllocVecTags (size, TAG_DONE);
-				
+
 													if (s_file_pattern_s)
 														{
 															DB (KPRINTF ("%s %ld - Created File Pattern\n", __FILE__, __LINE__));
-				
+
 															if (IDOS -> ParsePattern (md_reg_s, s_file_pattern_s, size) >= 0)
 																{
 																	DB (KPRINTF ("%s %ld - Parsed File Pattern\n", __FILE__, __LINE__));
-				
+
 																	RunMD (app_p);
 																	success_flag = TRUE;
-				
+
 																	/*
 																	** save the current weights of all Balance objects until the next reboot
 																	** if the weights are to be saved permanently the MUIV_Application_Save_ENVARC must be used instead
 																	*/
 																	IIntuition -> IDoMethod (app_p, MUIM_Application_Save, MUIV_Application_Save_ENV);
-				
+
 																	IExec -> FreeVec (s_file_pattern_s);
 																}
 															else
@@ -198,21 +198,21 @@ BOOL CreateMUIInterface (MDPrefs *prefs_p)
 														{
 															ShowError ("Launch Error", "Failed to create the user interface:\n Could not create the default file pattern", "_Ok");
 														}
-														
+
 													FreeGUIObjects (app_p);
 												}		/* if (app_p) */
 											else
 												{
 													ShowError ("Launch Error", "Failed to create the user interface:\n Could not start the application", "_Ok");
-												}	
-																									
-											FreeTableEditorClass (hyperlink_editor_class_p);			
+												}
+
+											FreeTableEditorClass (hyperlink_editor_class_p);
 										}		/* hyperlink_editor_class_p) */
 									else
 										{
 											ShowError ("Launch Error", "Failed to create the user interface:\n Could not initialise the hyperlink editor class", "_Ok");
 										}
-														
+
 									FreeTableEditorClass (table_editor_class_p);
 								}
 							else
@@ -280,7 +280,7 @@ CONST CONST_STRPTR GetMarkdownFilePattern (void)
 }
 
 
-static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI_CustomClass *settings_class_p, struct MUI_CustomClass *image_editor_class_p, 
+static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI_CustomClass *settings_class_p, struct MUI_CustomClass *image_editor_class_p,
 	struct MUI_CustomClass *table_editor_class_p, struct MUI_CustomClass *hyperlink_editor_class_p, MDPrefs *prefs_p)
 {
 	APTR app_p = NULL;
@@ -294,7 +294,7 @@ static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI
 	Object *table_editor_window_p = NULL;
 	Object *hyperlink_editor_p = NULL;
 	Object *hyperlink_editor_window_p = NULL;
-	
+
 	static const char * const used_classes [] =
 		{
 			"TextEditor.mcc",
@@ -392,26 +392,26 @@ static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI
 
 	struct MUIS_TheBar_Button buttons [] =
 		{
-			{ BID_OPEN, BID_OPEN,  "_Open", "Load a Markdown file.", 0, 0, NULL, NULL },
-			{ BID_SAVE, BID_SAVE,  "_Save", "Save the file.", 0, 0, NULL, NULL },
-			{ BID_CONVERT, BID_CONVERT,  "_Convert", "Convert to HTML and view.", 0, 0, NULL, NULL },
+			{ BID_OPEN, BID_OPEN,  "_Open", "Load a Markdown file.\n\nShortcut; RAmiga O", 0, 0, NULL, NULL },
+			{ BID_SAVE, BID_SAVE,  "_Save", "Save the file.\n\nShortcut; RAmiga S", 0, 0, NULL, NULL },
+			{ BID_CONVERT, BID_CONVERT,  "Conve_rt", "Convert to HTML and view.\n\nShortcut; RAmiga R", 0, 0, NULL, NULL },
 			{ MUIV_TheBar_ButtonSpacer, -1, NULL, NULL, 0, 0, NULL, NULL },
-			{ BID_UNDO, BID_UNDO,  "_Undo", "Undo the latest changes", 0, 0, NULL, NULL },
-			{ BID_REDO, BID_REDO,  "_Redo", "Redo the latest reverted changes", 0, 0, NULL, NULL },
+			{ BID_UNDO, BID_UNDO,  "_Undo", "Undo the latest changes\n\nShortcut; RAmiga U", 0, 0, NULL, NULL },
+			{ BID_REDO, BID_REDO,  "_Redo", "Redo the latest reverted changes\n\nShortcut; RAmiga Z", 0, 0, NULL, NULL },
 			{ MUIV_TheBar_BarSpacer, -1, NULL, NULL, 0, 0, NULL, NULL },
-			{ BID_FONT_BOLD, BID_FONT_BOLD, "_Bold", "Make the selected text bold.", 0, 0, NULL, NULL },
-			{ BID_FONT_ITALIC, BID_FONT_ITALIC, "_Italic", "Make the selected text italic.", 0, 0, NULL, NULL },
-			{ BID_FONT_STRIKETHROUGH,  BID_FONT_STRIKETHROUGH, "Stri_kethrough", "Strike through the selected text.", 0, 0, NULL, NULL },
-			{ BID_FONT_CODE,  BID_FONT_CODE, "Co_de", "Make the selected text code.", 0, 0, NULL, NULL },
+			{ BID_FONT_BOLD, BID_FONT_BOLD, "_Bold", "Make the selected text bold.\n\nShortcut; RAmiga B", 0, 0, NULL, NULL },
+			{ BID_FONT_ITALIC, BID_FONT_ITALIC, "_Italic", "Make the selected text italic.\n\nShortcut; RAmiga I", 0, 0, NULL, NULL },
+			{ BID_FONT_STRIKETHROUGH,  BID_FONT_STRIKETHROUGH, "Stri_kethrough", "Strike through the selected text.\n\nShortcut; RAmiga K", 0, 0, NULL, NULL },
+			{ BID_FONT_CODE,  BID_FONT_CODE, "Co_de", "Make the selected text code.\n\nShortcut; RAmiga D", 0, 0, NULL, NULL },
 			{ MUIV_TheBar_BarSpacer, -1, NULL, NULL, 0, 0, NULL, NULL },
 			{ BID_HORIZONTAL_RULE, BID_HORIZONTAL_RULE, "Horizontal Rule", "Insert a Horizontal Rule.", 0, 0, NULL, NULL },
 			{ BID_INDENTED_CODE,  BID_INDENTED_CODE, "Fenced Code", "Make a fenced code block.", 0, 0, NULL, NULL },
-			{ BID_BLOCKQUOTE,  BID_BLOCKQUOTE, "Blockquote", "Make the selected text a blockquote.", 0, 0, NULL, NULL },			
+			{ BID_BLOCKQUOTE,  BID_BLOCKQUOTE, "Blockquote", "Make the selected text a blockquote.", 0, 0, NULL, NULL },
 			{ MUIV_TheBar_BarSpacer, -1, NULL, NULL, 0, 0, NULL, NULL },
-			{ BID_HYPERLINK, BID_HYPERLINK, "_Hyperlink", "Insert a hyperlink.", 0, 0, NULL, NULL },
-			{ BID_IMAGE, BID_IMAGE, "_Image", "Insert an image.", 0, 0, NULL, NULL },
+			{ BID_HYPERLINK, BID_HYPERLINK, "_Hyperlink", "Insert a hyperlink.\n\nShortcut; RAmiga H", 0, 0, NULL, NULL },
+			{ BID_IMAGE, BID_IMAGE, "Image", "Insert an image.", 0, 0, NULL, NULL },
 //			{ BID_FOOTNOTE, BID_FOOTNOTE, "_Footnote", "Insert a footnote.", 0, 0, NULL, NULL },
-			{ BID_TABLE, BID_TABLE, "_Table", "Insert a table.", 0, 0, NULL, NULL },
+			{ BID_TABLE, BID_TABLE, "_Table", "Insert a table.\n\nShortcut; RAmiga T", 0, 0, NULL, NULL },
 			{ MUIV_TheBar_End, -1, NULL, NULL, 0, 0, NULL, NULL }
 		};
 
@@ -646,7 +646,7 @@ static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI
 					IIntuition -> IDoMethod (toolbar_p, MUIM_TheBar_DoOnButton, BID_HORIZONTAL_RULE, MUIM_Notify, MUIA_Pressed, FALSE, s_editor_p, 3, MUIM_Set, MEA_InsertItem, MEV_MDEditor_HorizontalRule);
 
 					IIntuition -> IDoMethod (toolbar_p, MUIM_TheBar_DoOnButton, BID_BLOCKQUOTE, MUIM_Notify, MUIA_Pressed, FALSE, s_editor_p, 3, MUIM_Set, MEA_PrefixMarkedLines, MEV_MDEditor_BlockQuote);
-					
+
 					/*
 					 * Both of these cause a lock up when the app is closed. Don't know why!
 					 */
@@ -689,7 +689,7 @@ BOOL LoadFile (STRPTR filename_s)
 
 									IIntuition -> IDoMethod (s_editor_p, MUIM_TextEditor_ClearText);
 									IIntuition -> SetAttrs (s_editor_p, MUIA_TextEditor_Contents, content_s, TAG_DONE);
-								
+
 									IIntuition -> SetAttrs (s_editor_p, MEA_Filename, filename_s, TAG_DONE);
 
 
@@ -719,7 +719,7 @@ BOOL SaveFile (STRPTR filename_s, CONST CONST_STRPTR text_s)
 			if (IDOS -> FWrite (fh_p, text_s, size, 1) == 1)
 				{
 					success_flag = TRUE;
-					
+
 					IIntuition -> SetAttrs (s_editor_p, MEA_Filename, filename_s, TAG_DONE);
 				}
 
@@ -784,8 +784,6 @@ STRPTR RequestFilename (const BOOL save_flag, CONST CONST_STRPTR title_s, CONST 
 		{
 			struct Window *window_p = NULL;
 
-		//	printf ("req win %lu\n", s_window_p);
-
 			if (s_window_p)
 				{
 			 		if (IIntuition -> GetAttr (MUIA_Window_Window, s_window_p, (uint32 *) &window_p) == 0)
@@ -834,7 +832,7 @@ STRPTR RequestFilename (const BOOL save_flag, CONST CONST_STRPTR title_s, CONST 
 				}
 			else
 				{
-					IDOS -> PutStr ("Failed to open File Requester\n");
+					ShowError ("Application Error", "Failed to open File Requester\n", "_Ok");
 				}
 
 			IAsl -> FreeAslRequest (req_p);
@@ -855,7 +853,11 @@ void UpdateWindowActiveFilename (CONST CONST_STRPTR filename_s)
 		{
 			IIntuition -> SetAttrs (s_window_p, MUIA_Window_Title, title_s, TAG_DONE);
 
-			DB (KPRINTF ("%s %ld - UpdateWindowActiveFilename to %s (%lu)\n", __FILE__, __LINE__, title_s));
+			DB (KPRINTF ("%s %ld - UpdateWindowActiveFilename to %s\n", __FILE__, __LINE__, title_s));
+		}
+	else
+		{
+			DB (KPRINTF ("%s %ld - UpdateWindowActiveFilename failed to update title for %s\n", __FILE__, __LINE__, title_s));
 		}
 }
 
@@ -882,15 +884,19 @@ static int32 ShowRequester (CONST CONST_STRPTR title_s, CONST CONST_STRPTR text_
 		REQ_BodyText, text_s,
 		REQ_GadgetText, "_Ok",
 		TAG_DONE);
-		
+
 	if (requester_p)
 		{
 			res = IIntuition -> IDoMethod (requester_p, RM_OPENREQ, NULL, window_p, NULL);
 
 			IIntuition -> DisposeObject (requester_p);
 		}
+	else
+		{
 
-	
+		}
+
+
 	return res;
 }
 
@@ -912,5 +918,4 @@ static struct Window *GetAppWindow (void)
 
 
 	return window_p;
-}	
-
+}
