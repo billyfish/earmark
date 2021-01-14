@@ -44,13 +44,14 @@ typedef struct SearchGagdetData
 	uint32 sgd_search_from;
 	BOOL sgd_search_backwards_flag;
 	BOOL sgd_case_sensitive_flag;
+	BOOL sgd_fresh_search_flag;
 } SearchGadgetData;
 
 /**********************************/
 /******* STATIC PROTOTYPES ********/
 /**********************************/
 
-enum 
+enum
 {
 	FROM_CURSOR,
 	FROM_TOP
@@ -127,25 +128,31 @@ static uint32 SearchGadgetDispatcher (Class *class_p,  Object *object_p, Msg msg
 					SearchGadgetData *data_p = INST_DATA (class_p, object_p);
 					Object *window_obj_p = NULL;
 					uint32 flags = data_p -> sgd_search_from;
-						
+					data_p -> sgd_fresh_search_flag = TRUE;
+
 					DB (KPRINTF ("%s %ld - SearchGadget Dispatcher: SGM_Search\n", __FILE__, __LINE__));
-	
+
 					if (data_p -> sgd_text_s)
 						{
 							const size_t l = strlen (data_p -> sgd_text_s);
-							
+
 							/* TextEditor has a max search length of 120 */
 							if (l < 120)
 								{
 									if (data_p -> sgd_case_sensitive_flag)
 										{
-											flags |= MUIF_TextEditor_Search_CaseSensitive;	
+											flags |= MUIF_TextEditor_Search_CaseSensitive;
 										}
 
 									if (data_p -> sgd_search_backwards_flag)
 										{
-											flags |= MUIF_TextEditor_Search_Backwards;	
+											flags |= MUIF_TextEditor_Search_Backwards;
 										}
+
+									/*
+										If starting from the top, continue from the cursur for
+										the next search if appropriate
+									*/
 
 									DB (KPRINTF ("%s %ld - SearchGadget Dispatcher: searching for \"%s\" with flags %lu\n", __FILE__, __LINE__, data_p -> sgd_text_s, flags));
 
@@ -155,17 +162,17 @@ static uint32 SearchGadgetDispatcher (Class *class_p,  Object *object_p, Msg msg
 										}
 									else
 										{
-											ShowInformation ("Search", "String not found", "_Ok");	
+											ShowInformation ("Search", "String not found", "_Ok");
 										}
 								}
 							else
 								{
 									ShowWarning ("Search Error", "The search string must be a maximum of 120 characters.", "_Ok");
 								}
-								
-						
+
+
 						}		/* if (data_p -> sgd_text_s) */
-				
+
 
 
 				}
@@ -189,40 +196,40 @@ static Object *GetSearchGadgetObject (Object *parent_p, SearchGadgetData *data_p
 	Object *case_p = NULL;
 	Object *direction_p = NULL;
 	Object *ok_p = NULL;
-	Object *cancel_p = NULL;	
+	Object *cancel_p = NULL;
 
 	Object *child_object_p = IMUIMaster -> MUI_NewObject (MUIC_Group,
 
 		MUIA_Group_Child, IMUIMaster -> MUI_NewObject (MUIC_Group,
 			MUIA_Group_Horiz, FALSE,
-		
+
 			MUIA_Group_Child, IMUIMaster -> MUI_NewObject (MUIC_Group,
 				MUIA_Group_Columns, 2,
-	
+
 				MUIA_Group_Child, IMUIMaster -> MUI_MakeObject (MUIO_Label, "Text:", TAG_DONE),
 				MUIA_Group_Child, text_p = IMUIMaster -> MUI_NewObject (MUIC_BetterString,
 					MUIA_Frame, MUIV_Frame_String,
 				TAG_DONE),
-	
+
 				MUIA_Group_Child, IMUIMaster -> MUI_MakeObject (MUIO_Label, "From:", TAG_DONE),
 				MUIA_Group_Child, from_p = IMUIMaster -> MUI_NewObject (MUIC_Cycle,
 					MUIA_Cycle_Entries, S_FROM_SS,
 				TAG_DONE),
 			TAG_DONE),
-			
+
 		TAG_DONE),
 
 		MUIA_Group_Child, IMUIMaster -> MUI_NewObject (MUIC_Group,
 			MUIA_Group_Horiz, TRUE,
-			
+
 			MUIA_Group_Child, IMUIMaster -> MUI_MakeObject (MUIO_Label, "Case sensitive?:", TAG_DONE),
 			MUIA_Group_Child, case_p = IMUIMaster -> MUI_MakeObject (MUIO_Checkmark,
 			TAG_DONE),
-	
+
 			MUIA_Group_Child, IMUIMaster -> MUI_MakeObject (MUIO_Label, "Search Backwards?:", TAG_DONE),
 			MUIA_Group_Child, direction_p = IMUIMaster -> MUI_MakeObject (MUIO_Checkmark,
 			TAG_DONE),
-		
+
 		TAG_DONE),
 
 		MUIA_Group_Child, IMUIMaster -> MUI_NewObject (MUIC_Group,
@@ -246,12 +253,12 @@ static Object *GetSearchGadgetObject (Object *parent_p, SearchGadgetData *data_p
 			IIntuition -> SetAttrs (from_p, MUIA_ShortHelp, "Search from the current cursor position or from the top.", TAG_DONE);
 			IIntuition -> SetAttrs (case_p, MUIA_ShortHelp, "Do a case-senstive search.", TAG_DONE);
 			IIntuition -> SetAttrs (direction_p, MUIA_ShortHelp, "Search backwards", TAG_DONE);
-			
+
 			IIntuition -> IDoMethod (text_p, MUIM_Notify, MUIA_String_Contents, MUIV_EveryTime, parent_p, 3, MUIM_Set, SGA_Text, MUIV_TriggerValue);
 			IIntuition -> IDoMethod (from_p, MUIM_Notify, MUIA_Cycle_Active, MUIV_EveryTime, parent_p, 3, MUIM_Set, SGA_FromPosition, MUIV_TriggerValue);
 			IIntuition -> IDoMethod (case_p, MUIM_Notify, MUIA_Selected, MUIV_EveryTime, parent_p, 3, MUIM_Set, SGA_CaseSensitive, MUIV_TriggerValue);
 			IIntuition -> IDoMethod (direction_p, MUIM_Notify, MUIA_Selected, MUIV_EveryTime, parent_p, 3, MUIM_Set, SGA_SearchBackwards, MUIV_TriggerValue);
-			
+
 			IIntuition -> IDoMethod (ok_p, MUIM_Notify, MUIA_Pressed, FALSE, parent_p, 1,SGM_Search);
 			IIntuition -> IDoMethod (cancel_p, MUIM_Notify, MUIA_Pressed, FALSE, MUIV_Notify_Window, 3, MUIM_Set, MUIA_Window_CloseRequest, TRUE);
 		}
@@ -275,7 +282,7 @@ static uint32 SearchGadget_New (Class *class_p, Object *object_p, Msg msg_p)
 			data_p -> sgd_search_from = 0;
 			data_p -> sgd_case_sensitive_flag = FALSE;
 			data_p -> sgd_search_backwards_flag = FALSE;
-			
+
 			child_p = GetSearchGadgetObject (parent_p, data_p);
 
 			if (child_p)
@@ -293,7 +300,6 @@ static uint32 SearchGadget_Dispose (Class *class_p, Object *object_p, Msg msg_p)
 {
 	uint32 retval = IIntuition->IDoSuperMethodA (class_p, object_p, msg_p);
 	SearchGadgetData *data_p = INST_DATA (class_p, object_p);
-
 
 
 	return retval;
@@ -342,7 +348,7 @@ static uint32 SearchGadget_Set (Class *class_p, Object *object_p, Msg msg_p)
 								}
 							else if (tag_data == FROM_TOP)
 								{
-									data_p -> sgd_search_from = MUIF_TextEditor_Search_FromTop;	
+									data_p -> sgd_search_from = MUIF_TextEditor_Search_FromTop;
 								}
 						}
 						break;
@@ -350,7 +356,7 @@ static uint32 SearchGadget_Set (Class *class_p, Object *object_p, Msg msg_p)
 					case SGA_CaseSensitive:
 						{
 							DB (KPRINTF ("%s %ld - SearchGadget_Set -> case senstive to %lu", __FILE__, __LINE__, tag_data));
-							
+
 							if (tag_data == TRUE)
 								{
 									data_p -> sgd_case_sensitive_flag = TRUE;
@@ -358,7 +364,7 @@ static uint32 SearchGadget_Set (Class *class_p, Object *object_p, Msg msg_p)
 							else if (tag_data == FALSE)
 								{
 									data_p -> sgd_case_sensitive_flag = FALSE;
-								}						
+								}
 						}
 						break;
 
@@ -366,7 +372,7 @@ static uint32 SearchGadget_Set (Class *class_p, Object *object_p, Msg msg_p)
 					case SGA_SearchBackwards:
 						{
 							DB (KPRINTF ("%s %ld - SearchGadget_Set -> sgd_backwards to %lu", __FILE__, __LINE__, tag_data));
-							
+
 							if (tag_data == TRUE)
 								{
 									data_p -> sgd_search_backwards_flag = TRUE;
@@ -374,11 +380,11 @@ static uint32 SearchGadget_Set (Class *class_p, Object *object_p, Msg msg_p)
 							else if (tag_data == FALSE)
 								{
 									data_p -> sgd_search_backwards_flag = FALSE;
-								}						
+								}
 						}
-						break;						
-						
-						
+						break;
+
+
 
 					/* We don't understand this attribute */
 					default:
@@ -391,4 +397,3 @@ static uint32 SearchGadget_Set (Class *class_p, Object *object_p, Msg msg_p)
 
 	return retval;
 }
-
