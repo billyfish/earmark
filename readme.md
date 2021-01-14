@@ -92,7 +92,7 @@ Any other ideas are welcome. :-)
 
 ## CHANGELOG
 
-### 1.0
+### 1.0 - (14/01/2021)
  * Added Blockquote function.
  * Added Search functionality.
  * Added Cut, Copy and Paste buttons.
