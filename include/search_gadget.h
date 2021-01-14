@@ -46,6 +46,7 @@
 
 #define SGM_Search (SG_Dummy + 1)
 
+#define SGM_Close (SG_Dummy + 2)
 
 /*************************/
 /***** API FUNCTIONS *****/

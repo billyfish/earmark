@@ -127,8 +127,7 @@ static uint32 SearchGadgetDispatcher (Class *class_p,  Object *object_p, Msg msg
 				{
 					SearchGadgetData *data_p = INST_DATA (class_p, object_p);
 					Object *window_obj_p = NULL;
-					uint32 flags = data_p -> sgd_search_from;
-					data_p -> sgd_fresh_search_flag = TRUE;
+					uint32 flags = 0;
 
 					DB (KPRINTF ("%s %ld - SearchGadget Dispatcher: SGM_Search\n", __FILE__, __LINE__));
 
@@ -139,6 +138,16 @@ static uint32 SearchGadgetDispatcher (Class *class_p,  Object *object_p, Msg msg
 							/* TextEditor has a max search length of 120 */
 							if (l < 120)
 								{
+									/*
+										If starting from the top, continue from the cursor for
+										the next search if appropriate
+									*/
+									if ((data_p -> sgd_search_from == FROM_TOP) && (data_p -> sgd_fresh_search_flag))
+										{
+											flags = MUIF_TextEditor_Search_FromTop;
+											data_p -> sgd_fresh_search_flag = FALSE;
+										}
+									
 									if (data_p -> sgd_case_sensitive_flag)
 										{
 											flags |= MUIF_TextEditor_Search_CaseSensitive;
@@ -148,12 +157,7 @@ static uint32 SearchGadgetDispatcher (Class *class_p,  Object *object_p, Msg msg
 										{
 											flags |= MUIF_TextEditor_Search_Backwards;
 										}
-
-									/*
-										If starting from the top, continue from the cursur for
-										the next search if appropriate
-									*/
-
+									
 									DB (KPRINTF ("%s %ld - SearchGadget Dispatcher: searching for \"%s\" with flags %lu\n", __FILE__, __LINE__, data_p -> sgd_text_s, flags));
 
 									if (IIntuition -> IDoMethod (data_p -> sgd_text_editor_p, MUIM_TextEditor_Search, data_p -> sgd_text_s, flags))
@@ -172,12 +176,26 @@ static uint32 SearchGadgetDispatcher (Class *class_p,  Object *object_p, Msg msg
 
 
 						}		/* if (data_p -> sgd_text_s) */
-
-
-
 				}
 				break;
 
+
+
+			case SGM_Close:
+				{
+					SearchGadgetData *data_p = INST_DATA (class_p, object_p);
+					Object *win_p = NULL;
+					
+					data_p -> sgd_fresh_search_flag = TRUE;		
+					
+					IIntuition -> GetAttr (MUIA_WindowObject, object_p, (uint32 *) &win_p);
+					
+					if (win_p)
+						{
+							IIntuition -> SetAttrs (win_p, MUIM_Set, MUIA_Window_CloseRequest, TRUE);
+						}
+				}
+				break;
 
 			default:
 				//DB (KPRINTF ("%s %ld - MoleculeInfoDispatcher: %x\n", __FILE__, __LINE__, msg_p -> MethodID));
@@ -331,12 +349,12 @@ static uint32 SearchGadget_Set (Class *class_p, Object *object_p, Msg msg_p)
 					/* Put a case statement here for each attribute that your
 					 * function understands */
 					case SGA_TextEditor:
-						DB (KPRINTF ("%s %ld - SearchGadget_Set -> ied_text_editor_p to %lu", __FILE__, __LINE__, tag_data));
+						DB (KPRINTF ("%s %ld - SearchGadget_Set -> sgd_text_editor_p to %lu\n", __FILE__, __LINE__, tag_data));
 						data_p -> sgd_text_editor_p = (Object *) tag_data;
 						break;
 
 					case SGA_Text:
-						DB (KPRINTF ("%s %ld - SearchGadget_Set -> ied_path_s to %s", __FILE__, __LINE__, (STRPTR) tag_data));
+						DB (KPRINTF ("%s %ld - SearchGadget_Set -> sgd_text_s to %s\n", __FILE__, __LINE__, (STRPTR) tag_data));
 						data_p -> sgd_text_s = (STRPTR) tag_data;
 						break;
 
@@ -345,17 +363,20 @@ static uint32 SearchGadget_Set (Class *class_p, Object *object_p, Msg msg_p)
 							if (tag_data == FROM_CURSOR)
 								{
 									data_p -> sgd_search_from = 0;
+									DB (KPRINTF ("%s %ld - SearchGadget_Set -> sgd_search_from to CURSOR\n" , __FILE__, __LINE__));									
 								}
 							else if (tag_data == FROM_TOP)
 								{
 									data_p -> sgd_search_from = MUIF_TextEditor_Search_FromTop;
+									data_p -> sgd_fresh_search_flag = TRUE;
+									DB (KPRINTF ("%s %ld - SearchGadget_Set -> sgd_search_from to TOP\n" , __FILE__, __LINE__));	
 								}
 						}
 						break;
 
 					case SGA_CaseSensitive:
 						{
-							DB (KPRINTF ("%s %ld - SearchGadget_Set -> case senstive to %lu", __FILE__, __LINE__, tag_data));
+							DB (KPRINTF ("%s %ld - SearchGadget_Set -> case senstive to %lu\n", __FILE__, __LINE__, tag_data));
 
 							if (tag_data == TRUE)
 								{
@@ -371,7 +392,7 @@ static uint32 SearchGadget_Set (Class *class_p, Object *object_p, Msg msg_p)
 
 					case SGA_SearchBackwards:
 						{
-							DB (KPRINTF ("%s %ld - SearchGadget_Set -> sgd_backwards to %lu", __FILE__, __LINE__, tag_data));
+							DB (KPRINTF ("%s %ld - SearchGadget_Set -> sgd_backwards to %lu\n", __FILE__, __LINE__, tag_data));
 
 							if (tag_data == TRUE)
 								{

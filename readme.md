@@ -2,7 +2,7 @@ Short:        Edit and view Markdown documents
 Uploader:     tyrrell.simon@gmail.com (Simon Tyrrell)  
 Author:       tyrrell.simon@gmail.com (Simon Tyrrell)  
 Type:         text/edit  
-Version:      0.9
+Version:      1.0
 Architecture: ppc-amigaos >= 4.1  
 Distribution: Aminet  
 Requires: dev/mui/MCC_TextEditor, dev/mui/MCC_BetterString, dev/mui/MCC_TheBar
@@ -99,9 +99,12 @@ Any other ideas are welcome. :-)
  * Added shortucut for Update, now named Convert (@walkero).
  * Image, table and link editors now close when you click OK (@walkero).
  * Conversion settings can be saved/loaded (@walkero). 
- * The editor button shortcuts are now shown on the help bubbles as well (@walkero).
+ * The editor button shortcuts are now shown on the help bubbles as well 
+ (@walkero).
+ * Gladly accepted a much better name for the program :-) (@trixie).
  * BUGFIX: Choosing the Github dialect conversion setting wasn't being set.
- * BUGFIX: New projects would not save the converted html and launch the preview. (@walkero).
+ * BUGFIX: New projects would not save the converted html and launch the 
+ preview. (@walkero).
  * BUGFIX: Load and Save menu options had the same shortcut (@walkero). 
  * BUGFIX: "Allow blocks" and "Allow spans" had the same help bubble text
  (@walkero).
@@ -109,8 +112,8 @@ Any other ideas are welcome. :-)
 ### 0.8 - (10/01/2021)
  * Moved to using TheBar to give a graphical toolbar along with many more 
  functions.
- * Added Undo, Redo, Strikethrough, Code, Fenced Code Blocks, Horizontal Rule,
- Table, Image and Link functions.
+ * Added Undo, Redo, Strikethrough, Code, Fenced Code Blocks, Horizontal 
+ Rule, Table, Image and Link functions.
 	
 ### 0.5 - (07/01/2021):
  * Changed from using HTMLview to using Launch-Handler which comes with OS4.
@@ -127,9 +130,9 @@ Any other ideas are welcome. :-)
 ## LICENSE:
 
 The code is available under the MIT license. The md4c parts are copyright 
-Martin Mitas. The emoticon_bigsmile image is copyright to Martin Merz, 
-go to http://www.masonicons.info for more information and to get his awesome 
-artwork. The rest is copyright (c) 2021 by Simon Tyrrell. 
+Martin Mitas. The program icon and emoticon_bigsmile image are copyright to 
+Martin Merz, go to http://www.masonicons.info for more information and to 
+get his awesome artwork. The rest is copyright (c) 2021 by Simon Tyrrell. 
 
 
  

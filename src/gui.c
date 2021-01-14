@@ -109,7 +109,7 @@ static APTR s_window_p = NULL;
 
 static STRPTR s_file_pattern_s = NULL;
 
-static CONST_STRPTR s_app_name_s = "AmiMarkdown";
+#define S_APP_NAME_S "Earmark"
 
 
 /***************************************/
@@ -462,8 +462,8 @@ static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI
 	DB (KPRINTF ("%s %ld - CreateGUIObjects starting\n", __FILE__, __LINE__));
 
 	app_p = IMUIMaster -> MUI_NewObject (MUIC_Application,
-		MUIA_Application_Title      , s_app_name_s,
-		MUIA_Application_Version    , "$VER: AmiMarkdown 0.9",
+		MUIA_Application_Title      , S_APP_NAME_S,
+		MUIA_Application_Version    , "$VER: " S_APP_NAME_S " 1.0",
 		MUIA_Application_Copyright  , "(c) 2021, Simon Tyrrell, md4c code (c) Martin Mitas",
 		MUIA_Application_Author     , "Simon Tyrrell",
 		MUIA_Application_Description, "Edit and view Markdown documents.",
@@ -931,7 +931,7 @@ STRPTR RequestFilename (const BOOL save_flag, CONST CONST_STRPTR title_s, CONST 
 void UpdateWindowActiveFilename (CONST CONST_STRPTR filename_s)
 {
 	CONST CONST_STRPTR join_s = " - ";
-	STRPTR title_s = ConcatenateVarargsStrings (s_app_name_s, join_s, filename_s, NULL);
+	STRPTR title_s = ConcatenateVarargsStrings (S_APP_NAME_S, join_s, filename_s, NULL);
 
 	if (title_s)
 		{
