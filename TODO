@@ -1,13 +1,31 @@
 # TODO
 
-
-
-7. I don't know if you have this in your plans, but it would be good if there was a way to use always a specific browser and not open new tabs all the time. I am working on ideas on that, and I will be back with proposals. I guess a good candidate would be to use NetSurf, since it doesn't need to support Javascript. Which brings us maybe to a way to set if the user wants to use OpenURL (like it is now) or use ARexx to send the url to a specific browser. And let the user create it.(@walkero, @kas1e)
-10. Convert CRLF to LF on load (@trixie)
+ * Toolbar  is super wide on my setup (doesn't fit on the screen) (@capehill)
+ * The convert button has the same shortcut like the Hyperlink. This triggers both. The menu item for Convert has the right shortcut (@walkero)
+ * The settings Save button, IMO should propose the default name that earmark wait to load, giving the user the option to change it, if he wants. Or there should be a tooltype where the user should set the default config file. (@walkero)
+ 
+*. Why do you include {} on code block? This stays as character by md4c on preview. I never used it with code blocks, but I might be wrong to be honest. (@walkero)
+* Can the Save not work as "Save as...", showing the file requester? IMO, it should save over the file. (@walkero)
+* If I make changes on the file, that are not saved, it would be nice to have something at the window title that shows that this file was edited. (@walkero) 
+ * I don't know if you have this in your plans, but it would be good if there was a way to use always a specific browser and not open new tabs all the time. I am working on ideas on that, and I will be back with proposals. I guess a good candidate would be to use NetSurf, since it doesn't need to support Javascript. Which brings us maybe to a way to set if the user wants to use OpenURL (like it is now) or use ARexx to send the url to a specific browser. And let the user create it.(@walkero, @kas1e) 
+ * Convert CRLF to LF on load (@trixie)
 
 
 # DONE
 
+---- 1.1
+
+ * The table button bubble has a semicolon after the shortcut, instead of colon (@walkero)
+ * RMB Quit option not working (@Capehill)
+* If you mark a line and you choose bold, italic, etc.. then the editor adds the necessary markdown characters. The problem is that if that line starts/ends with space, then the markdown is broken, because md4c includes that space, and the asterisks are staying as characters. To be more precise
+ 
+**thisisabrokenboldline,nottranslatedbymd4c ** 
+** thisisalsoabrokenboldline,nottranslatedbymd4c** 
+**thisboldlineworksfihghmne**
+
+
+ 
+---- 1.0
 1. Project menu both Load and Save have the same shortcut (@walkero) 
 2. It would be good to have a shortcut for the Project > Update. It can be handy(@walkero)
 8. Choices that open a new window, like adding a link, maybe it would be good to close after the user press OK.(@walkero)

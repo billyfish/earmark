@@ -433,5 +433,3 @@ char *GetStringAsLowerCase (const char *value_s)
 	return lower_s;
 
 }
-
-

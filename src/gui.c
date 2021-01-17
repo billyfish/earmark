@@ -29,6 +29,7 @@
 #include <mui/TextEditor_mcc.h>
 #include <mui/Aboutbox_mcc.h>
 #include <mui/TheBar_mcc.h>
+#include <mui/HTMLview_mcc.h>
 
 #include "gui.h"
 #include "editor_gadget.h"
@@ -59,6 +60,7 @@ enum
 	MENU_ID_ABOUT,
 	MENU_ID_UPDATE,
 	MENU_ID_LOAD,
+	MENU_ID_TOOLBAR,
 	MENU_ID_SAVE
 };
 
@@ -95,14 +97,20 @@ static struct NewMenu s_menus_p [] =
 	{ NM_ITEM, (STRPTR) "Convert", (STRPTR) "R", 0, 0, (APTR) MENU_ID_UPDATE },
 
 	{ NM_ITEM,  NM_BARLABEL, NULL, 0, 0, NULL },
+	
+	{ NM_ITEM, (STRPTR) "1 row toolbar", (STRPTR) "1", CHECKIT |MENUTOGGLE | CHECKED, 0, (APTR) MENU_ID_TOOLBAR },	
+
+	{ NM_ITEM,  NM_BARLABEL, NULL, 0, 0, NULL },
+		
+	
 
  	{ NM_ITEM, (STRPTR) "About...", (STRPTR) "?", 0, 0, (APTR) MENU_ID_ABOUT },
-	{ NM_ITEM, (STRPTR) "Quit", (STRPTR) "Q",   0, 0, (APTR) MENU_ID_QUIT },
+	{ NM_ITEM, (STRPTR) "Quit", (STRPTR) "Q",   0, 0, (APTR) MUIV_Application_ReturnID_Quit },
 
 	{ NM_END, NULL, NULL, 0, 0, NULL }
 };
 
-
+static APTR s_viewer_p = NULL;
 static APTR s_editor_p = NULL;
 static APTR s_settings_p = NULL;
 static APTR s_window_p = NULL;
@@ -432,7 +440,7 @@ static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI
 		{
 			{ BID_OPEN, BID_OPEN,  "_Open", "Load a Markdown file.\n\nShortcut: RAmiga+O", 0, 0, NULL, NULL },
 			{ BID_SAVE, BID_SAVE,  "_Save", "Save the file.\n\nShortcut: RAmiga+S", 0, 0, NULL, NULL },
-			{ BID_CONVERT, BID_CONVERT,  "Convert to_HTML", "Convert to HTML and view.\n\nShortcut: RAmiga+H", 0, 0, NULL, NULL },
+			{ BID_CONVERT, BID_CONVERT,  "Convert to HTML", "Convert to HTML and view.\n\nShortcut: RAmiga+", 0, 0, NULL, NULL },
 			{ MUIV_TheBar_BarSpacer, -1, NULL, NULL, 0, 0, NULL, NULL },
 			{ BID_UNDO, BID_UNDO,  "Undo", "Undo the latest changes\n\nShortcut: RAmiga+Z", 0, 0, NULL, NULL },
 			{ BID_REDO, BID_REDO,  "Redo", "Redo the latest reverted changes\n\nShortcut; RAmiga+shift+Z", 0, 0, NULL, NULL },
@@ -454,7 +462,7 @@ static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI
 			{ BID_HYPERLINK, BID_HYPERLINK, "_Hyperlink", "Insert a hyperlink.\n\nShortcut: RAmiga+H", 0, 0, NULL, NULL },
 			{ BID_IMAGE, BID_IMAGE, "Image", "Insert an image.", 0, 0, NULL, NULL },
 //			{ BID_FOOTNOTE, BID_FOOTNOTE, "_Footnote", "Insert a footnote.", 0, 0, NULL, NULL },
-			{ BID_TABLE, BID_TABLE, "_Table", "Insert a table.\n\nShortcut; RAmiga T", 0, 0, NULL, NULL },
+			{ BID_TABLE, BID_TABLE, "_Table", "Insert a table.\n\nShortcut: RAmiga+T", 0, 0, NULL, NULL },
 			{ MUIV_TheBar_End, -1, NULL, NULL, 0, 0, NULL, NULL }
 		};
 
@@ -539,10 +547,19 @@ static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI
 
 
 		SubWindow, s_window_p = IMUIMaster -> MUI_NewObject (MUIC_Window,
-			MUIA_Window_Title, "AmiMarkdown",
+			MUIA_Window_Title, S_APP_NAME_S,
 			MUIA_Window_ID, MAKE_ID('A','M','M','D'),
 			MUIA_Window_AppWindow, TRUE,
-			MUIA_Window_Menustrip, strip_p = IMUIMaster -> MUI_MakeObject (MUIO_MenustripNM, s_menus_p, 0),
+			MUIA_Window_Menustrip, strip_p = IMUIMaster -> MUI_NewObject (MUIC_Menustrip, 
+				MUIA_Family_Child, IMUIMaster -> MUI_NewObject (MUIC_Menu, 
+					MUIA_Menu_Title, "Project",
+					MUIA_Menu_CopyStrings, TRUE,
+					MUIA_Family_Child, IMUIMaster -> MUI_NewObject (MUIC_Menuitem,
+						MUIA_Menuitem_Title, "Open",
+						MUIA_Menuitem_AISSName, "open",
+					TAG_DONE),
+				TAG_DONE),			
+			TAG_DONE),
  			MUIA_ShortHelp, (uint32) "A Markdown editor and viewer",
 
 
@@ -555,17 +572,17 @@ static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI
 					MUIA_Group_Child, IMUIMaster -> MUI_NewObject (MUIC_Group,
 						MUIA_Group_Horiz, FALSE,
 
-						/* TheBar tool bar */
+						/* TheBar tool bar */
 
 						MUIA_Group_Child, toolbar_p = IMUIMaster -> MUI_NewObject (MUIC_TheBar,
               MUIA_Group_Horiz,             TRUE,
-              MUIA_TheBar_IgnoreAppearance, TRUE,
-              MUIA_TheBar_ViewMode,         MUIV_TheBar_ViewMode_Gfx,
+              //MUIA_TheBar_IgnoreAppearance, TRUE,
               MUIA_TheBar_Buttons,          buttons,
               MUIA_TheBar_PicsDrawer,       "tbimages:",
               MUIA_TheBar_Pics,             pics_ss,
               MUIA_TheBar_SelPics,          selected_pics_ss,
               MUIA_TheBar_DisPics,          ghosted_pics_ss,
+							MUIA_TheBar_Free,							TRUE,
 						TAG_DONE),
 
 
@@ -582,9 +599,18 @@ static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI
 							MUIA_Group_Child, editor_scrollbar_p = IMUIMaster -> MUI_NewObject (MUIC_Scrollbar,
 							TAG_DONE),
 
-
-
 						TAG_DONE),		/* End Editor */
+
+						/*
+						MUIA_Group_Child, IMUIMaster -> MUI_NewObject (MUIC_Group,
+							MUIA_Group_Horiz, TRUE,
+
+							MUIA_Group_Child, s_viewer_p = IMUIMaster -> MUI_NewObject (MUIC_HTMLview, NULL,
+								ImageButtonFrame,
+								MUIA_FillArea, FALSE,
+								MUIA_ShortHelp, (uint32) "viewer",
+							TAG_DONE),
+						*/
 
 							/*
 							MUIA_Group_Child, cursor_x_p = IMUIMaster -> MUI_NewObject (MUIC_String,
@@ -662,6 +688,13 @@ static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI
 			IIntuition -> IDoMethod (menu_item_p, MUIM_Notify, MUIA_Menuitem_Trigger, MUIV_EveryTime,
 				s_editor_p, 1, MEM_MDEditor_Convert);
 
+
+			menu_item_p = (Object *) IIntuition -> IDoMethod (strip_p, MUIM_FindUData, MENU_ID_TOOLBAR);
+			IIntuition -> IDoMethod (menu_item_p, MUIM_Notify, MUIA_Menuitem_Checked, MUIV_EveryTime,
+				toolbar_p, 3, MUIM_Set, MUIA_TheBar_Rows, MUIV_TriggerValue ? 2 : 1);
+
+
+
 			IIntuition -> GetAttrs (s_settings_p, MSA_Prefs, &prefs_p);
 			IIntuition -> SetAttrs (s_editor_p, MEA_Prefs, prefs_p, TAG_DONE);
 
@@ -705,6 +738,11 @@ static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI
 					IIntuition -> IDoMethod (search_window_p, MUIM_Notify, MUIA_Window_CloseRequest, TRUE, MUIV_Notify_Self, 3, MUIM_Set, MUIA_Window_Open, FALSE);
 
 					IIntuition -> SetAttrs (search_p, SGA_TextEditor, s_editor_p, TAG_DONE);
+				}
+
+			if (s_viewer_p)
+				{
+					IIntuition -> SetAttrs (s_editor_p, MEA_Viewer, s_viewer_p, TAG_DONE);
 				}
 
 
@@ -803,8 +841,6 @@ BOOL SaveFile (STRPTR filename_s, CONST CONST_STRPTR text_s)
 			if (IDOS -> FWrite (fh_p, text_s, size, 1) == 1)
 				{
 					success_flag = TRUE;
-
-					IIntuition -> SetAttrs (s_editor_p, MEA_Filename, filename_s, TAG_DONE);
 				}
 
 			IDOS -> FClose (fh_p);
@@ -839,7 +875,7 @@ static void RunMD (APTR app_p)
 
 			DB (KPRINTF ("%s %ld - Opened Window\n", __FILE__, __LINE__));
 
-			while (IIntuition -> IDoMethod (app_p, MUIM_Application_NewInput, &sigs) != (uint32) MUIV_Application_ReturnID_Quit)
+			while ((int32) IIntuition -> IDoMethod (app_p, MUIM_Application_NewInput, &sigs) != MUIV_Application_ReturnID_Quit)
 				{
 					if (sigs)
 						{
@@ -859,7 +895,7 @@ static void RunMD (APTR app_p)
 }
 
 
-STRPTR RequestFilename (const BOOL save_flag, CONST CONST_STRPTR title_s, CONST CONST_STRPTR file_pattern_s)
+STRPTR RequestFilename (const BOOL save_flag, CONST CONST_STRPTR title_s, CONST CONST_STRPTR file_pattern_s, CONST CONST_STRPTR initial_file_s)
 {
 	STRPTR filename_s = NULL;
 	struct FileRequester *req_p = (struct FileRequester *) IAsl -> AllocAslRequest (ASL_FileRequest, NULL);
@@ -886,6 +922,7 @@ STRPTR RequestFilename (const BOOL save_flag, CONST CONST_STRPTR title_s, CONST 
 						ASLFR_DoSaveMode, save_flag,
 						ASLFR_DoPatterns, TRUE,
 						ASLFR_InitialPattern, file_pattern_s ? file_pattern_s : NULL,
+						ASLFR_InitialFile, initial_file_s,
 						TAG_END))
 						{
 							#define FNAME_MAX (2048)

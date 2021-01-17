@@ -34,6 +34,7 @@ SRCS = \
 	settings_gadget.c \
 	string_utils.c \
 	table_editor.c \
+	viewer_gadget.c \
 	entity.c \
 	md4c.c \
 	md4c-html.c \

@@ -29,6 +29,7 @@
 #include <proto/utility.h>
 
 #include <mui/TextEditor_mcc.h>
+#include <mui/HTMLview_mcc.h>
 
 
 #include "debugging_utils.h"
@@ -284,6 +285,7 @@ static uint32 MarkdownEditor_Set (Class *class_p, Object *object_p, Msg msg_p)
 							const char *before_s = NULL;
 							const char *after_s = NULL;
 							STRPTR marked_text_s = NULL;
+							BOOL trim_flag = TRUE;
 							
 							switch (tag_data)
 								{
@@ -304,8 +306,9 @@ static uint32 MarkdownEditor_Set (Class *class_p, Object *object_p, Msg msg_p)
 										break;
 
 									case MEV_MDEditor_Style_IndentedCode:
-										before_s = "\n```\n{\n";
-										after_s = "\n}\n```\n";
+										before_s = "\n```\n";
+										after_s = "\n```\n";
+										trim_flag = FALSE;
 										break;
 
 									default:
@@ -315,35 +318,45 @@ static uint32 MarkdownEditor_Set (Class *class_p, Object *object_p, Msg msg_p)
 							marked_text_s = (STRPTR) IIntuition -> IDoMethod (object_p, MUIM_TextEditor_ExportBlock, 0 /*, MUIF_TextEditor_ExportBlock_TakeBlock, x1, y1, x2, y2 */);
 							
 							if (marked_text_s)
-								{									
-									if (before_s)
+								{	
+									STRPTR trimmed_s = trim_flag ?  CopyToNewString (marked_text_s, 0, TRUE) : marked_text_s;
+								
+									if (trimmed_s)
 										{
-											if (after_s)
+											if (before_s)
 												{
-													STRPTR replacement_s;
-													
-													DB (KPRINTF ("%s %ld - ti_Tag: MarkdownEditor_Set MEA_SurroundSelection marked text = \"%s\", before_s = \"%s\", after_s = \"%s\"\n",
-														__FILE__, __LINE__, marked_text_s, before_s, after_s));
-
-													replacement_s =  ConcatenateVarargsStrings (before_s, marked_text_s, after_s, NULL);
-
-													if (replacement_s)
+													if (after_s)
 														{
-															IIntuition -> IDoMethod (object_p, MUIM_TextEditor_Replace, replacement_s);
-
-															IExec -> FreeVec (replacement_s);
+															STRPTR replacement_s;
+															
+															DB (KPRINTF ("%s %ld - ti_Tag: MarkdownEditor_Set MEA_SurroundSelection marked text = \"%s\", before_s = \"%s\", after_s = \"%s\"\n",
+																__FILE__, __LINE__, marked_text_s, before_s, after_s));
+		
+															replacement_s = ConcatenateVarargsStrings (before_s, trimmed_s, after_s, NULL);
+		
+															if (replacement_s)
+																{
+																	IIntuition -> IDoMethod (object_p, MUIM_TextEditor_Replace, replacement_s);
+		
+																	IExec -> FreeVec (replacement_s);
+																}
+		
+		
 														}
-
-
+				    							else
+														{
+															DB (KPRINTF ("%s %ld - ti_Tag: MarkdownEditor_Set MEA_SurroundSelection failed to get after_s", __FILE__, __LINE__));
+														}
 												}
 		    							else
 												{
-													DB (KPRINTF ("%s %ld - ti_Tag: MarkdownEditor_Set MEA_SurroundSelection failed to get after_s", __FILE__, __LINE__));
+													DB (KPRINTF ("%s %ld - ti_Tag: MarkdownEditor_Set MEA_SurroundSelection failed to get before_s\n", __FILE__, __LINE__));
+												}											
+											
+											if (trimmed_s != marked_text_s)
+												{
+													FreeCopiedString (trimmed_s);					
 												}
-										}
-    							else
-										{
-											DB (KPRINTF ("%s %ld - ti_Tag: MarkdownEditor_Set MEA_SurroundSelection failed to get before_s\n", __FILE__, __LINE__));
 										}
 																		
 									IExec -> FreeVec (marked_text_s);
@@ -577,7 +590,22 @@ static uint32 MarkdownEditor_Convert (Class *class_p, Object *editor_p)
  							const char *prefix_s = "URL:file=";
  							const size_t prefix_length = strlen (prefix_s);
 							const char *suffix_s = ".html";
- 							STRPTR html_filename_s = (STRPTR)  ConcatenateVarargsStrings (prefix_s, md_p -> med_filename_s, suffix_s, NULL);
+ 							STRPTR html_filename_s = NULL;
+							const size_t filename_length = strlen (md_p -> med_filename_s);
+							const size_t suffix_length = strlen (suffix_s);
+							
+							/*
+							 * if the filename already ends in ".html", don't add it again
+							 */ 
+							if ((filename_length >= suffix_length) && (strncmp ((md_p -> med_filename_s) + filename_length - suffix_length, suffix_s, suffix_length) == 0))
+								{
+									html_filename_s = ConcatenateVarargsStrings (prefix_s, md_p -> med_filename_s, NULL);
+								}
+							else
+								{
+									html_filename_s = ConcatenateVarargsStrings (prefix_s, md_p -> med_filename_s, suffix_s, NULL);
+								}
+							
 							
 							if (html_filename_s)
 								{
@@ -624,7 +652,7 @@ static uint32 MarkdownEditor_Convert (Class *class_p, Object *editor_p)
 					
 					if (md_p -> med_viewer_p)
 						{
-							//IIntuition -> SetAttrs (md_p -> med_viewer_p, MUIA_HTMLview_Contents, html_s, TAG_DONE);
+							IIntuition -> SetAttrs (md_p -> med_viewer_p, MUIA_HTMLview_Contents, html_s, TAG_DONE);
 						}
 
 					IExec -> FreeVec (html_s);
@@ -645,7 +673,7 @@ static uint32 MarkdownEditor_Load (Class *class_p, Object *editor_p)
 {
 	uint32 res = 0;
 	CONST CONST_STRPTR pattern_s = GetMarkdownFilePattern ();
-	STRPTR filename_s = RequestFilename (FALSE, "Load Markdown file", pattern_s);
+	STRPTR filename_s = RequestFilename (FALSE, "Load Markdown file", pattern_s, NULL);
 
 	if (filename_s)
 		{
@@ -662,8 +690,9 @@ static uint32 MarkdownEditor_Load (Class *class_p, Object *editor_p)
 static uint32 MarkdownEditor_Save (Class *class_p, Object *editor_p)
 {
 	uint32 res = 0;
+	MarkdownEditorData *md_p = INST_DATA (class_p, editor_p);
 	CONST CONST_STRPTR pattern_s = GetMarkdownFilePattern ();
-	STRPTR filename_s = RequestFilename (TRUE, "Save Markdown file", pattern_s);
+	STRPTR filename_s = RequestFilename (TRUE, "Save Markdown file", pattern_s, md_p -> med_filename_s);
 
 	if (filename_s)
 		{
@@ -674,7 +703,6 @@ static uint32 MarkdownEditor_Save (Class *class_p, Object *editor_p)
 					if (SaveFile (filename_s, text_s))
 						{
 							BOOL changed_filename_flag = FALSE;
-							MarkdownEditorData *md_p = INST_DATA (class_p, editor_p);
 							
 							if (md_p -> med_filename_s)
 								{

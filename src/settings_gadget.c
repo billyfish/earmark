@@ -507,7 +507,7 @@ static uint32 MarkdownSettings_Get (Class *class_p, Object *object_p, Msg msg_p)
 static uint32 MarkdownSettings_Load (Class *class_p, Object *settings_p)
 {
 	uint32 res = 0;
-	STRPTR filename_s = RequestFilename (FALSE, "Load conversion settings", NULL);
+	STRPTR filename_s = RequestFilename (FALSE, "Load conversion settings", NULL, "earmark.settings");
 
 	DB (KPRINTF ("%s %ld - MarkdownSettings_Load: filename \"%s\"\n", __FILE__, __LINE__, filename_s));		
 
@@ -538,7 +538,7 @@ static uint32 MarkdownSettings_Load (Class *class_p, Object *settings_p)
 static uint32 MarkdownSettings_Save (Class *class_p, Object *settings_p)
 {
 	uint32 res = 0;
-	STRPTR filename_s = RequestFilename (TRUE, "Save conversion settings", NULL);
+	STRPTR filename_s = RequestFilename (TRUE, "Save conversion settings", NULL, "earmark.settings");
 
 	if (filename_s)
 		{
