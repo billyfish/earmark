@@ -9,7 +9,7 @@ Requires: dev/mui/MCC_TextEditor, dev/mui/MCC_BetterString, dev/mui/MCC_TheBar
 Requires: dev/c/jansson_library.lha, Launch-Handler  
 
 This is a tool to allow you to edit and view Markdown documents. It uses a 
-customised version of md4c at https://github.com/mity/md4c by Martin Mitas 
+customised version of md4c at https://github.com/mity/md4c by Martin Mitáš 
 available to do the actual conversion of Markdown to HTML.
 
 ## USAGE:
@@ -92,7 +92,7 @@ Any other ideas are welcome. :-)
 
 ## CHANGELOG
 
-### 1.0
+### 1.0 - (14/01/2021)
  * Added Blockquote function.
  * Added Search functionality.
  * Added Cut, Copy and Paste buttons.
@@ -130,7 +130,7 @@ Any other ideas are welcome. :-)
 ## LICENSE:
 
 The code is available under the MIT license. The md4c parts are copyright 
-Martin Mitas. The program icon and emoticon_bigsmile image are copyright to 
+Martin Mitáš. The program icon and emoticon_bigsmile image are copyright to 
 Martin Merz, go to http://www.masonicons.info for more information and to 
 get his awesome artwork. The rest is copyright (c) 2021 by Simon Tyrrell. 
 
