@@ -1134,13 +1134,13 @@ static BOOL AddMenuItemImage (Object *menu_item_p, CONST CONST_STRPTR default_im
 	BOOL added_flag = FALSE;
 
 	struct Image *img_p = (struct Image *) IIntuition -> NewObject (NULL, "bitmap.image",
-      BITMAP_Screen,              scr_p,
-      BITMAP_Masking,             FALSE,
-      BITMAP_SourceFile,          default_image_s,
-      BITMAP_SelectSourceFile,    selected_image_s,
-      BITMAP_DisabledSourceFile,  disabled_image_s,
-      IA_SupportsDisable,         TRUE,
-      TAG_END);
+    BITMAP_Screen,              scr_p,
+    BITMAP_Masking,             TRUE,
+    BITMAP_SourceFile,          default_image_s,
+    BITMAP_SelectSourceFile,    selected_image_s,
+    BITMAP_DisabledSourceFile,  disabled_image_s,
+    IA_SupportsDisable,         TRUE,
+    TAG_DONE);
 
 	if (img_p)
 		{
