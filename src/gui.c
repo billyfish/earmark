@@ -26,6 +26,9 @@
 
 #include <clib/alib_protos.h>
 
+
+#include <images/bitmap.h>
+
 #include <mui/TextEditor_mcc.h>
 #include <mui/Aboutbox_mcc.h>
 #include <mui/TheBar_mcc.h>
@@ -83,34 +86,13 @@ static BOOL AddMenuItemImage (Object *menu_item_p, CONST CONST_STRPTR default_im
 
 static int32 ShowRequester (CONST CONST_STRPTR title_s, CONST CONST_STRPTR text_s, CONST CONST_STRPTR buttons_s, const uint32 image);
 
+static struct Screen *GetScreen (void);
+
+
 /***************************************/
 /********** STATIC VARIABLES ***********/
 /***************************************/
 
-static struct NewMenu s_menus_p [] =
-{
-	{ NM_TITLE, (STRPTR) "Project", NULL, 0, 0, NULL },
-
-	{ NM_ITEM, (STRPTR) "Open...", (STRPTR) "O", 0, 0, (APTR) MENU_ID_LOAD},
-	{ NM_ITEM, (STRPTR) "Save...", (STRPTR) "S", 0, 0, (APTR) MENU_ID_SAVE},
-
-	{ NM_ITEM,  NM_BARLABEL, NULL, 0, 0, NULL },
-
-	{ NM_ITEM, (STRPTR) "Convert", (STRPTR) "R", 0, 0, (APTR) MENU_ID_UPDATE },
-
-	{ NM_ITEM,  NM_BARLABEL, NULL, 0, 0, NULL },
-	
-	{ NM_ITEM, (STRPTR) "1 row toolbar", (STRPTR) "1", CHECKIT |MENUTOGGLE | CHECKED, 0, (APTR) MENU_ID_TOOLBAR },	
-
-	{ NM_ITEM,  NM_BARLABEL, NULL, 0, 0, NULL },
-		
-	
-
- 	{ NM_ITEM, (STRPTR) "About...", (STRPTR) "?", 0, 0, (APTR) MENU_ID_ABOUT },
-	{ NM_ITEM, (STRPTR) "Quit", (STRPTR) "Q",   0, 0, (APTR) MUIV_Application_ReturnID_Quit },
-
-	{ NM_END, NULL, NULL, 0, 0, NULL }
-};
 
 static APTR s_viewer_p = NULL;
 static APTR s_editor_p = NULL;
@@ -573,7 +555,7 @@ static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI
 					MUIA_Family_Child, menu_save_p = IMUIMaster -> MUI_NewObject (MUIC_Menuitem,
 						MUIA_Menuitem_Title, "Save",
 						MUIA_Menuitem_AISSName, "save",
-						MUIA_Menuitem_Shortcut, "O",
+						MUIA_Menuitem_Shortcut, "S",
 					TAG_DONE),
 
 					MUIA_Family_Child, IMUIMaster -> MUI_NewObject (MUIC_Menuitem,
@@ -710,9 +692,9 @@ static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI
 			/* LOAD */
 			IIntuition -> IDoMethod (menu_open_p, MUIM_Notify, MUIA_Menuitem_Trigger, MUIV_EveryTime,
 				s_editor_p, 1, MEM_MDEditor_Load);
-			if (!AddMenuItemImage (menu_open_p, "tbimages:open", "tbimages:open_s", "tbimages:open_g", screen_p))
+			if (!AddMenuItemImage (menu_open_p, "DH1:Prefs/Presets/AmiSphere/Images/AmiSphere_Ringhio.png", "tbimages:open_s", "tbimages:open_g", screen_p))
 				{
-
+  				DB (KPRINTF ("%s %ld - Failed to get open menu image\n", __FILE__, __LINE__));
 				}
 
 			/* SAVE */
@@ -720,7 +702,7 @@ static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI
 				s_editor_p, 1, MEM_MDEditor_Save);
 			if (!AddMenuItemImage (menu_save_p, "tbimages:save", "tbimages:save_s", "tbimages:save_g", screen_p))
 				{
-
+  				DB (KPRINTF ("%s %ld - Failed to get save menu image\n", __FILE__, __LINE__));
 				}
 
 			/* QUIT */
@@ -728,7 +710,7 @@ static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI
 				app_p, 2, MUIM_Application_ReturnID, MUIV_Application_ReturnID_Quit);
 			if (!AddMenuItemImage (menu_quit_p, "tbimages:quit", "tbimages:quit_s", "tbimages:quit_g", screen_p))
 				{
-
+  				DB (KPRINTF ("%s %ld - Failed to get quit menu image\n", __FILE__, __LINE__));
 				}
 
 
@@ -737,7 +719,7 @@ static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI
 				about_box_p, 3, MUIM_Set, MUIA_Window_Open, TRUE);
 			if (!AddMenuItemImage (menu_about_p, "tbimages:info", "tbimages:info_s", "tbimages:info_g", screen_p))
 				{
-
+  				DB (KPRINTF ("%s %ld - Failed to get open menu image\n", __FILE__, __LINE__));
 				}
 
 
@@ -747,7 +729,7 @@ static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI
 				s_editor_p, 1, MEM_MDEditor_Convert);
 			if (!AddMenuItemImage (menu_convert_p, "tbimages:convert", "tbimages:convert_s", "tbimages:convert_g", screen_p))
 				{
-
+  				DB (KPRINTF ("%s %ld - Failed to get convert menu image\n", __FILE__, __LINE__));
 				}
 
 
@@ -1135,10 +1117,10 @@ static BOOL AddMenuItemImage (Object *menu_item_p, CONST CONST_STRPTR default_im
 
 	struct Image *img_p = (struct Image *) IIntuition -> NewObject (NULL, "bitmap.image",
     BITMAP_Screen,              scr_p,
-    BITMAP_Masking,             TRUE,
+    BITMAP_Masking,             FALSE,
     BITMAP_SourceFile,          default_image_s,
     BITMAP_SelectSourceFile,    selected_image_s,
-    BITMAP_DisabledSourceFile,  disabled_image_s,
+		BITMAP_DisabledSourceFile,  disabled_image_s,
     IA_SupportsDisable,         TRUE,
     TAG_DONE);
 
@@ -1147,7 +1129,11 @@ static BOOL AddMenuItemImage (Object *menu_item_p, CONST CONST_STRPTR default_im
 			IIntuition -> SetAttrs (menu_item_p, MUIA_Menuitem_Image, img_p, TAG_DONE);
 			added_flag = TRUE;
 		}
-
+	else
+		{
+			IDOS -> Printf ("Failed to open \"%s\"\n", default_image_s);
+		}
+		
 	return added_flag;
  }
 
