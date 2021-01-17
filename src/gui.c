@@ -79,6 +79,8 @@ static void RunMD (APTR app_p);
 
 static struct Window *GetAppWindow (void);
 
+static BOOL AddMenuItemImage (Object *menu_item_p, CONST CONST_STRPTR default_image_s, CONST CONST_STRPTR selected_image_s ,CONST CONST_STRPTR disabled_image_s, struct Screen *scr_p);
+
 static int32 ShowRequester (CONST CONST_STRPTR title_s, CONST CONST_STRPTR text_s, CONST CONST_STRPTR buttons_s, const uint32 image);
 
 /***************************************/
@@ -324,7 +326,14 @@ static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI
 	Object *search_p = NULL;
 	Object *search_window_p = NULL;
 	Object *cursor_x_p = NULL;
-	
+
+	/* menu items */	
+	Object *menu_open_p = NULL;
+	Object *menu_save_p = NULL;
+	Object *menu_convert_p = NULL;
+	Object *menu_about_p = NULL;
+	Object *menu_quit_p = NULL;
+
 	static const char * const used_classes [] =
 		{
 			"TextEditor.mcc",
@@ -554,10 +563,46 @@ static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI
 				MUIA_Family_Child, IMUIMaster -> MUI_NewObject (MUIC_Menu, 
 					MUIA_Menu_Title, "Project",
 					MUIA_Menu_CopyStrings, TRUE,
-					MUIA_Family_Child, IMUIMaster -> MUI_NewObject (MUIC_Menuitem,
+
+					MUIA_Family_Child, menu_open_p = IMUIMaster -> MUI_NewObject (MUIC_Menuitem,
 						MUIA_Menuitem_Title, "Open",
 						MUIA_Menuitem_AISSName, "open",
+						MUIA_Menuitem_Shortcut, "O",
 					TAG_DONE),
+
+					MUIA_Family_Child, menu_save_p = IMUIMaster -> MUI_NewObject (MUIC_Menuitem,
+						MUIA_Menuitem_Title, "Save",
+						MUIA_Menuitem_AISSName, "save",
+						MUIA_Menuitem_Shortcut, "O",
+					TAG_DONE),
+
+					MUIA_Family_Child, IMUIMaster -> MUI_NewObject (MUIC_Menuitem,
+						MUIA_Menuitem_Title, NM_BARLABEL,
+					TAG_DONE),
+
+					MUIA_Family_Child, menu_convert_p = IMUIMaster -> MUI_NewObject (MUIC_Menuitem,
+						MUIA_Menuitem_Title, "Convert",
+						MUIA_Menuitem_AISSName, "convert",
+						MUIA_Menuitem_Shortcut, "R",
+					TAG_DONE),
+
+					MUIA_Family_Child, IMUIMaster -> MUI_NewObject (MUIC_Menuitem,
+						MUIA_Menuitem_Title, NM_BARLABEL,
+					TAG_DONE),
+
+					MUIA_Family_Child, menu_about_p = IMUIMaster -> MUI_NewObject (MUIC_Menuitem,
+						MUIA_Menuitem_Title, "About",
+						MUIA_Menuitem_AISSName, "about",
+						MUIA_Menuitem_Shortcut, "?",
+					TAG_DONE),
+
+					MUIA_Family_Child, menu_quit_p = IMUIMaster -> MUI_NewObject (MUIC_Menuitem,
+						MUIA_Menuitem_Title, "Quit",
+						MUIA_Menuitem_AISSName, "quit",
+						MUIA_Menuitem_Shortcut, "Q",
+					TAG_DONE),
+
+
 				TAG_DONE),			
 			TAG_DONE),
  			MUIA_ShortHelp, (uint32) "A Markdown editor and viewer",
@@ -646,6 +691,7 @@ static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI
 		{
 			Object *menu_item_p;
 			MDPrefs *prefs_p = NULL;
+			struct Screen *screen_p = GetScreen ();
 
   		DB (KPRINTF ("%s %ld - Application created\n", __FILE__, __LINE__));
 
@@ -662,36 +708,51 @@ static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI
 				app_p, 2, MUIM_Application_ReturnID, MUIV_Application_ReturnID_Quit);
 
 			/* LOAD */
-			menu_item_p = (Object *) IIntuition -> IDoMethod (strip_p, MUIM_FindUData, MENU_ID_LOAD);
-			IIntuition -> IDoMethod (menu_item_p, MUIM_Notify, MUIA_Menuitem_Trigger, MUIV_EveryTime,
+			IIntuition -> IDoMethod (menu_open_p, MUIM_Notify, MUIA_Menuitem_Trigger, MUIV_EveryTime,
 				s_editor_p, 1, MEM_MDEditor_Load);
+			if (!AddMenuItemImage (menu_open_p, "tbimages:open", "tbimages:open_s", "tbimages:open_g", screen_p))
+				{
+
+				}
 
 			/* SAVE */
-			menu_item_p = (Object *) IIntuition -> IDoMethod (strip_p, MUIM_FindUData, MENU_ID_SAVE);
-			IIntuition -> IDoMethod (menu_item_p, MUIM_Notify, MUIA_Menuitem_Trigger, MUIV_EveryTime,
+			IIntuition -> IDoMethod (menu_save_p, MUIM_Notify, MUIA_Menuitem_Trigger, MUIV_EveryTime,
 				s_editor_p, 1, MEM_MDEditor_Save);
+			if (!AddMenuItemImage (menu_save_p, "tbimages:save", "tbimages:save_s", "tbimages:save_g", screen_p))
+				{
+
+				}
 
 			/* QUIT */
-			menu_item_p = (Object *) IIntuition -> IDoMethod (strip_p, MUIM_FindUData, MENU_ID_QUIT);
-			IIntuition -> IDoMethod (menu_item_p, MUIM_Notify, MUIA_Menuitem_Trigger, MUIV_EveryTime,
+			IIntuition -> IDoMethod (menu_quit_p, MUIM_Notify, MUIA_Menuitem_Trigger, MUIV_EveryTime,
 				app_p, 2, MUIM_Application_ReturnID, MUIV_Application_ReturnID_Quit);
+			if (!AddMenuItemImage (menu_quit_p, "tbimages:quit", "tbimages:quit_s", "tbimages:quit_g", screen_p))
+				{
+
+				}
 
 
 			/* ABOUT */
-			menu_item_p = (Object *) IIntuition -> IDoMethod (strip_p, MUIM_FindUData, MENU_ID_ABOUT);
-			IIntuition -> IDoMethod (menu_item_p, MUIM_Notify, MUIA_Menuitem_Trigger, MUIV_EveryTime,
+			IIntuition -> IDoMethod (menu_about_p, MUIM_Notify, MUIA_Menuitem_Trigger, MUIV_EveryTime,
 				about_box_p, 3, MUIM_Set, MUIA_Window_Open, TRUE);
+			if (!AddMenuItemImage (menu_about_p, "tbimages:info", "tbimages:info_s", "tbimages:info_g", screen_p))
+				{
+
+				}
 
 
 			/* CONVERT */
 			menu_item_p = (Object *) IIntuition -> IDoMethod (strip_p, MUIM_FindUData, MENU_ID_UPDATE);
-			IIntuition -> IDoMethod (menu_item_p, MUIM_Notify, MUIA_Menuitem_Trigger, MUIV_EveryTime,
+			IIntuition -> IDoMethod (menu_convert_p, MUIM_Notify, MUIA_Menuitem_Trigger, MUIV_EveryTime,
 				s_editor_p, 1, MEM_MDEditor_Convert);
+			if (!AddMenuItemImage (menu_convert_p, "tbimages:convert", "tbimages:convert_s", "tbimages:convert_g", screen_p))
+				{
+
+				}
 
 
-			menu_item_p = (Object *) IIntuition -> IDoMethod (strip_p, MUIM_FindUData, MENU_ID_TOOLBAR);
-			IIntuition -> IDoMethod (menu_item_p, MUIM_Notify, MUIA_Menuitem_Checked, MUIV_EveryTime,
-				toolbar_p, 3, MUIM_Set, MUIA_TheBar_Rows, MUIV_TriggerValue ? 2 : 1);
+//			IIntuition -> IDoMethod (menu_item_p, MUIM_Notify, MUIA_Menuitem_Checked, MUIV_EveryTime,
+//				toolbar_p, 3, MUIM_Set, MUIA_TheBar_Rows, MUIV_TriggerValue ? 2 : 1);
 
 
 
@@ -1045,3 +1106,50 @@ static struct Window *GetAppWindow (void)
 
 	return window_p;
 }
+
+
+
+static struct Screen *GetScreen (void)
+{
+	struct Screen *screen_p = NULL;
+
+//	printf ("req win %lu\n", s_window_p);
+
+	if (s_window_p)
+		{
+	 		if (IIntuition -> GetAttr (MUIA_Window_Screen, s_window_p, (uint32 *) &screen_p) == 0)
+	 			{
+		 			IDOS -> PutStr ("Failed to get Screen\n");
+	 			}
+		}
+
+
+	return screen_p;
+}
+
+
+
+static BOOL AddMenuItemImage (Object *menu_item_p, CONST CONST_STRPTR default_image_s, CONST CONST_STRPTR selected_image_s ,CONST CONST_STRPTR disabled_image_s, struct Screen *scr_p)
+{
+	BOOL added_flag = FALSE;
+
+	struct Image *img_p = (struct Image *) IIntuition -> NewObject (NULL, "bitmap.image",
+      BITMAP_Screen,              scr_p,
+      BITMAP_Masking,             FALSE,
+      BITMAP_SourceFile,          default_image_s,
+      BITMAP_SelectSourceFile,    selected_image_s,
+      BITMAP_DisabledSourceFile,  disabled_image_s,
+      IA_SupportsDisable,         TRUE,
+      TAG_END);
+
+	if (img_p)
+		{
+			IIntuition -> SetAttrs (menu_item_p, MUIA_Menuitem_Image, img_p, TAG_DONE);
+			added_flag = TRUE;
+		}
+
+	return added_flag;
+ }
+
+
+
