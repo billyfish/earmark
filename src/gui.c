@@ -805,22 +805,41 @@ static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI
 				}
 
 
-			/* HEADING */
-			
+			/* HEADING */			
 			if (!AddMenuItemImage (menu_heading_p, "tbimages:header", "tbimages:header_s", "tbimages:header_g", screen_p))
 				{
   				DB (KPRINTF ("%s %ld - Failed to get header menu image\n", __FILE__, __LINE__));
 				}
 			
-
+			/* HEADING 1 */
+			IIntuition -> IDoMethod (menu_heading1_p, MUIM_Notify, MUIA_Menuitem_Trigger, MUIV_EveryTime,
+				s_editor_p, 3, MUIM_Set, MEA_PrefixMarkedLines, MEV_MDEditor_Heading1);
 			IIntuition -> SetAttrs (menu_heading1_p, MUIA_Menuitem_Image, NULL, TAG_DONE);
-			IIntuition -> SetAttrs (menu_heading2_p, MUIA_Menuitem_Image, NULL, TAG_DONE);			
-			IIntuition -> SetAttrs (menu_heading3_p, MUIA_Menuitem_Image, NULL, TAG_DONE);			
-			IIntuition -> SetAttrs (menu_heading4_p, MUIA_Menuitem_Image, NULL, TAG_DONE);
-			IIntuition -> SetAttrs (menu_heading5_p, MUIA_Menuitem_Image, NULL, TAG_DONE);			
-			IIntuition -> SetAttrs (menu_heading6_p, MUIA_Menuitem_Image, NULL, TAG_DONE);
-					
 
+			/* HEADING 2 */
+			IIntuition -> IDoMethod (menu_heading2_p, MUIM_Notify, MUIA_Menuitem_Trigger, MUIV_EveryTime,
+				s_editor_p, 3, MUIM_Set, MEA_PrefixMarkedLines, MEV_MDEditor_Heading2);
+			IIntuition -> SetAttrs (menu_heading2_p, MUIA_Menuitem_Image, NULL, TAG_DONE);
+
+			/* HEADING 3 */
+			IIntuition -> IDoMethod (menu_heading3_p, MUIM_Notify, MUIA_Menuitem_Trigger, MUIV_EveryTime,
+				s_editor_p, 3, MUIM_Set, MEA_PrefixMarkedLines, MEV_MDEditor_Heading3);
+			IIntuition -> SetAttrs (menu_heading3_p, MUIA_Menuitem_Image, NULL, TAG_DONE);
+
+			/* HEADING 4 */
+			IIntuition -> IDoMethod (menu_heading4_p, MUIM_Notify, MUIA_Menuitem_Trigger, MUIV_EveryTime,
+				s_editor_p, 3, MUIM_Set, MEA_PrefixMarkedLines, MEV_MDEditor_Heading4);
+			IIntuition -> SetAttrs (menu_heading4_p, MUIA_Menuitem_Image, NULL, TAG_DONE);
+
+			/* HEADING 5 */
+			IIntuition -> IDoMethod (menu_heading5_p, MUIM_Notify, MUIA_Menuitem_Trigger, MUIV_EveryTime,
+				s_editor_p, 3, MUIM_Set, MEA_PrefixMarkedLines, MEV_MDEditor_Heading5);
+			IIntuition -> SetAttrs (menu_heading5_p, MUIA_Menuitem_Image, NULL, TAG_DONE);
+
+			/* HEADING 6 */
+			IIntuition -> IDoMethod (menu_heading6_p, MUIM_Notify, MUIA_Menuitem_Trigger, MUIV_EveryTime,
+				s_editor_p, 3, MUIM_Set, MEA_PrefixMarkedLines, MEV_MDEditor_Heading6);
+			IIntuition -> SetAttrs (menu_heading6_p, MUIA_Menuitem_Image, NULL, TAG_DONE);
 
 
 			IIntuition -> UnlockPubScreen (NULL, screen_p);

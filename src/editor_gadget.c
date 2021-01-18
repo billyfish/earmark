@@ -419,6 +419,36 @@ static uint32 MarkdownEditor_Set (Class *class_p, Object *object_p, Msg msg_p)
 										before_s = "\n> ";
 										break;
 
+									case MEV_MDEditor_Heading1:
+										initial_before_s = "# ";
+										before_s = "\n# ";
+										break;
+
+									case MEV_MDEditor_Heading2:
+										initial_before_s = "## ";
+										before_s = "\n## ";
+										break;
+
+									case MEV_MDEditor_Heading3:
+										initial_before_s = "### ";
+										before_s = "\n### ";
+										break;
+
+									case MEV_MDEditor_Heading4:
+										initial_before_s = "#### ";
+										before_s = "\n#### ";
+										break;
+
+									case MEV_MDEditor_Heading5:
+										initial_before_s = "##### ";
+										before_s = "\n##### ";
+										break;
+
+									case MEV_MDEditor_Heading6:
+										initial_before_s = "###### ";
+										before_s = "\n###### ";
+										break;
+
 									default:
 										break;
 								}

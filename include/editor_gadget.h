@@ -82,6 +82,19 @@
 
 #define MEV_MDEditor_BlockQuote   (ME_Dummy + 10)
 
+#define MEV_MDEditor_Heading1   (ME_Dummy + 11)
+
+#define MEV_MDEditor_Heading2   (ME_Dummy + 12)
+
+#define MEV_MDEditor_Heading3   (ME_Dummy + 13)
+
+#define MEV_MDEditor_Heading4   (ME_Dummy + 14)
+
+#define MEV_MDEditor_Heading5   (ME_Dummy + 15)
+
+#define MEV_MDEditor_Heading6   (ME_Dummy + 16)
+
+
 /*************************/
 /***** API FUNCTIONS *****/
 /*************************/
