@@ -166,12 +166,14 @@ static Object *GetInfoGadgetObject (Object *parent_p, InfoGadgetData *data_p)
 		MUIA_Group_Child, s_row_p = IMUIMaster -> MUI_NewObject (MUIC_BetterString,
 			MUIA_String_Accept, "",	
       MUIA_String_Integer, data_p -> igd_num_rows,
+			MUIA_BetterString_NoInput, TRUE,
 		TAG_DONE),
 
 		MUIA_Group_Child, IMUIMaster -> MUI_MakeObject (MUIO_Label, "Column:", TAG_DONE),
 		MUIA_Group_Child, s_column_p = IMUIMaster -> MUI_NewObject (MUIC_BetterString,
 			MUIA_String_Accept, "",	
       MUIA_String_Integer, data_p -> igd_num_columns,
+			MUIA_BetterString_NoInput, TRUE,
 		TAG_DONE),
 
 		MUIA_Group_Child, IMUIMaster -> MUI_MakeObject (MUIO_Label, "Changed?:", TAG_DONE),
