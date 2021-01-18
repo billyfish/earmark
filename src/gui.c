@@ -334,6 +334,14 @@ static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI
 	Object *menu_about_p = NULL;
 	Object *menu_quit_p = NULL;
 
+	Object *menu_heading_p = NULL;
+	Object *menu_heading1_p = NULL;
+	Object *menu_heading2_p = NULL;
+	Object *menu_heading3_p = NULL;	
+	Object *menu_heading4_p = NULL;	
+	Object *menu_heading5_p = NULL;	
+	Object *menu_heading6_p = NULL;
+			
 	static const char * const used_classes [] =
 		{
 			"TextEditor.mcc",
@@ -559,6 +567,8 @@ static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI
 			MUIA_Window_Title, S_APP_NAME_S,
 			MUIA_Window_ID, MAKE_ID('A','M','M','D'),
 			MUIA_Window_AppWindow, TRUE,
+			
+			/* Project menu */
 			MUIA_Window_Menustrip, strip_p = IMUIMaster -> MUI_NewObject (MUIC_Menustrip, 
 				MUIA_Family_Child, IMUIMaster -> MUI_NewObject (MUIC_Menu, 
 					MUIA_Menu_Title, "Project",
@@ -599,6 +609,61 @@ static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI
 
 
 				TAG_DONE),			
+
+				/* Edit menu */
+				MUIA_Family_Child, IMUIMaster -> MUI_NewObject (MUIC_Menu, 
+					MUIA_Menu_Title, "Edit",
+					MUIA_Menu_CopyStrings, TRUE,
+
+					MUIA_Family_Child, menu_heading_p = IMUIMaster -> MUI_NewObject (MUIC_Menuitem,
+						MUIA_Menuitem_Title, "Heading",
+						
+						MUIA_Family_Child, menu_heading1_p = IMUIMaster -> MUI_NewObject (MUIC_Menuitem,
+							MUIA_Menuitem_Title, "H1",
+							MUIA_Menuitem_Shortcut, "1",
+							MUIA_Menuitem_Image, NULL,
+							MUIA_Menuitem_FreeImage, FALSE,
+						TAG_DONE),
+						
+						MUIA_Family_Child, menu_heading2_p = IMUIMaster -> MUI_NewObject (MUIC_Menuitem,
+							MUIA_Menuitem_Title, "H2",
+							MUIA_Menuitem_Shortcut, "2",
+							MUIA_Menuitem_Image, NULL,
+							MUIA_Menuitem_FreeImage, FALSE,	
+						TAG_DONE),
+
+						MUIA_Family_Child, menu_heading3_p = IMUIMaster -> MUI_NewObject (MUIC_Menuitem,
+							MUIA_Menuitem_Title, "H3",
+							MUIA_Menuitem_Shortcut, "3",
+							MUIA_Menuitem_Image, NULL,
+							MUIA_Menuitem_FreeImage, FALSE,	
+						TAG_DONE),
+						
+						MUIA_Family_Child, menu_heading4_p = IMUIMaster -> MUI_NewObject (MUIC_Menuitem,
+							MUIA_Menuitem_Title, "H4",
+							MUIA_Menuitem_Shortcut, "4",
+							MUIA_Menuitem_Image, NULL,
+							MUIA_Menuitem_FreeImage, FALSE,
+						TAG_DONE),
+						
+						MUIA_Family_Child, menu_heading5_p = IMUIMaster -> MUI_NewObject (MUIC_Menuitem,
+							MUIA_Menuitem_Title, "H5",
+							MUIA_Menuitem_Shortcut, "5",
+							MUIA_Menuitem_Image, NULL,
+							MUIA_Menuitem_FreeImage, FALSE,
+						TAG_DONE),
+												
+						MUIA_Family_Child, menu_heading6_p = IMUIMaster -> MUI_NewObject (MUIC_Menuitem,
+							MUIA_Menuitem_Title, "H6",
+							MUIA_Menuitem_Shortcut, "6",
+							MUIA_Menuitem_Image, NULL,
+							MUIA_Menuitem_FreeImage, FALSE,
+						TAG_DONE),						
+					TAG_DONE),
+
+
+				TAG_DONE),			
+				
 			TAG_DONE),
  			MUIA_ShortHelp, (uint32) "A Markdown editor and viewer",
 
@@ -732,13 +797,30 @@ static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI
 
 
 			/* CONVERT */
-			menu_item_p = (Object *) IIntuition -> IDoMethod (strip_p, MUIM_FindUData, MENU_ID_UPDATE);
 			IIntuition -> IDoMethod (menu_convert_p, MUIM_Notify, MUIA_Menuitem_Trigger, MUIV_EveryTime,
 				s_editor_p, 1, MEM_MDEditor_Convert);
 			if (!AddMenuItemImage (menu_convert_p, "tbimages:convert", "tbimages:convert_s", "tbimages:convert_g", screen_p))
 				{
   				DB (KPRINTF ("%s %ld - Failed to get convert menu image\n", __FILE__, __LINE__));
 				}
+
+
+			/* HEADING */
+			
+			if (!AddMenuItemImage (menu_heading_p, "tbimages:header", "tbimages:header_s", "tbimages:header_g", screen_p))
+				{
+  				DB (KPRINTF ("%s %ld - Failed to get header menu image\n", __FILE__, __LINE__));
+				}
+			
+
+			IIntuition -> SetAttrs (menu_heading1_p, MUIA_Menuitem_Image, NULL, TAG_DONE);
+			IIntuition -> SetAttrs (menu_heading2_p, MUIA_Menuitem_Image, NULL, TAG_DONE);			
+			IIntuition -> SetAttrs (menu_heading3_p, MUIA_Menuitem_Image, NULL, TAG_DONE);			
+			IIntuition -> SetAttrs (menu_heading4_p, MUIA_Menuitem_Image, NULL, TAG_DONE);
+			IIntuition -> SetAttrs (menu_heading5_p, MUIA_Menuitem_Image, NULL, TAG_DONE);			
+			IIntuition -> SetAttrs (menu_heading6_p, MUIA_Menuitem_Image, NULL, TAG_DONE);
+					
+
 
 
 			IIntuition -> UnlockPubScreen (NULL, screen_p);

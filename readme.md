@@ -92,6 +92,32 @@ Any other ideas are welcome. :-)
 
 ## CHANGELOG
 
+### 1.1
+ * Added status bar gadget for showing current cursor position and whether the
+ file has been changed. (@walkero)
+ * Menu images added. 
+ * BUGFIX: The convert button had the same shortcut as the Hyperlink button 
+(@walkero)
+ * BUGFIX: Fenced code blocks were automatically adding opening and closing 
+braces (@walkero)
+ * BUGFIX: The table button bubble had a semicolon after the shortcut, 
+instead of a colon (@walkero)
+ * BUGFIX: Menu Quit option was not working (@Capehill)
+ * BUGFIX: If you marked a line and you choose bold, italic, *etc.* and that
+ line started/ended with a space, then the markdown was broken. This was 
+ because md4c included that space and the asterisks were staying as 
+ characters. 
+
+ *E.g.*
+
+\*\*this is a broken bold line, not translated by md4c \*\* 
+
+\*\* this is also a broken bold line, not translated by md4c\*\*
+
+ (@walkero)
+* BUGFIX: The filename for converting to html was getting ".html" 
+ appended upon each conversion.
+
 ### 1.0 - (14/01/2021)
  * Added Blockquote function.
  * Added Search functionality.
