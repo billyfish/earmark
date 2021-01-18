@@ -176,6 +176,7 @@ char *GetStringAsLowerCase (const char *value_s);
 
 
 
+char *ConvertUnsignedIntegerToString (const uint32 value);
 
 
 #endif	/* #ifndef STRING_UTILS_H */

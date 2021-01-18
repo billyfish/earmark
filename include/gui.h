@@ -22,6 +22,15 @@
 
 #include "prefs.h"
 
+#ifdef ALLOCATE_GLOBALS
+	#define PREFIX
+#else
+	#define PREFIX extern
+#endif
+
+PREFIX Class *BitMapClass;
+
+
 BOOL CreateMUIInterface (MDPrefs *prefs_p);
 
 BOOL LoadFile (STRPTR filename_s);

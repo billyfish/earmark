@@ -41,6 +41,7 @@
 #include "table_editor.h"
 #include "hyperlink_editor.h"
 #include "search_gadget.h"
+#include "info_gadget.h"
 
 #include "debugging_utils.h"
 #include "SDI_hook.h"
@@ -76,7 +77,8 @@ static void FreeGUIObjects (APTR app_p);
 
 
 static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI_CustomClass *settings_class_p, struct MUI_CustomClass *image_editor_class_p,
-	struct MUI_CustomClass *table_editor_class_p, struct MUI_CustomClass *hyperlink_editor_class_p, struct MUI_CustomClass *search_gadget_class_p, MDPrefs *prefs_p);
+	struct MUI_CustomClass *table_editor_class_p, struct MUI_CustomClass *hyperlink_editor_class_p, struct MUI_CustomClass *search_gadget_class_p, 
+	struct MUI_CustomClass *info_gadget_class_p, MDPrefs *prefs_p);
 
 static void RunMD (APTR app_p);
 
@@ -147,8 +149,6 @@ BOOL CreateMUIInterface (MDPrefs *prefs_p)
 
 									if (hyperlink_editor_class_p)
 										{
-											
-
 		 									struct MUI_CustomClass *search_gadget_class_p;
 		
 											DB (KPRINTF ("%s %ld - Inited Hyperlink Editor\n", __FILE__, __LINE__));
@@ -157,58 +157,73 @@ BOOL CreateMUIInterface (MDPrefs *prefs_p)
 		
 											if (search_gadget_class_p)
 												{
-													APTR app_p;
+				 									struct MUI_CustomClass *info_gadget_class_p;
+				
+													DB (KPRINTF ("%s %ld - Inited Search Gadget\n", __FILE__, __LINE__));
+				
+													info_gadget_class_p = InitInfoGadgetClass ();
+				
+													if (info_gadget_class_p)
+														{													
+															APTR app_p;
 		
-													DB (KPRINTF ("%s %ld - Inited Hyperlink Editor\n", __FILE__, __LINE__));
-		
-													app_p = CreateGUIObjects (editor_class_p, settings_class_p, image_editor_class_p, table_editor_class_p, 
-														hyperlink_editor_class_p, search_gadget_class_p, prefs_p);
-		
-													if (app_p)
-														{
-															CONST CONST_STRPTR md_reg_s = "#?.md";
-															const size_t md_reg_length = strlen (md_reg_s);
-															const size_t size = (md_reg_length + 1) << 1;
-		
-															DB (KPRINTF ("%s %ld - Created GUI Objects\n", __FILE__, __LINE__));
-		
-															s_file_pattern_s = (STRPTR) IExec -> AllocVecTags (size, TAG_DONE);
-		
-															if (s_file_pattern_s)
+															DB (KPRINTF ("%s %ld - Inited Hyperlink Editor\n", __FILE__, __LINE__));
+				
+															app_p = CreateGUIObjects (editor_class_p, settings_class_p, image_editor_class_p, table_editor_class_p, 
+																hyperlink_editor_class_p, search_gadget_class_p, info_gadget_class_p, prefs_p);
+				
+															if (app_p)
 																{
-																	DB (KPRINTF ("%s %ld - Created File Pattern\n", __FILE__, __LINE__));
-		
-																	if (IDOS -> ParsePattern (md_reg_s, s_file_pattern_s, size) >= 0)
+																	CONST CONST_STRPTR md_reg_s = "#?.md";
+																	const size_t md_reg_length = strlen (md_reg_s);
+																	const size_t size = (md_reg_length + 1) << 1;
+				
+																	DB (KPRINTF ("%s %ld - Created GUI Objects\n", __FILE__, __LINE__));
+				
+																	s_file_pattern_s = (STRPTR) IExec -> AllocVecTags (size, TAG_DONE);
+				
+																	if (s_file_pattern_s)
 																		{
-																			DB (KPRINTF ("%s %ld - Parsed File Pattern\n", __FILE__, __LINE__));
-		
-																			RunMD (app_p);
-																			success_flag = TRUE;
-		
-																			/*
-																			** save the current weights of all Balance objects until the next reboot
-																			** if the weights are to be saved permanently the MUIV_Application_Save_ENVARC must be used instead
-																			*/
-																			IIntuition -> IDoMethod (app_p, MUIM_Application_Save, MUIV_Application_Save_ENV);
-		
-																			IExec -> FreeVec (s_file_pattern_s);
+																			DB (KPRINTF ("%s %ld - Created File Pattern\n", __FILE__, __LINE__));
+				
+																			if (IDOS -> ParsePattern (md_reg_s, s_file_pattern_s, size) >= 0)
+																				{
+																					DB (KPRINTF ("%s %ld - Parsed File Pattern\n", __FILE__, __LINE__));
+				
+																					RunMD (app_p);
+																					success_flag = TRUE;
+				
+																					/*
+																					** save the current weights of all Balance objects until the next reboot
+																					** if the weights are to be saved permanently the MUIV_Application_Save_ENVARC must be used instead
+																					*/
+																					IIntuition -> IDoMethod (app_p, MUIM_Application_Save, MUIV_Application_Save_ENV);
+				
+																					IExec -> FreeVec (s_file_pattern_s);
+																				}
+																			else
+																				{
+																					ShowError ("Launch Error", "Failed to create the user interface:\n Could not parse the default file pattern", "_Ok");
+																				}
 																		}
 																	else
 																		{
-																			ShowError ("Launch Error", "Failed to create the user interface:\n Could not parse the default file pattern", "_Ok");
+																			ShowError ("Launch Error", "Failed to create the user interface:\n Could not create the default file pattern", "_Ok");
 																		}
-																}
+				
+																	FreeGUIObjects (app_p);
+																}		/* if (app_p) */
 															else
 																{
-																	ShowError ("Launch Error", "Failed to create the user interface:\n Could not create the default file pattern", "_Ok");
-																}
-		
-															FreeGUIObjects (app_p);
-														}		/* if (app_p) */
+																	ShowError ("Launch Error", "Failed to create the user interface:\n Could not start the application", "_Ok");
+																}					
+																
+															FreeInfoGadgetClass (info_gadget_class_p);	
+														}		/* if (info_gadget_class_p) */
 													else
 														{
-															ShowError ("Launch Error", "Failed to create the user interface:\n Could not start the application", "_Ok");
-														}						
+															ShowError ("Launch Error", "Failed to create the user interface:\n Could not initialise the information gadget class", "_Ok");
+														}
 																			
 													FreeSearchGadgetClass (search_gadget_class_p);
 												}		/* if (search_gadget_class_p) */
@@ -292,7 +307,8 @@ CONST CONST_STRPTR GetMarkdownFilePattern (void)
 
 
 static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI_CustomClass *settings_class_p, struct MUI_CustomClass *image_editor_class_p,
-	struct MUI_CustomClass *table_editor_class_p, struct MUI_CustomClass *hyperlink_editor_class_p, struct MUI_CustomClass *search_gadget_class_p, MDPrefs *prefs_p)
+	struct MUI_CustomClass *table_editor_class_p, struct MUI_CustomClass *hyperlink_editor_class_p, struct MUI_CustomClass *search_gadget_class_p, 
+	struct MUI_CustomClass *info_gadget_class_p, MDPrefs *prefs_p)
 {
 	APTR app_p = NULL;
 	APTR strip_p = NULL;
@@ -307,7 +323,8 @@ static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI
 	Object *hyperlink_editor_window_p = NULL;
 	Object *search_p = NULL;
 	Object *search_window_p = NULL;
-	Object *cursor_x_p = NULL;
+	Object *info_gadget_p = NULL;
+
 
 	/* menu items */	
 	Object *menu_open_p = NULL;
@@ -627,24 +644,17 @@ static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI
 							TAG_DONE),
 
 						TAG_DONE),		/* End Editor */
-
-						/*
+                 
 						MUIA_Group_Child, IMUIMaster -> MUI_NewObject (MUIC_Group,
 							MUIA_Group_Horiz, TRUE,
 
-							MUIA_Group_Child, s_viewer_p = IMUIMaster -> MUI_NewObject (MUIC_HTMLview, NULL,
+							MUIA_Group_Child, info_gadget_p = IIntuition -> NewObject (info_gadget_class_p -> mcc_Class, NULL,
 								ImageButtonFrame,
 								MUIA_FillArea, FALSE,
-								MUIA_ShortHelp, (uint32) "viewer",
+								MUIA_ShortHelp, (uint32) "Information about the editor state",
 							TAG_DONE),
-						*/
-
-							/*
-							MUIA_Group_Child, cursor_x_p = IMUIMaster -> MUI_NewObject (MUIC_String,
-								MUIA_String_Accept, "0123456789",
-								MUIA_String_MaxLen, 5,
-							TAG_DONE),
-							*/
+	
+						TAG_DONE),
 							
 					TAG_DONE),		/* End main tools */
 
@@ -692,7 +702,7 @@ static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI
 			/* LOAD */
 			IIntuition -> IDoMethod (menu_open_p, MUIM_Notify, MUIA_Menuitem_Trigger, MUIV_EveryTime,
 				s_editor_p, 1, MEM_MDEditor_Load);
-			if (!AddMenuItemImage (menu_open_p, "DH1:Prefs/Presets/AmiSphere/Images/AmiSphere_Ringhio.png", "tbimages:open_s", "tbimages:open_g", screen_p))
+			if (!AddMenuItemImage (menu_open_p, "open", "open_s", "open_g", screen_p))
 				{
   				DB (KPRINTF ("%s %ld - Failed to get open menu image\n", __FILE__, __LINE__));
 				}
@@ -700,7 +710,7 @@ static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI
 			/* SAVE */
 			IIntuition -> IDoMethod (menu_save_p, MUIM_Notify, MUIA_Menuitem_Trigger, MUIV_EveryTime,
 				s_editor_p, 1, MEM_MDEditor_Save);
-			if (!AddMenuItemImage (menu_save_p, "tbimages:save", "tbimages:save_s", "tbimages:save_g", screen_p))
+			if (!AddMenuItemImage (menu_save_p, "save", "save_s", "save_g", screen_p))
 				{
   				DB (KPRINTF ("%s %ld - Failed to get save menu image\n", __FILE__, __LINE__));
 				}
@@ -708,7 +718,7 @@ static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI
 			/* QUIT */
 			IIntuition -> IDoMethod (menu_quit_p, MUIM_Notify, MUIA_Menuitem_Trigger, MUIV_EveryTime,
 				app_p, 2, MUIM_Application_ReturnID, MUIV_Application_ReturnID_Quit);
-			if (!AddMenuItemImage (menu_quit_p, "tbimages:quit", "tbimages:quit_s", "tbimages:quit_g", screen_p))
+			if (!AddMenuItemImage (menu_quit_p, "quit", "quit_s", "quit_g", screen_p))
 				{
   				DB (KPRINTF ("%s %ld - Failed to get quit menu image\n", __FILE__, __LINE__));
 				}
@@ -717,7 +727,7 @@ static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI
 			/* ABOUT */
 			IIntuition -> IDoMethod (menu_about_p, MUIM_Notify, MUIA_Menuitem_Trigger, MUIV_EveryTime,
 				about_box_p, 3, MUIM_Set, MUIA_Window_Open, TRUE);
-			if (!AddMenuItemImage (menu_about_p, "tbimages:info", "tbimages:info_s", "tbimages:info_g", screen_p))
+			if (!AddMenuItemImage (menu_about_p, "info", "info_s", "info_g", screen_p))
 				{
   				DB (KPRINTF ("%s %ld - Failed to get open menu image\n", __FILE__, __LINE__));
 				}
@@ -727,7 +737,7 @@ static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI
 			menu_item_p = (Object *) IIntuition -> IDoMethod (strip_p, MUIM_FindUData, MENU_ID_UPDATE);
 			IIntuition -> IDoMethod (menu_convert_p, MUIM_Notify, MUIA_Menuitem_Trigger, MUIV_EveryTime,
 				s_editor_p, 1, MEM_MDEditor_Convert);
-			if (!AddMenuItemImage (menu_convert_p, "tbimages:convert", "tbimages:convert_s", "tbimages:convert_g", screen_p))
+			if (!AddMenuItemImage (menu_convert_p, "convert", "convert_s", "convert_g", screen_p))
 				{
   				DB (KPRINTF ("%s %ld - Failed to get convert menu image\n", __FILE__, __LINE__));
 				}
@@ -743,10 +753,11 @@ static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI
 
 			IIntuition -> SetAttrs (s_editor_p, MUIA_TextEditor_Slider, editor_scrollbar_p, TAG_DONE);
 
-			if (cursor_x_p)
+			if (info_gadget_p)
 				{
-					IIntuition -> IDoMethod (s_editor_p, MUIA_TextEditor_CursorX, MUIM_Notify, MUIV_EveryTime, cursor_x_p, 3, MUIM_Set, MUIA_String_Integer, MUIV_TriggerValue);
+					IIntuition -> SetAttrs (info_gadget_p, IGA_Editor, s_editor_p, TAG_DONE);
 				}
+				
 				
 			IIntuition -> IDoMethod (about_box_p, MUIM_Notify, MUIA_Window_CloseRequest, TRUE, MUIV_Notify_Self, 3, MUIM_Set, MUIA_Window_Open, FALSE);
 
@@ -1114,25 +1125,38 @@ static struct Screen *GetScreen (void)
 static BOOL AddMenuItemImage (Object *menu_item_p, CONST CONST_STRPTR default_image_s, CONST CONST_STRPTR selected_image_s ,CONST CONST_STRPTR disabled_image_s, struct Screen *scr_p)
 {
 	BOOL added_flag = FALSE;
+	BPTR dir_p = IDOS -> Lock ("tbimages:", SHARED_LOCK);
 
-	struct Image *img_p = (struct Image *) IIntuition -> NewObject (NULL, "bitmap.image",
-    BITMAP_Screen,              scr_p,
-    BITMAP_Masking,             FALSE,
-    BITMAP_SourceFile,          default_image_s,
-    BITMAP_SelectSourceFile,    selected_image_s,
-		BITMAP_DisabledSourceFile,  disabled_image_s,
-    IA_SupportsDisable,         TRUE,
-    TAG_DONE);
+	if (dir_p != ZERO)
+		{
+			BPTR prev_dir_p = IDOS -> SetCurrentDir (dir_p);			
 
-	if (img_p)
-		{
-			IIntuition -> SetAttrs (menu_item_p, MUIA_Menuitem_Image, img_p, TAG_DONE);
-			added_flag = TRUE;
-		}
-	else
-		{
-			IDOS -> Printf ("Failed to open \"%s\"\n", default_image_s);
-		}
+			struct Image *img_p = (struct Image *) IIntuition -> NewObject (BitMapClass, NULL,
+				BITMAP_SourceFile, default_image_s,
+        BITMAP_SelectSourceFile, default_image_s,
+        BITMAP_DisabledSourceFile, default_image_s,
+        BITMAP_Screen, scr_p,
+				BITMAP_OffsetX,		0,
+				BITMAP_OffsetY,		0,
+				BITMAP_Width,		24,
+				BITMAP_Height,		24,        
+        BITMAP_Masking, TRUE,
+        TAG_END);
+
+			if (img_p)
+				{
+					IIntuition -> SetAttrs (menu_item_p, MUIA_Menuitem_Image, img_p, TAG_DONE);
+					added_flag = TRUE;
+				}
+			else
+				{
+					IDOS -> Printf ("Failed to open \"%s\"\n", default_image_s);
+				}
+				
+			IDOS -> SetCurrentDir (prev_dir_p);
+			IDOS -> UnLock (dir_p);			
+		}							
+
 		
 	return added_flag;
  }

@@ -15,7 +15,7 @@
 
 /* Prototypes for system functions. */
 #include <clib/alib_protos.h>
-#include <proto/bitmap.h>
+#include <images/bitmap.h>
 #include <proto/exec.h>
 #include <proto/intuition.h>
 #include <proto/dos.h>
@@ -70,8 +70,8 @@ struct JanssonIFace *IJansson = NULL;
 struct Library *RequesterBase = NULL;
 struct RequesterIFace *IRequester = NULL;
 
-struct Library *BitMapBase = NULL;
-struct BitMapIFace *IBitMap = NULL;
+struct ClassLibrary *BitMapBase = NULL;
+
 
 static const char USED min_stack[] = "$STACK:102400";
 
@@ -93,7 +93,7 @@ static BOOL OpenLibs (void)
 												{
 													if (OpenLib (&RequesterBase, "requester.class", 53L, (struct Interface **) &IRequester, "main", 1))
 														{											
-															if (OpenLib (&BitMapBase, "bitmap.image", 53L, (struct Interface **) &IBitMap, "main", 1))
+															if (BitMapBase = IIntuition->OpenClass ("images/bitmap.image", 53, &BitMapClass))
 																{															
 																	return TRUE;
 																}
@@ -118,7 +118,7 @@ static BOOL OpenLibs (void)
 
 static void CloseLibs (void)
 {
-	CloseLib (BitMapBase, (struct Interface *) IBitMap);
+	IIntuition -> CloseClass (BitMapBase);
 	CloseLib (RequesterBase, (struct Interface *) IRequester);
 	CloseLib (JanssonBase, (struct Interface *) IJansson);
 	CloseLib (MUIMasterBase, (struct Interface *) IMUIMaster);

@@ -431,5 +431,22 @@ char *GetStringAsLowerCase (const char *value_s)
 		}
 
 	return lower_s;
+}
 
+
+char *ConvertUnsignedIntegerToString (const uint32 value)
+{
+	int num_chars = snprintf (NULL, 0, "%lu", value);
+	char *value_s = NULL;
+	
+	++ num_chars;
+	
+	value_s = (char *) IExec -> AllocVecTags (num_chars * sizeof (char), TAG_DONE);
+		
+	if (value_s)
+		{
+			num_chars = snprintf (value_s, num_chars, "%lu", value);
+		}
+		
+	return value_s;
 }

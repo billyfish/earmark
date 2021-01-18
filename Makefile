@@ -27,6 +27,7 @@ SRCS = \
 	gui.c \
 	hyperlink_editor.c \
 	image_editor.c \
+	info_gadget.c \
 	json_util.c \
 	md_to_html.c \
 	prefs.c \
