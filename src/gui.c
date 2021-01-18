@@ -22,6 +22,7 @@
 #include <proto/gadtools.h>
 #include <proto/intuition.h>
 #include <proto/utility.h>
+#include <proto/bitmap.h>
 #include <proto/muimaster.h>
 
 #include <clib/alib_protos.h>
@@ -565,13 +566,11 @@ static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI
 
 					MUIA_Family_Child, menu_open_p = IMUIMaster -> MUI_NewObject (MUIC_Menuitem,
 						MUIA_Menuitem_Title, "Open",
-						MUIA_Menuitem_AISSName, "open",
 						MUIA_Menuitem_Shortcut, "O",
 					TAG_DONE),
 
 					MUIA_Family_Child, menu_save_p = IMUIMaster -> MUI_NewObject (MUIC_Menuitem,
 						MUIA_Menuitem_Title, "Save",
-						MUIA_Menuitem_AISSName, "save",
 						MUIA_Menuitem_Shortcut, "S",
 					TAG_DONE),
 
@@ -581,7 +580,6 @@ static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI
 
 					MUIA_Family_Child, menu_convert_p = IMUIMaster -> MUI_NewObject (MUIC_Menuitem,
 						MUIA_Menuitem_Title, "Convert",
-						MUIA_Menuitem_AISSName, "convert",
 						MUIA_Menuitem_Shortcut, "R",
 					TAG_DONE),
 
@@ -591,13 +589,11 @@ static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI
 
 					MUIA_Family_Child, menu_about_p = IMUIMaster -> MUI_NewObject (MUIC_Menuitem,
 						MUIA_Menuitem_Title, "About",
-						MUIA_Menuitem_AISSName, "about",
 						MUIA_Menuitem_Shortcut, "?",
 					TAG_DONE),
 
 					MUIA_Family_Child, menu_quit_p = IMUIMaster -> MUI_NewObject (MUIC_Menuitem,
 						MUIA_Menuitem_Title, "Quit",
-						MUIA_Menuitem_AISSName, "quit",
 						MUIA_Menuitem_Shortcut, "Q",
 					TAG_DONE),
 
@@ -683,8 +679,8 @@ static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI
 		{
 			Object *menu_item_p;
 			MDPrefs *prefs_p = NULL;
-			struct Screen *screen_p = GetScreen ();
-
+			struct Screen *screen_p = IIntuition -> LockPubScreen (NULL);
+	
   		DB (KPRINTF ("%s %ld - Application created\n", __FILE__, __LINE__));
 
 
@@ -699,10 +695,12 @@ static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI
 			IIntuition -> IDoMethod (s_window_p, MUIM_Notify, MUIA_Window_CloseRequest, TRUE,
 				app_p, 2, MUIM_Application_ReturnID, MUIV_Application_ReturnID_Quit);
 
+
+
 			/* LOAD */
 			IIntuition -> IDoMethod (menu_open_p, MUIM_Notify, MUIA_Menuitem_Trigger, MUIV_EveryTime,
 				s_editor_p, 1, MEM_MDEditor_Load);
-			if (!AddMenuItemImage (menu_open_p, "open", "open_s", "open_g", screen_p))
+			if (!AddMenuItemImage (menu_open_p, "tbimages:open", "tbimages:open_s", "tbimages:open_g", screen_p))
 				{
   				DB (KPRINTF ("%s %ld - Failed to get open menu image\n", __FILE__, __LINE__));
 				}
@@ -710,7 +708,7 @@ static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI
 			/* SAVE */
 			IIntuition -> IDoMethod (menu_save_p, MUIM_Notify, MUIA_Menuitem_Trigger, MUIV_EveryTime,
 				s_editor_p, 1, MEM_MDEditor_Save);
-			if (!AddMenuItemImage (menu_save_p, "save", "save_s", "save_g", screen_p))
+			if (!AddMenuItemImage (menu_save_p, "tbimages:save", "tbimages:save_s", "tbimages:save_g", screen_p))
 				{
   				DB (KPRINTF ("%s %ld - Failed to get save menu image\n", __FILE__, __LINE__));
 				}
@@ -718,7 +716,7 @@ static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI
 			/* QUIT */
 			IIntuition -> IDoMethod (menu_quit_p, MUIM_Notify, MUIA_Menuitem_Trigger, MUIV_EveryTime,
 				app_p, 2, MUIM_Application_ReturnID, MUIV_Application_ReturnID_Quit);
-			if (!AddMenuItemImage (menu_quit_p, "quit", "quit_s", "quit_g", screen_p))
+			if (!AddMenuItemImage (menu_quit_p, "tbimages:quit", "tbimages:quit_s", "tbimages:quit_g", screen_p))
 				{
   				DB (KPRINTF ("%s %ld - Failed to get quit menu image\n", __FILE__, __LINE__));
 				}
@@ -727,7 +725,7 @@ static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI
 			/* ABOUT */
 			IIntuition -> IDoMethod (menu_about_p, MUIM_Notify, MUIA_Menuitem_Trigger, MUIV_EveryTime,
 				about_box_p, 3, MUIM_Set, MUIA_Window_Open, TRUE);
-			if (!AddMenuItemImage (menu_about_p, "info", "info_s", "info_g", screen_p))
+			if (!AddMenuItemImage (menu_about_p, "tbimages:info", "tbimages:info_s", "tbimages:info_g", screen_p))
 				{
   				DB (KPRINTF ("%s %ld - Failed to get open menu image\n", __FILE__, __LINE__));
 				}
@@ -737,11 +735,13 @@ static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI
 			menu_item_p = (Object *) IIntuition -> IDoMethod (strip_p, MUIM_FindUData, MENU_ID_UPDATE);
 			IIntuition -> IDoMethod (menu_convert_p, MUIM_Notify, MUIA_Menuitem_Trigger, MUIV_EveryTime,
 				s_editor_p, 1, MEM_MDEditor_Convert);
-			if (!AddMenuItemImage (menu_convert_p, "convert", "convert_s", "convert_g", screen_p))
+			if (!AddMenuItemImage (menu_convert_p, "tbimages:convert", "tbimages:convert_s", "tbimages:convert_g", screen_p))
 				{
   				DB (KPRINTF ("%s %ld - Failed to get convert menu image\n", __FILE__, __LINE__));
 				}
 
+
+			IIntuition -> UnlockPubScreen (NULL, screen_p);
 
 //			IIntuition -> IDoMethod (menu_item_p, MUIM_Notify, MUIA_Menuitem_Checked, MUIV_EveryTime,
 //				toolbar_p, 3, MUIM_Set, MUIA_TheBar_Rows, MUIV_TriggerValue ? 2 : 1);
@@ -1122,40 +1122,28 @@ static struct Screen *GetScreen (void)
 
 
 
-static BOOL AddMenuItemImage (Object *menu_item_p, CONST CONST_STRPTR default_image_s, CONST CONST_STRPTR selected_image_s ,CONST CONST_STRPTR disabled_image_s, struct Screen *scr_p)
+static BOOL AddMenuItemImage (Object *menu_item_p, CONST CONST_STRPTR default_image_s, CONST CONST_STRPTR selected_image_s ,CONST CONST_STRPTR disabled_image_s, struct Screen *screen_p)
 {
-	BOOL added_flag = FALSE;
-	BPTR dir_p = IDOS -> Lock ("tbimages:", SHARED_LOCK);
+	BOOL added_flag = FALSE;	
 
-	if (dir_p != ZERO)
-		{
-			BPTR prev_dir_p = IDOS -> SetCurrentDir (dir_p);			
+	struct Image *img_p = (struct Image *) IIntuition->NewObject (NULL, "bitmap.image",
+    BITMAP_Screen,              screen_p,
+		BITMAP_Masking,             TRUE,
+		BITMAP_SourceFile,          default_image_s,
+		BITMAP_SelectSourceFile,    selected_image_s,
+		BITMAP_DisabledSourceFile,  disabled_image_s,
+     IA_SupportsDisable,         TRUE,
+     TAG_END);   
 
-			struct Image *img_p = (struct Image *) IIntuition -> NewObject (BitMapClass, NULL,
-				BITMAP_SourceFile, default_image_s,
-        BITMAP_SelectSourceFile, default_image_s,
-        BITMAP_DisabledSourceFile, default_image_s,
-        BITMAP_Screen, scr_p,
-				BITMAP_OffsetX,		0,
-				BITMAP_OffsetY,		0,
-				BITMAP_Width,		24,
-				BITMAP_Height,		24,        
-        BITMAP_Masking, TRUE,
-        TAG_END);
-
-			if (img_p)
-				{
-					IIntuition -> SetAttrs (menu_item_p, MUIA_Menuitem_Image, img_p, TAG_DONE);
-					added_flag = TRUE;
-				}
-			else
-				{
-					IDOS -> Printf ("Failed to open \"%s\"\n", default_image_s);
-				}
-				
-			IDOS -> SetCurrentDir (prev_dir_p);
-			IDOS -> UnLock (dir_p);			
-		}							
+		if (img_p)
+			{
+				IIntuition -> SetAttrs (menu_item_p, MUIA_Menuitem_Image, img_p, TAG_DONE);
+				added_flag = TRUE;
+			}
+		else
+			{
+				DB (KPRINTF ("Failed to open \"%s\"\n", default_image_s));
+			}
 
 		
 	return added_flag;

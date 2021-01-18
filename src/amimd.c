@@ -14,7 +14,7 @@
 #include <libraries/mui.h>
 
 /* Prototypes for system functions. */
-#include <clib/alib_protos.h>
+#include <proto/graphics.h>
 #include <images/bitmap.h>
 #include <proto/exec.h>
 #include <proto/intuition.h>
@@ -58,6 +58,10 @@ struct WorkbenchIFace *IWorkbench = NULL;
 struct Library *UtilityBase = NULL;
 struct UtilityIFace *IUtility = NULL;
 
+
+struct Library *GfxBase = NULL;
+struct GraphicsIFace *IGraphics = NULL;
+
 struct Library *MUIMasterBase = NULL;
 struct MUIMasterIFace *IMUIMaster = NULL;
 
@@ -81,34 +85,40 @@ static BOOL OpenLibs (void)
 {
 	if (OpenLib (&IntuitionBase, "intuition.library", 53L, (struct Interface **) &IIntuition, "main", 1))
 		{
-			if (OpenLib (&UtilityBase, "utility.library", 53L, (struct Interface **) &IUtility, "main", 1))
+			if (OpenLib (&GfxBase, "graphics.library", 53L, (struct Interface **) &IGraphics, "main", 1))
 				{
-					if (OpenLib (&DOSBase, "dos.library", 53L, (struct Interface **) &IDOS, "main", 1))
+					if (OpenLib (&UtilityBase, "utility.library", 53L, (struct Interface **) &IUtility, "main", 1))
 						{
-							if (OpenLib (&AslBase, "asl.library", 53L, (struct Interface **) &IAsl, "main", 1))
+							if (OpenLib (&DOSBase, "dos.library", 53L, (struct Interface **) &IDOS, "main", 1))
 								{
-									if (OpenLib (&MUIMasterBase, "muimaster.library", 19L, (struct Interface **) &IMUIMaster, "main", 1))
+									if (OpenLib (&AslBase, "asl.library", 53L, (struct Interface **) &IAsl, "main", 1))
 										{
-											if (OpenLib (&JanssonBase, "jansson.library", 2L, (struct Interface **) &IJansson, "main", 1))
+											if (OpenLib (&MUIMasterBase, "muimaster.library", 19L, (struct Interface **) &IMUIMaster, "main", 1))
 												{
-													if (OpenLib (&RequesterBase, "requester.class", 53L, (struct Interface **) &IRequester, "main", 1))
-														{											
-															if (BitMapBase = IIntuition->OpenClass ("images/bitmap.image", 53, &BitMapClass))
-																{															
-																	return TRUE;
+													if (OpenLib (&JanssonBase, "jansson.library", 2L, (struct Interface **) &IJansson, "main", 1))
+														{													
+															if (OpenLib (&RequesterBase, "requester.class", 53L, (struct Interface **) &IRequester, "main", 1))
+																{											
+																	if (BitMapBase = IIntuition->OpenClass ("images/bitmap.image", 53, &BitMapClass))
+																		{															
+																			return TRUE;
+																		}
+																	CloseLib (RequesterBase, (struct Interface *) IRequester);
 																}
-															CloseLib (RequesterBase, (struct Interface *) IRequester);
+															CloseLib (JanssonBase, (struct Interface *) IJansson);
 														}
-													CloseLib (JanssonBase, (struct Interface *) IJansson);
+													CloseLib (MUIMasterBase, (struct Interface *) IMUIMaster);
 												}
-											CloseLib (MUIMasterBase, (struct Interface *) IMUIMaster);
+											CloseLib (AslBase, (struct Interface *) IAsl);
 										}
-									CloseLib (AslBase, (struct Interface *) IAsl);
+									CloseLib (DOSBase, (struct Interface *) IDOS);
 								}
-							CloseLib (DOSBase, (struct Interface *) IDOS);
+						 	CloseLib (UtilityBase, (struct Interface *) IUtility);
 						}
-				 	CloseLib (UtilityBase, (struct Interface *) IUtility);
+				
+					CloseLib (GfxBase, (struct Interface *) IGraphics);				
 				}
+					
 			CloseLib (IntuitionBase, (struct Interface *) IIntuition);
 		}
 		
@@ -125,6 +135,7 @@ static void CloseLibs (void)
 	CloseLib (AslBase, (struct Interface *) IAsl);
 	CloseLib (DOSBase, (struct Interface *) IDOS);
 	CloseLib (UtilityBase, (struct Interface *) IUtility);
+	CloseLib (GfxBase, (struct Interface *) IGraphics);				
 	CloseLib (IntuitionBase, (struct Interface *) IIntuition);
 }
 
