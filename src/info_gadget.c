@@ -70,9 +70,10 @@ typedef struct InfoGadgetData
  	BOOL igd_changed;
 } InfoGadgetData;
 
-Object *s_row_p = NULL;
-Object *s_column_p = NULL;
-Object *s_changed_p = NULL;
+
+static Object *s_row_p = NULL;
+static Object *s_column_p = NULL;
+static Object *s_changed_p = NULL;
 
 /**********************************/
 /******* STATIC PROTOTYPES ********/
@@ -156,10 +157,6 @@ static uint32 InfoGadgetDispatcher (Class *class_p,  Object *object_p, Msg msg_p
 
 static Object *GetInfoGadgetObject (Object *parent_p, InfoGadgetData *data_p)
 {
-	Object *num_rows_p = NULL;
-	Object *num_columns_p = NULL;
-	Object *changed_p = NULL;
-
 	Object *child_object_p = IMUIMaster -> MUI_NewObject (MUIC_Group,
 		MUIA_Group_Horiz, TRUE,
 		MUIA_Group_Child, IMUIMaster -> MUI_MakeObject (MUIO_Label, "Row:", TAG_DONE),				
