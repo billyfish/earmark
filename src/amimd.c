@@ -202,20 +202,25 @@ int main (int argc, char *argv [])
 							if (lock_p != ZERO)
 								{
 									BPTR old_dir_p = IDOS -> SetCurrentDir (lock_p);
-									struct DiskObject *info_p = IIcon -> GetDiskObjectNew (wbs_p -> sm_ArgList [0].wa_Name);
-									
-									if (info_p)
+			
+									if (old_dir_p != ZERO)
 										{
-											STRPTR value_s  = IIcon -> FindToolType (info_p -> do_ToolTypes, "SETTINGS");
+											struct DiskObject *info_p = IIcon -> GetDiskObjectNew (wbs_p -> sm_ArgList [0].wa_Name);
 											
-											if (value_s)
+											if (info_p)
 												{
-													md_settings_s = EasyCopyToNewString (value_s);
+													STRPTR value_s  = IIcon -> FindToolType (info_p -> do_ToolTypes, "SETTINGS");
+													
+													if (value_s)
+														{
+															md_settings_s = EasyCopyToNewString (value_s);
+														}
+													
+													IIcon -> FreeDiskObject (info_p);	
 												}
 											
-											IIcon -> FreeDiskObject (info_p);	
+											IDOS -> SetCurrentDir (old_dir_p);
 										}
-									
 								}		/* if (wbs_p -> sm_ArgList [0].wa_Lock != ZERO) */
 								
 							IExec -> FreeVec (filename_s);	
