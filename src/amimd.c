@@ -29,6 +29,7 @@
 #include "debugging_utils.h"
 #include "gui.h"
 #include "prefs.h"
+#include "string_utils.h"
 
 //#include "memwatch.h"
 
@@ -146,10 +147,84 @@ int main (int argc, char *argv [])
 	if (OpenLibs ())
 		{			
 			MDPrefs *prefs_p = NULL;
+			STRPTR md_filename_s = NULL;
+			STRPTR md_settings_s = NULL;
+			typedef enum 
+			{
+				AE_SETTINGS,
+				AE_FILENAME,
+				AS_NUM_ARGS	
+			} ArgEntry;
+				
+			int32 args_array [] = { 0, 0 };
+			
+			if (argc > 0)
+				{
+					/* Started from Shell */
+					struct RDArgs *rd_args_p;
+					CONST_STRPTR template_s = "SETTINGS/K,FILE";
+					rd_args_p = IDOS -> ReadArgs (template_s, args_array, NULL);
+					
+					if (rd_args_p)
+						{
+							if (args_array [AE_SETTINGS])
+								{
+									md_settings_s = EasyCopyToNewString ((STRPTR) args_array [AE_SETTINGS]);
+								}
+								
+							if (args_array [AE_FILENAME])
+								{
+									md_filename_s = EasyCopyToNewString ((STRPTR) args_array [AE_FILENAME]);
+								}
+							
+							IDOS -> FreeArgs (rd_args_p);	
+						}
+				}
+			else
+				{
+					/* Started from Workbench */
+					struct WBStartup *wbs_p = (struct WBStartup *) argv;
+					
+					uint8 num_args = wbs_p -> sm_NumArgs;	
+				}
+
+			IDOS -> Printf ("Settings: \"%s\"\n", md_settings_s ? md_settings_s : "NULL");
+			IDOS -> Printf ("File: \"%s\"\n", md_filename_s ? md_filename_s : "NULL");			
 			
 			DB (KPRINTF ("%s %ld - Opened Libraries\n", __FILE__, __LINE__));
 
-			CreateMUIInterface (prefs_p);
+			if (md_settings_s)
+				{
+					prefs_p = CreateMDPrefsFromFile (md_settings_s);
+
+					if (!prefs_p)
+						{
+							STRPTR error_s = ConcatenateStrings ("Failed to load settings file: ", md_settings_s);
+							
+							if (error_s)
+								{
+									ShowError ("Load Error", error_s, "_Ok");	
+									FreeCopiedString (error_s);
+								}
+							else
+								{
+									ShowError ("Load Error", md_settings_s, "_Ok");																											
+								}
+						}
+				}
+
+			CreateMUIInterface (prefs_p, md_filename_s);
+
+
+			if (md_settings_s)
+				{
+					FreeCopiedString (md_settings_s);	
+				}
+				
+			if (md_filename_s)
+				{
+					FreeCopiedString (md_filename_s);	
+				}
 
 			CloseLibs ();
 		}		/* if (OpenLibs ()) */

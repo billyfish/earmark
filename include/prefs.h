@@ -45,9 +45,11 @@ typedef struct MDPrefs
 } MDPrefs;
 
 
-BOOL SaveMDPrefs (const MDPrefs *prefs_p, CONST STRPTR path_s);
+BOOL SaveMDPrefs (const MDPrefs *prefs_p, CONST CONST_STRPTR path_s);
 
-BOOL LoadMDPrefs (MDPrefs *prefs_p, CONST STRPTR path_s);
+MDPrefs *CreateMDPrefsFromFile (CONST CONST_STRPTR path_s);
+
+BOOL LoadMDPrefs (MDPrefs *prefs_p, CONST CONST_STRPTR path_s);
 
 MDPrefs *AllocateMDPrefs (void);
 

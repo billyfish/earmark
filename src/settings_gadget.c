@@ -78,6 +78,8 @@ static uint32 MarkdownSettings_Save (Class *class_p, Object *settings_p);
 
 static Object *GetSettingsObject (MDPrefs *prefs_p, Object *parent_p);
 
+static void UpdateGadgetsFromPrefs (const MDPrefs *prefs_p);
+
 /**************************************************/
 /**************** PUBLIC FUNCTIONS ****************/
 /**************************************************/
@@ -136,30 +138,16 @@ static uint32 MarkdownSettingsDispatcher (Class *class_p,  Object *object_p, Msg
 
 			case MSM_LoadSettings:
 				{
-					MarkdownSettingsData *data_p = INST_DATA (class_p, object_p);
-					const MDPrefs * const prefs_p = data_p -> msd_prefs_p;
-
 					DB (KPRINTF ("%s %ld - MarkdownSettings Dispatcher: MSM_LoadSettings\n", __FILE__, __LINE__));	
 											
 					//PrintPrefs (prefs_p);
 
 					if (MarkdownSettings_Load (class_p, object_p) != 0)
 						{
-							//PrintPrefs (prefs_p);
-
-							DB (KPRINTF ("%s %ld - MarkdownSettings Dispatcher: MSM_LoadSettings table %lu\n", __FILE__, __LINE__, prefs_p -> mdp_tables));	
-
-							IIntuition -> SetAttrs (s_dialect_p, MUIA_NoNotify, TRUE, MUIA_Radio_Active, prefs_p -> mdp_dialect, TAG_DONE);
-							IIntuition -> SetAttrs (s_tables_cb_p, MUIA_NoNotify, TRUE, MUIA_Selected, prefs_p -> mdp_tables, TAG_DONE);
-							IIntuition -> SetAttrs (s_task_lists_cb_p, MUIA_NoNotify, TRUE, MUIA_Selected, prefs_p -> mdp_task_lists, TAG_DONE);
-							IIntuition -> SetAttrs (s_collapse_whitespace_cb_p, MUIA_NoNotify, TRUE, MUIA_Selected, prefs_p -> mdp_collapse_whitespace, TAG_DONE);
-							IIntuition -> SetAttrs (s_strike_through_cb_p, MUIA_NoNotify, TRUE, MUIA_Selected, prefs_p -> mdp_strike_though_spans, TAG_DONE);							
-							IIntuition -> SetAttrs (s_underline_span_cb_p, MUIA_NoNotify, TRUE, MUIA_Selected, prefs_p -> mdp_underline_spans, TAG_DONE);
-							IIntuition -> SetAttrs (s_latex_math_span_cb_p, MUIA_NoNotify, TRUE, MUIA_Selected, prefs_p -> mdp_latex_maths, TAG_DONE);
-							IIntuition -> SetAttrs (s_raw_html_blocks_cb_p, MUIA_NoNotify, TRUE, MUIA_Selected, prefs_p -> mdp_html_blocks, TAG_DONE);
-							IIntuition -> SetAttrs (s_raw_html_spans_cb_p, MUIA_NoNotify, TRUE, MUIA_Selected, prefs_p -> mdp_html_spans, TAG_DONE);
-							IIntuition -> SetAttrs (s_indented_code_blocks_cb_p, MUIA_NoNotify, TRUE, MUIA_Selected, prefs_p -> mdp_indented_code_blocks, TAG_DONE);
-							IIntuition -> SetAttrs (s_translate_entities_cb_p, MUIA_NoNotify, TRUE, MUIA_Selected, prefs_p -> mdp_translate_html_entities, TAG_DONE);
+							MarkdownSettingsData *data_p = INST_DATA (class_p, object_p);
+							const MDPrefs * const prefs_p = data_p -> msd_prefs_p;
+							
+							UpdateGadgetsFromPrefs (prefs_p);
 								
 							res = 0;																												
 						}	
@@ -465,6 +453,21 @@ static uint32 MarkdownSettings_Set (Class *class_p, Object *object_p, Msg msg_p)
 						settings_p -> mdp_translate_html_entities = tag_data;
 						break;
 			
+					case MSA_Prefs:
+						{
+							DB (KPRINTF ("%s %ld - MarkdownSettings_Set -> MSA_Prefs to %lu", __FILE__, __LINE__, tag_data));						
+							MDPrefs *new_prefs_p = (MDPrefs *) tag_data;
+							
+							if (md_p -> msd_prefs_p)
+								{
+									FreeMDPrefs (md_p -> msd_prefs_p);	
+								}
+								
+							md_p -> msd_prefs_p = new_prefs_p;
+													
+							UpdateGadgetsFromPrefs (new_prefs_p);
+						}
+						break;
 			
 					/* We don't understand this attribute */
 					default:
@@ -559,4 +562,20 @@ static uint32 MarkdownSettings_Save (Class *class_p, Object *settings_p)
 	return res;
 }
 
+
+static void UpdateGadgetsFromPrefs (const MDPrefs *prefs_p)
+{	
+	IIntuition -> SetAttrs (s_dialect_p, MUIA_NoNotify, TRUE, MUIA_Radio_Active, prefs_p -> mdp_dialect, TAG_DONE);
+
+	IIntuition -> SetAttrs (s_tables_cb_p, MUIA_NoNotify, TRUE, MUIA_Selected, prefs_p -> mdp_tables, TAG_DONE);
+	IIntuition -> SetAttrs (s_task_lists_cb_p, MUIA_NoNotify, TRUE, MUIA_Selected, prefs_p -> mdp_task_lists, TAG_DONE);
+	IIntuition -> SetAttrs (s_collapse_whitespace_cb_p, MUIA_NoNotify, TRUE, MUIA_Selected, prefs_p -> mdp_collapse_whitespace, TAG_DONE);
+	IIntuition -> SetAttrs (s_strike_through_cb_p, MUIA_NoNotify, TRUE, MUIA_Selected, prefs_p -> mdp_strike_though_spans, TAG_DONE);							
+	IIntuition -> SetAttrs (s_underline_span_cb_p, MUIA_NoNotify, TRUE, MUIA_Selected, prefs_p -> mdp_underline_spans, TAG_DONE);
+	IIntuition -> SetAttrs (s_latex_math_span_cb_p, MUIA_NoNotify, TRUE, MUIA_Selected, prefs_p -> mdp_latex_maths, TAG_DONE);
+	IIntuition -> SetAttrs (s_raw_html_blocks_cb_p, MUIA_NoNotify, TRUE, MUIA_Selected, prefs_p -> mdp_html_blocks, TAG_DONE);
+	IIntuition -> SetAttrs (s_raw_html_spans_cb_p, MUIA_NoNotify, TRUE, MUIA_Selected, prefs_p -> mdp_html_spans, TAG_DONE);
+	IIntuition -> SetAttrs (s_indented_code_blocks_cb_p, MUIA_NoNotify, TRUE, MUIA_Selected, prefs_p -> mdp_indented_code_blocks, TAG_DONE);
+	IIntuition -> SetAttrs (s_translate_entities_cb_p, MUIA_NoNotify, TRUE, MUIA_Selected, prefs_p -> mdp_translate_html_entities, TAG_DONE);									
+}
 

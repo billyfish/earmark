@@ -111,7 +111,7 @@ static STRPTR s_file_pattern_s = NULL;
 /*********** API FUNCTIONS ************/
 /***************************************/
 
-BOOL CreateMUIInterface (MDPrefs *prefs_p)
+BOOL CreateMUIInterface (MDPrefs *prefs_p, CONST CONST_STRPTR markdown_file_s)
 {
 	BOOL success_flag = FALSE;
 	struct MUI_CustomClass *editor_class_p = InitMarkdownEditorClass ();
@@ -170,6 +170,8 @@ BOOL CreateMUIInterface (MDPrefs *prefs_p)
 		
 															DB (KPRINTF ("%s %ld - Inited Hyperlink Editor\n", __FILE__, __LINE__));
 				
+															DB (KPRINTF ("%s %ld - prefs %lu\n", __FILE__, __LINE__, prefs_p));
+				
 															app_p = CreateGUIObjects (editor_class_p, settings_class_p, image_editor_class_p, table_editor_class_p, 
 																hyperlink_editor_class_p, search_gadget_class_p, info_gadget_class_p, prefs_p);
 				
@@ -190,6 +192,25 @@ BOOL CreateMUIInterface (MDPrefs *prefs_p)
 																			if (IDOS -> ParsePattern (md_reg_s, s_file_pattern_s, size) >= 0)
 																				{
 																					DB (KPRINTF ("%s %ld - Parsed File Pattern\n", __FILE__, __LINE__));
+				
+																					if (markdown_file_s)
+																						{
+																							if (!LoadFile (markdown_file_s))
+																								{
+																									STRPTR error_s = ConcatenateStrings ("Failed to load input file: ", markdown_file_s);
+																									
+																									if (error_s)
+																										{
+																											ShowError ("Load Error", error_s, "_Ok");	
+																											FreeCopiedString (error_s);
+																										}
+																									else
+																										{
+																											ShowError ("Load Error", markdown_file_s, "_Ok");																											
+																										}
+																								}
+																						}
+																					
 				
 																					RunMD (app_p);
 																					success_flag = TRUE;
@@ -484,12 +505,12 @@ static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI
 			{ BID_COPY, BID_COPY,  "_Copy", "Copy the selected text\n\nShortcut; RAmiga+C", 0, 0, NULL, NULL },
 			{ BID_PASTE, BID_PASTE,  "Paste", "Paste the clipboard contents\n\nShortcut: RAmiga+V", 0, 0, NULL, NULL },			
 			{ MUIV_TheBar_BarSpacer, -1, NULL, NULL, 0, 0, NULL, NULL },
+			{ BID_SEARCH,  BID_SEARCH, "_Find", "Search within the text.\n\nShortcut: RAmiga+F", 0, 0, NULL, NULL },
+			{ MUIV_TheBar_BarSpacer, -1, NULL, NULL, 0, 0, NULL, NULL },
 			{ BID_FONT_BOLD, BID_FONT_BOLD, "_Bold", "Make the selected text bold.\n\nShortcut: RAmiga+B", 0, 0, NULL, NULL },
 			{ BID_FONT_ITALIC, BID_FONT_ITALIC, "_Italic", "Make the selected text italic.\n\nShortcut: RAmiga+I", 0, 0, NULL, NULL },
 			{ BID_FONT_STRIKETHROUGH,  BID_FONT_STRIKETHROUGH, "Stri_kethrough", "Strike through the selected text.\n\nShortcut;:RAmiga+K", 0, 0, NULL, NULL },
 			{ BID_FONT_CODE,  BID_FONT_CODE, "Co_de", "Make the selected text code.\n\nShortcut: RAmiga+D", 0, 0, NULL, NULL },
-			{ MUIV_TheBar_BarSpacer, -1, NULL, NULL, 0, 0, NULL, NULL },
-			{ BID_SEARCH,  BID_SEARCH, "_Find", "Search within the text.\n\nShortcut: RAmiga+F", 0, 0, NULL, NULL },
 			{ MUIV_TheBar_BarSpacer, -1, NULL, NULL, 0, 0, NULL, NULL },
 			{ BID_HORIZONTAL_RULE, BID_HORIZONTAL_RULE, "Horizontal Rule", "Insert a Horizontal Rule.", 0, 0, NULL, NULL },
 			{ BID_INDENTED_CODE,  BID_INDENTED_CODE, "Fenced Code", "Make a fenced code block.", 0, 0, NULL, NULL },
@@ -855,7 +876,6 @@ static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI
 	if (app_p)
 		{
 			Object *menu_item_p;
-			MDPrefs *prefs_p = NULL;
 			struct Screen *screen_p = IIntuition -> LockPubScreen (NULL);
 	
   		DB (KPRINTF ("%s %ld - Application created\n", __FILE__, __LINE__));
@@ -1067,8 +1087,17 @@ static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI
 //				toolbar_p, 3, MUIM_Set, MUIA_TheBar_Rows, MUIV_TriggerValue ? 2 : 1);
 
 
+			if (prefs_p)
+				{
+					DB (KPRINTF ("%s %ld - Using existing settings preferences\n", __FILE__, __LINE__));
+					IIntuition -> SetAttrs (s_settings_p, MSA_Prefs, prefs_p, TAG_DONE);		
+				}
+			else
+				{
+					DB (KPRINTF ("%s %ld - Getting settings preferences\n", __FILE__, __LINE__));
+					IIntuition -> GetAttrs (s_settings_p, MSA_Prefs, &prefs_p);
+				}		
 
-			IIntuition -> GetAttrs (s_settings_p, MSA_Prefs, &prefs_p);
 			IIntuition -> SetAttrs (s_editor_p, MEA_Prefs, prefs_p, TAG_DONE);
 
 			IIntuition -> SetAttrs (s_editor_p, MUIA_TextEditor_Slider, editor_scrollbar_p, TAG_DONE);
@@ -1167,7 +1196,7 @@ static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI
 
 
 
-BOOL LoadFile (STRPTR filename_s)
+BOOL LoadFile (CONST CONST_STRPTR filename_s)
 {
 	BOOL success_flag = FALSE;
 	BPTR fh_p = IDOS -> FOpen (filename_s, MODE_OLDFILE, 0);
@@ -1208,7 +1237,7 @@ BOOL LoadFile (STRPTR filename_s)
 }
 
 
-BOOL SaveFile (STRPTR filename_s, CONST CONST_STRPTR text_s)
+BOOL SaveFile (CONST CONST_STRPTR filename_s, CONST CONST_STRPTR text_s)
 {
 	BOOL success_flag = FALSE;
 

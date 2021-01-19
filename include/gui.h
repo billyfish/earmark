@@ -20,6 +20,8 @@
 
 #include <exec/types.h>
 
+#include <intuition/classes.h>
+
 #include "prefs.h"
 
 #ifdef ALLOCATE_GLOBALS
@@ -28,14 +30,14 @@
 	#define PREFIX extern
 #endif
 
+
 PREFIX Class *BitMapClass;
 
+BOOL CreateMUIInterface (MDPrefs *prefs_p, CONST CONST_STRPTR markdown_file_s);
 
-BOOL CreateMUIInterface (MDPrefs *prefs_p);
+BOOL LoadFile (CONST CONST_STRPTR filename_s);
 
-BOOL LoadFile (STRPTR filename_s);
-
-BOOL SaveFile (STRPTR filename_s, CONST CONST_STRPTR text_s);
+BOOL SaveFile (CONST CONST_STRPTR filename_s, CONST CONST_STRPTR text_s);
 
 STRPTR RequestFilename (const BOOL save_flag, CONST CONST_STRPTR title_s, CONST CONST_STRPTR file_pattern_s, CONST CONST_STRPTR initial_file_s);
 

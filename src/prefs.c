@@ -53,7 +53,7 @@ static BOOL SetPrefsFromJSON (MDPrefs *prefs_p, const json_t *prefs_json_p);
 
 
 
-BOOL SaveMDPrefs (const MDPrefs *prefs_p, CONST STRPTR path_s)
+BOOL SaveMDPrefs (const MDPrefs *prefs_p, CONST CONST_STRPTR path_s)
 {
 	BOOL success_flag = FALSE;
 
@@ -97,7 +97,7 @@ BOOL SaveMDPrefs (const MDPrefs *prefs_p, CONST STRPTR path_s)
 }
 
 
-BOOL LoadMDPrefs (MDPrefs *prefs_p, CONST STRPTR path_s)
+BOOL LoadMDPrefs (MDPrefs *prefs_p, CONST CONST_STRPTR path_s)
 {
 	BOOL success_flag = FALSE;
 	json_error_t err;
@@ -131,6 +131,26 @@ BOOL LoadMDPrefs (MDPrefs *prefs_p, CONST STRPTR path_s)
 	
 	return success_flag;	
 }
+
+
+MDPrefs *CreateMDPrefsFromFile (CONST CONST_STRPTR path_s)
+{
+	MDPrefs *prefs_p = AllocateMDPrefs ();
+	
+	if (prefs_p)
+		{
+			if (LoadMDPrefs (prefs_p, path_s))
+				{
+					return prefs_p;	
+				}
+			
+			FreeMDPrefs (prefs_p);
+		}
+	
+	return NULL;
+}
+
+
 
 
 MDPrefs *AllocateMDPrefs (void)
