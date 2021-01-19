@@ -19,6 +19,7 @@
 #include <proto/exec.h>
 #include <proto/intuition.h>
 #include <proto/dos.h>
+#include <proto/icon.h>
 #include <proto/asl.h>
 #include <proto/requester.h>
 
@@ -77,6 +78,8 @@ struct RequesterIFace *IRequester = NULL;
 
 struct ClassLibrary *BitMapBase = NULL;
 
+struct Library *IconBase = NULL;
+struct IconIFace *IIcon = NULL;
 
 static const char USED min_stack[] = "$STACK:102400";
 
@@ -102,7 +105,11 @@ static BOOL OpenLibs (void)
 																{											
 																	if (BitMapBase = IIntuition->OpenClass ("images/bitmap.image", 53, &BitMapClass))
 																		{															
-																			return TRUE;
+																			if (OpenLib (&IconBase, "icon.library", 53L, (struct Interface **) &IIcon, "main", 1))
+																				{		
+																					return TRUE;
+																				}
+																			IIntuition -> CloseClass (BitMapBase);
 																		}
 																	CloseLib (RequesterBase, (struct Interface *) IRequester);
 																}
@@ -129,6 +136,7 @@ static BOOL OpenLibs (void)
 
 static void CloseLibs (void)
 {
+	CloseLib (IconBase, (struct Interface *) IIcon);
 	IIntuition -> CloseClass (BitMapBase);
 	CloseLib (RequesterBase, (struct Interface *) IRequester);
 	CloseLib (JanssonBase, (struct Interface *) IJansson);
@@ -184,8 +192,35 @@ int main (int argc, char *argv [])
 				{
 					/* Started from Workbench */
 					struct WBStartup *wbs_p = (struct WBStartup *) argv;
-					
 					uint8 num_args = wbs_p -> sm_NumArgs;	
+					STRPTR filename_s = (STRPTR) IExec -> AllocVecTags (4096, TAG_DONE);
+					
+					if (filename_s)
+						{
+							BPTR lock_p = wbs_p -> sm_ArgList [0].wa_Lock;
+							
+							if (lock_p != ZERO)
+								{
+									BPTR old_dir_p = IDOS -> SetCurrentDir (lock_p);
+									struct DiskObject *info_p = IIcon -> GetDiskObjectNew (wbs_p -> sm_ArgList [0].wa_Name);
+									
+									if (info_p)
+										{
+											STRPTR value_s  = IIcon -> FindToolType (info_p -> do_ToolTypes, "SETTINGS");
+											
+											if (value_s)
+												{
+													md_settings_s = EasyCopyToNewString (value_s);
+												}
+											
+											IIcon -> FreeDiskObject (info_p);	
+										}
+									
+								}		/* if (wbs_p -> sm_ArgList [0].wa_Lock != ZERO) */
+								
+							IExec -> FreeVec (filename_s);	
+						}		/* if (filename_s) */
+
 				}
 
 			IDOS -> Printf ("Settings: \"%s\"\n", md_settings_s ? md_settings_s : "NULL");
