@@ -355,7 +355,9 @@ static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI
 	Object *menu_table_p = NULL;	
 	Object *menu_hyperlink_p = NULL;	
 	Object *menu_toolbar_layout_p = NULL;
-
+	Object *menu_toolbar_1_row_p = NULL;
+	Object *menu_toolbar_2_rows_p = NULL;
+	Object *menu_toolbar_3_rows_p = NULL;
 
 	static const char * const used_classes [] =
 		{
@@ -745,6 +747,25 @@ static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI
 					
 					MUIA_Family_Child, menu_toolbar_layout_p = IMUIMaster -> MUI_NewObject (MUIC_Menuitem,
 						MUIA_Menuitem_Title, "Toolbar rows",
+						
+						MUIA_Family_Child, menu_toolbar_1_row_p = IMUIMaster -> MUI_NewObject (MUIC_Menuitem,
+							MUIA_Menuitem_Title, "1 row",
+							MUIA_Menuitem_Image, NULL,
+							MUIA_Menuitem_FreeImage, FALSE,
+						TAG_DONE),
+						
+						MUIA_Family_Child, menu_toolbar_2_rows_p = IMUIMaster -> MUI_NewObject (MUIC_Menuitem,
+							MUIA_Menuitem_Title, "2 rows",
+							MUIA_Menuitem_Image, NULL,
+							MUIA_Menuitem_FreeImage, FALSE,
+						TAG_DONE),
+												
+						MUIA_Family_Child, menu_toolbar_3_rows_p = IMUIMaster -> MUI_NewObject (MUIC_Menuitem,
+							MUIA_Menuitem_Title, "3 rows",
+							MUIA_Menuitem_Image, NULL,
+							MUIA_Menuitem_FreeImage, FALSE,
+						TAG_DONE),	
+						
 					TAG_DONE),
 
 					
@@ -1003,6 +1024,28 @@ static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI
   				DB (KPRINTF ("%s %ld - Failed to get hyperlink menu image\n", __FILE__, __LINE__));
 				}
 				
+
+			/* VIEW TOOLBAR */			
+			if (!AddMenuItemImage (menu_toolbar_layout_p, "tbimages:gadget_toolbox", "tbimages:gadget_toolbox_s", "tbimages:gadget_toolbox_g", screen_p))
+				{
+  				DB (KPRINTF ("%s %ld - Failed to get toolbar menu image\n", __FILE__, __LINE__));
+				}
+			
+			/* 1 ROW TOOLBAR */
+			IIntuition -> IDoMethod (menu_toolbar_1_row_p, MUIM_Notify, MUIA_Menuitem_Trigger, MUIV_EveryTime,
+				toolbar_p, 3, MUIM_Set, MUIA_TheBar_Rows, 1L);
+			IIntuition -> SetAttrs (menu_toolbar_1_row_p, MUIA_Menuitem_Image, NULL, TAG_DONE);
+
+			/*  2 ROWS TOOLBAR */
+			IIntuition -> IDoMethod (menu_toolbar_2_rows_p, MUIM_Notify, MUIA_Menuitem_Trigger, MUIV_EveryTime,
+				toolbar_p, 3, MUIM_Set, MUIA_TheBar_Rows, 2L);
+			IIntuition -> SetAttrs (menu_toolbar_2_rows_p, MUIA_Menuitem_Image, NULL, TAG_DONE);
+
+			/* 3 ROWS TOOLBAR*/
+			IIntuition -> IDoMethod (menu_toolbar_3_rows_p, MUIM_Notify, MUIA_Menuitem_Trigger, MUIV_EveryTime,
+				toolbar_p, 3, MUIM_Set, MUIA_TheBar_Rows, 3L);
+			IIntuition -> SetAttrs (menu_toolbar_3_rows_p, MUIA_Menuitem_Image, NULL, TAG_DONE);
+
 
 			IIntuition -> UnlockPubScreen (NULL, screen_p);
 
