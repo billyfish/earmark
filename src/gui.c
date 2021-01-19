@@ -1368,8 +1368,6 @@ STRPTR RequestFilename (const BOOL save_flag, CONST CONST_STRPTR title_s, CONST 
 			IAsl -> FreeAslRequest (req_p);
 		}
 
-
-	//IDOS -> Printf ("filename: %s\n", filename_s ? filename_s : "NULL");
 	return filename_s;
 }
 

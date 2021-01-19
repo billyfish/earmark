@@ -1,8 +1,5 @@
 # TODO
 
-
-
- * The settings Save button, IMO should propose the default name that earmark wait to load, giving the user the option to change it, if he wants. Or there should be a tooltype where the user should set the default config file. (@walkero)
  
 * Can the Save not work as "Save as...", showing the file requester? IMO, it should save over the file. (@walkero)
 * If I make changes on the file, that are not saved, it would be nice to have something at the window title that shows that this file was edited. (@walkero) 
@@ -13,6 +10,7 @@
 # DONE
 
 ---- 1.1
+ * The settings Save button, IMO should propose the default name that earmark wait to load, giving the user the option to change it, if he wants. Or there should be a tooltype where the user should set the default config file. (@walkero)
  * BUGFIX: The convert button had the same shortcut like the Hyperlink. 
 (@walkero)
  * Added status bar gadget for showing current cursor position and whether the

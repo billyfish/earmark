@@ -1,6 +1,6 @@
 Short:        Edit and view Markdown documents  
 Uploader:     tyrrell.simon@gmail.com (Simon Tyrrell)  
-Author:       tyrrell.simon@gmail.com (Simon Tyrrell)  
+Author:       tyrrell.simon@gmail.com (Simon Tyrrell), Martin Mitas  
 Type:         text/edit  
 Version:      1.1
 Architecture: ppc-amigaos >= 4.1  
@@ -12,7 +12,27 @@ This is a tool to allow you to edit and view Markdown documents. It uses a
 customised version of md4c at https://github.com/mity/md4c by Martin Mitáš 
 available to do the actual conversion of Markdown to HTML.
 
-## USAGE:
+## Usage:
+
+The program can either be started from a Shell or from Workbench. 
+
+### Shell Arguments
+
+Earmark has the arguments template  SETTINGS/K,FILENAME
+
+ * **SETTINGS**: Set this to the path of the settings file that you wish to 
+ load when the program starts. 
+ * **FILENAME**: This is the initial markdown file to load into the editor.
+ 
+ 
+### Tooltypes
+
+The icon can take a single tooltype:
+ 
+ * **SETTINGS**: Set this to the path of the settings file that you wish to 
+ load when the program starts.
+
+### Program layout
 
 The window consists of two pages; an Editor page and a Settings page.
 
@@ -69,6 +89,15 @@ specified  columns, the remaining columns will default to being left-aligned.
 For example *crlc* would specify that the first four columns of the table 
 would be centre-, right-, left- and centre-aligned respectively.
  
+At the bottom of this page is an information bar which shows the following
+information:
+
+ * **Row**: Current row that the cursor is on.
+ * **Column**: Current column that the cursor is on.
+ * **Changed**: A checkmark that will be ticked if the file is changed from 
+ its last saved position.
+
+ 
 ### Settings:
 
 On this page you can configure some of the options for converting the md4c 
@@ -77,10 +106,24 @@ Markdown to HTML. For more information on these, view the
 *Save Settings* and *Load Settings* buttons to save and load any customised 
 conversion settings if you wish. 
 
-## FUTURE:
 
- * Getting the buttons to become selected for given bits of text, e.g. the bold 
- button being highlighted when the cursor is in a piece of bold text, etc. 
+### Menu
+
+The menu options mostly duplicate the options available on the toolbar. There
+are however some exceptions:
+
+ * **Edit - Heading**: This submenu has the options for inserting a heading 
+ tag into the document. These range from H1, H2 through to H6 with their 
+ shortuct keys being 1, 2, through to 6.
+ * **View - Toolbar rows**: This submenu allows you to specify the number
+ of rows that the toolbar will use. This can be useful if you find that the
+ window is too wide for your display.
+
+## Future:
+
+ * Getting the buttons to become selected for given bits of text, *e.g.* the 
+ bold button being highlighted when the cursor is in a piece of bold 
+ text, *etc.* 
  * Syntax highlighting would be nice too. 
  * Adding more elements to the md4c Markdown to HTML conversion code such as 
  definition lists, footnotes, *etc.* This would then get added to md4c via pull 
@@ -90,9 +133,16 @@ conversion settings if you wish.
 
 Any other ideas are welcome. :-)
 
-## CHANGELOG
+## Changes
 
-### 1.1
+### 1.1 - (19/01/2021)
+ * Added command line arguments and icon tooltypes.
+ * Set a default name for saved settings files. Also added a tooltype where 
+ the user can set the default config file. (@walkero)
+ * Added option for setting the number of rows that the toolbar spans so
+ the window can require less width (@capehill).
+ * Added shortcuts for inserting any of the H1, H2, ..., H6 tags into the
+ editor.
  * Added Edit and View menus including option for changing the number of rows
  in the toolbar to reduce the minimum window width if needed (@capehill)
  * Added status bar gadget for showing current cursor position and whether the
@@ -105,7 +155,7 @@ braces (@walkero)
  * BUGFIX: The table button bubble had a semicolon after the shortcut, 
 instead of a colon (@walkero)
  * BUGFIX: Menu Quit option was not working (@Capehill)
- * BUGFIX: If you marked a line and you choose bold, italic, *etc.* and that
+ * BUGFIX: If you marked a line, then chose bold, italic, *etc.* and that
  line started/ended with a space, then the markdown was broken. This was 
  because md4c included that space and the asterisks were staying as 
  characters. 
@@ -158,7 +208,7 @@ instead of a colon (@walkero)
 ## LICENSE:
 
 The code is available under the MIT license. The md4c parts are copyright 
-Martin Mitáš. The program icon and emoticon_bigsmile image are copyright to 
+Martin Mitas. The program icon and emoticon_bigsmile image are copyright to 
 Martin Merz, go to http://www.masonicons.info for more information and to 
 get his awesome artwork. The rest is copyright (c) 2021 by Simon Tyrrell. 
 

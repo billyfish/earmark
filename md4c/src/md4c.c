@@ -4323,7 +4323,7 @@ md_process_inlines(MD_CTX* ctx, const MD_LINE* lines, int n_lines)
                 break;
 
             if(text_type == MD_TEXT_CODE || text_type == MD_TEXT_LATEXMATH) {
-                OFF tmp;
+                OFF tmp1;
 
                 MD_ASSERT(prev_mark != NULL);
                 MD_ASSERT(ISANYOF2_(prev_mark->ch, '`', '$')  &&  (prev_mark->flags & MD_MARK_OPENER));
@@ -4331,11 +4331,11 @@ md_process_inlines(MD_CTX* ctx, const MD_LINE* lines, int n_lines)
 
                 /* Inside a code span, trailing line whitespace has to be
                  * outputted. */
-                tmp = off;
+                tmp1 = off;
                 while(off < ctx->size  &&  ISBLANK(off))
                     off++;
-                if(off > tmp)
-                    MD_TEXT(text_type, STR(tmp), off-tmp);
+                if(off > tmp1)
+                    MD_TEXT(text_type, STR(tmp1), off-tmp1);
 
                 /* and new lines are transformed into single spaces. */
                 if(prev_mark->end < off  &&  off < mark->beg)
@@ -4343,12 +4343,12 @@ md_process_inlines(MD_CTX* ctx, const MD_LINE* lines, int n_lines)
             } else if(text_type == MD_TEXT_HTML) {
                 /* Inside raw HTML, we output the new line verbatim, including
                  * any trailing spaces. */
-                OFF tmp = off;
+                OFF tmp1 = off;
 
-                while(tmp < end  &&  ISBLANK(tmp))
-                    tmp++;
-                if(tmp > off)
-                    MD_TEXT(MD_TEXT_HTML, STR(off), tmp - off);
+                while(tmp1 < end  &&  ISBLANK(tmp))
+                    tmp1++;
+                if(tmp1 > off)
+                    MD_TEXT(MD_TEXT_HTML, STR(off), tmp1 - off);
                 MD_TEXT(MD_TEXT_HTML, _T("\n"), 1);
             } else {
                 /* Output soft or hard line break. */

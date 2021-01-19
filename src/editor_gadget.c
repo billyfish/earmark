@@ -250,7 +250,6 @@ static uint32 MarkdownEditor_Set (Class *class_p, Object *object_p, Msg msg_p)
 							if (filename_s)
 								{
 									BOOL changed_filename_flag = FALSE;
-									MarkdownEditorData *md_p = INST_DATA (class_p, object_p); 
 									
 									if (md_p -> med_filename_s)
 										{
@@ -554,7 +553,6 @@ static uint32 MarkdownEditor_Convert (Class *class_p, Object *editor_p)
 	if (text_s)
 		{
 			STRPTR html_s = NULL;
-			BOOL res;
 			uint16 parser_flags = 0;
 			uint16 renderer_flags = MD_HTML_FLAG_DEBUG | MD_HTML_FLAG_SKIP_UTF8_BOM;
 			

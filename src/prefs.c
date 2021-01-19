@@ -23,11 +23,12 @@
 #include <proto/exec.h>
 #include <proto/amijansson.h>
 
-
 #include "json_util.h"
 
 #include "gui.h"
 #include "debugging_utils.h"
+#include "string_utils.h"
+
 
 static CONST CONST_STRPTR S_DIALECT_S = "dialect";
 static CONST CONST_STRPTR S_DIALECT_COMMON_MARK_S = "common_mark";
@@ -119,14 +120,34 @@ BOOL LoadMDPrefs (MDPrefs *prefs_p, CONST CONST_STRPTR path_s)
 
 			if (!success_flag)
 				{
-					IDOS -> Printf ("Failed to parse settings from \"%s\"\n", path_s);		
+					STRPTR error_s = ConcatenateStrings ("Failed to parse settings file: ", path_s);
+					
+					if (error_s)
+						{
+							ShowError ("Error parsing settings", error_s, "_Ok");	
+							FreeCopiedString (error_s);
+						}
+					else
+						{
+							ShowError ("Error parsing settings", path_s, "_Ok");																											
+						}					
 				}
 								
 			IJansson -> json_decref (settings_json_p);
 		}
 	else
 		{
-			IDOS -> Printf ("Failed to load settings from \"%s\"\n", path_s);	
+			STRPTR error_s = ConcatenateStrings ("Failed to load settings file: ", path_s);
+			
+			if (error_s)
+				{
+					ShowError ("Error loading settings", error_s, "_Ok");	
+					FreeCopiedString (error_s);
+				}
+			else
+				{
+					ShowError ("Error loading settings", path_s, "_Ok");																											
+				}		
 		}
 	
 	return success_flag;	

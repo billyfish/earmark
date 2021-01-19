@@ -348,7 +348,7 @@ BOOL SetStringFromJSON (const json_t *json_p, char **value_ss)
 						}
 					else
 						{
-							IDOS -> Printf ("Failed to copy \"%s\"", json_value_s);
+							DB (KPRINTF ("%s %ld - Failed to copy \"%s\"", __FILE__, __LINE__, json_value_s));
 						}
 				}
 			else

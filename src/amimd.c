@@ -103,7 +103,7 @@ static BOOL OpenLibs (void)
 														{													
 															if (OpenLib (&RequesterBase, "requester.class", 53L, (struct Interface **) &IRequester, "main", 1))
 																{											
-																	if (BitMapBase = IIntuition->OpenClass ("images/bitmap.image", 53, &BitMapClass))
+																	if ((BitMapBase = IIntuition->OpenClass ("images/bitmap.image", 53, &BitMapClass)) != NULL)
 																		{															
 																			if (OpenLib (&IconBase, "icon.library", 53L, (struct Interface **) &IIcon, "main", 1))
 																				{		
@@ -163,7 +163,6 @@ int main (int argc, char *argv [])
 				AE_FILENAME,
 				AS_NUM_ARGS	
 			} ArgEntry;
-				
 			int32 args_array [] = { 0, 0 };
 			
 			if (argc > 0)
@@ -192,45 +191,38 @@ int main (int argc, char *argv [])
 				{
 					/* Started from Workbench */
 					struct WBStartup *wbs_p = (struct WBStartup *) argv;
-					uint8 num_args = wbs_p -> sm_NumArgs;	
-					STRPTR filename_s = (STRPTR) IExec -> AllocVecTags (4096, TAG_DONE);
-					
-					if (filename_s)
-						{
-							BPTR lock_p = wbs_p -> sm_ArgList [0].wa_Lock;
+					BPTR lock_p = wbs_p -> sm_ArgList [0].wa_Lock;
 							
-							if (lock_p != ZERO)
+					if (lock_p != ZERO)
+						{
+							BPTR old_dir_p = IDOS -> SetCurrentDir (lock_p);
+	
+							if (old_dir_p != ZERO)
 								{
-									BPTR old_dir_p = IDOS -> SetCurrentDir (lock_p);
-			
-									if (old_dir_p != ZERO)
+									struct DiskObject *info_p = IIcon -> GetDiskObjectNew (wbs_p -> sm_ArgList [0].wa_Name);
+									
+									if (info_p)
 										{
-											struct DiskObject *info_p = IIcon -> GetDiskObjectNew (wbs_p -> sm_ArgList [0].wa_Name);
+											STRPTR value_s  = IIcon -> FindToolType (info_p -> do_ToolTypes, "SETTINGS");
 											
-											if (info_p)
+											if (value_s)
 												{
-													STRPTR value_s  = IIcon -> FindToolType (info_p -> do_ToolTypes, "SETTINGS");
-													
-													if (value_s)
-														{
-															md_settings_s = EasyCopyToNewString (value_s);
-														}
-													
-													IIcon -> FreeDiskObject (info_p);	
+													md_settings_s = EasyCopyToNewString (value_s);
 												}
 											
-											IDOS -> SetCurrentDir (old_dir_p);
+											IIcon -> FreeDiskObject (info_p);	
 										}
-								}		/* if (wbs_p -> sm_ArgList [0].wa_Lock != ZERO) */
+									
+									IDOS -> SetCurrentDir (old_dir_p);
+								}
 								
-							IExec -> FreeVec (filename_s);	
-						}		/* if (filename_s) */
+						}		/* if (lock_p != ZERO) */
 
 				}
 
-			IDOS -> Printf ("Settings: \"%s\"\n", md_settings_s ? md_settings_s : "NULL");
-			IDOS -> Printf ("File: \"%s\"\n", md_filename_s ? md_filename_s : "NULL");			
-			
+			DB (KPRINTF ("%s %ld - Settings: \"%s\"\n", __FILE__, __LINE__, md_settings_s ? md_settings_s : "NULL"));		
+			DB (KPRINTF ("%s %ld - File: \"%s\"\n", __FILE__, __LINE__, md_filename_s ? md_filename_s : "NULL"));
+
 			DB (KPRINTF ("%s %ld - Opened Libraries\n", __FILE__, __LINE__));
 
 			if (md_settings_s)
@@ -270,7 +262,7 @@ int main (int argc, char *argv [])
 		}		/* if (OpenLibs ()) */
 	else
 		{
-			printf ("Failed to open libs\n");
+			IDOS -> Printf ("Failed to open libs\n");
 		}
 
 	return result;
@@ -286,13 +278,13 @@ static BOOL OpenLib (struct Library **library_pp, CONST_STRPTR lib_name_s, const
 				}
 			else
 				{
-					printf ("Failed to open interface \"%s\" version %lu from \"%s\"\n", interface_name_s, interface_version, lib_name_s);
+					IDOS -> Printf ("Failed to open interface \"%s\" version %lu from \"%s\"\n", interface_name_s, interface_version, lib_name_s);
 				}
 			IExec->CloseLibrary (*library_pp);
 		}
 	else
 		{
-			printf ("Failed to open library \"%s\" version %lu\n", lib_name_s, lib_version);
+			IDOS -> Printf ("Failed to open library \"%s\" version %lu\n", lib_name_s, lib_version);
 		}
 
 	return FALSE;

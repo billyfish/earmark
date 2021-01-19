@@ -58,7 +58,7 @@ MAKEDEPEND := gcc -MM -MF
 
 INCPATH := -I SDK:MUI/C/Include -Iinclude -Imd4c/src -ISDK:include/include_h/jansson
 
-CFLAGS := $(INCPATH)  -Werror -Wwrite-strings -Wextra  -DAMIGA=1 
+CFLAGS := $(INCPATH)  -Werror -Wwrite-strings -Wextra -Wshadow  -DAMIGA=1 
 
 ifeq ($(BUILD),release)
 	CFLAGS += -O3

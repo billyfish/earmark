@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<CodeBench_Project name="AmiMarkdown" path="DH6:Projects&#047;ami-markdown&#047;AmiMarkdown.cbp" created="1357141115" lastmodified="1358622053">
+<CodeBench_Project name="AmiMarkdown" path="DH6:Projects&#047;ami-markdown&#047;AmiMarkdown.cbp" created="1357141115" lastmodified="1358636326">
 	<plugin name="PROGDIR:Plugins&#047;AmigaOS4SDK.CCPlugin" flags="528"/>
 	<target/>
 	<homedir name="DH6:Projects&#047;ami-markdown"/>
@@ -31,32 +31,33 @@
 	</headers>
 	<sources>
 		<file name="src&#047;info_gadget.c" open="0"/>
-		<file name="src&#047;json_util.c" open="1" top="17" left="0" line="31" row="0"/>
+		<file name="src&#047;json_util.c" open="1" top="324" left="0" line="351" row="95"/>
 		<file name="src&#047;hyperlink_editor.c" open="0"/>
-		<file name="src&#047;table_editor.c" open="1" top="299" left="0" line="306" row="39"/>
+		<file name="src&#047;table_editor.c" open="1" top="365" left="0" line="394" row="77"/>
 		<file name="src&#047;byte_buffer.c" open="0"/>
 		<file name="src&#047;string_utils.c" open="0"/>
-		<file name="src&#047;amimd.c" open="1" top="12" left="0" line="19" row="25"/>
+		<file name="src&#047;amimd.c" open="1" top="255" left="0" line="289" row="13"/>
 		<file name="src&#047;editor_gadget.c" open="1" top="110" left="0" line="669" row="68"/>
-		<file name="src&#047;gui.c" open="1" top="527" left="0" line="563" row="68"/>
+		<file name="src&#047;gui.c" open="1" top="1359" left="0" line="1370" row="0"/>
 		<file name="src&#047;md_to_html.c" open="0"/>
 		<file name="src&#047;viewer_gadget.c" open="0"/>
 		<file name="md4c&#047;src&#047;entity.c" open="0"/>
 		<file name="md4c&#047;src&#047;md4c.c" open="0"/>
 		<file name="md4c&#047;src&#047;md4c-html.c" open="0"/>
-		<file name="src&#047;prefs.c" open="1" top="72" left="0" line="72" row="29"/>
+		<file name="src&#047;prefs.c" open="1" top="105" left="0" line="128" row="15"/>
 		<file name="src&#047;settings_gadget.c" open="1" top="133" left="0" line="163" row="56"/>
 		<file name="src&#047;image_editor.c" open="1" top="175" left="0" line="175" row="0"/>
 		<file name="src&#047;search_gadget.c" open="1" top="181" left="0" line="194" row="13"/>
 	</sources>
 	<others>
+		<file name="Makefile" open="1" current="1" top="30" left="0" line="61" row="63"/>
 		<file name="readme.md" open="0"/>
-		<file name="TODO" open="1" current="1" top="0" left="0" line="1" row="0"/>
+		<file name="TODO" open="1" top="0" left="0" line="23" row="75"/>
 	</others>
-	<flags value="0x0000000002078044"/>
-	<buildscript name="Makefile" depth="3" open="0"/>
+	<flags value="0x0000000002078040"/>
+	<buildscript name="Makefile" depth="3" open="1" current="1" top="30" left="0" line="61" row="63"/>
 	<projectnotes open="0"/>
-	<buildwindow open="1"/>
+	<buildwindow open="0"/>
 	<targets>
 		<target name="AmiMarkdown" linker="gcc:bin&#047;gcc" switches="-lauto" flags="0x00000002">
 			<file name="src&#047;amimd.c"/>
@@ -80,5 +81,5 @@
 		</target>
 	</targets>
 	<logfile name="RAM Disk:Build.log"/>
-	<search lastsearch="GRASSROOTS_UTIL_API " sensecase="1" replace_state="1" replace_string="IJansson"/>
+	<search lastsearch="GRASSROOTS_UTIL_API " sensecase="1" replace_state="0" replace_string="IJansson"/>
 </CodeBench_Project>

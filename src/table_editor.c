@@ -41,6 +41,7 @@
 #include "gui.h"
 
 #include "byte_buffer.h"
+#include "string_utils.h"
 
 
 typedef struct TableEditorData
@@ -368,7 +369,17 @@ static uint32 TableEditor_Set (Class *class_p, Object *object_p, Msg msg_p)
 							
 							if (!ConvertStringToUInt32 (value_s, & (data_p -> ted_num_columns)))
 								{
-									IDOS -> Printf ("Failed to convert column count from \"%s\"\n", value_s);
+									STRPTR error_s = ConcatenateStrings ("Failed to convert column count from ", value_s);
+									
+									if (error_s)
+										{
+											ShowError ("Number Error", error_s, "_Ok");
+											FreeCopiedString (error_s);
+										}
+									else
+										{
+											ShowError ("Number Error", "Failed to convert the columns value to a number", "_Ok");
+										}
 								}
 						}
 						break;
@@ -380,7 +391,17 @@ static uint32 TableEditor_Set (Class *class_p, Object *object_p, Msg msg_p)
 	
 							if (!ConvertStringToUInt32 (value_s, & (data_p -> ted_num_rows)))
 								{
-									IDOS -> Printf ("Failed to convert column count from \"%s\"\n", value_s);
+									STRPTR error_s = ConcatenateStrings ("Failed to convert row count from ", value_s);
+									
+									if (error_s)
+										{
+											ShowError ("Number Error", error_s, "_Ok");
+											FreeCopiedString (error_s);
+										}
+									else
+										{
+											ShowError ("Number Error", "Failed to convert the rows value to a number", "_Ok");
+										}
 								}
 						}
 						break;
