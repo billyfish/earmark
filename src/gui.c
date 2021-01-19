@@ -506,7 +506,7 @@ static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI
 
 	app_p = IMUIMaster -> MUI_NewObject (MUIC_Application,
 		MUIA_Application_Title      , S_APP_NAME_S,
-		MUIA_Application_Version    , "$VER: " S_APP_NAME_S " 1.0",
+		MUIA_Application_Version    , "$VER: " S_APP_NAME_S " 1.1",
 		MUIA_Application_Copyright  , "(c) 2021, Simon Tyrrell, md4c code (c) Martin Mitas",
 		MUIA_Application_Author     , "Simon Tyrrell",
 		MUIA_Application_Description, "Edit and view Markdown documents.",
@@ -830,7 +830,6 @@ static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI
 						MUIA_Group_Horiz, FALSE,
 
 						MUIA_Group_Child, s_settings_p = IIntuition -> NewObject (settings_class_p -> mcc_Class, NULL,
-							ImageButtonFrame,
 							MUIA_FillArea, FALSE,
 							MUIA_ShortHelp, (uint32) "Markdown conversion settings",
 						TAG_DONE),
@@ -1026,24 +1025,24 @@ static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI
 				
 
 			/* VIEW TOOLBAR */			
-			if (!AddMenuItemImage (menu_toolbar_layout_p, "tbimages:gadget_toolbox", "tbimages:gadget_toolbox_s", "tbimages:gadget_toolbox_g", screen_p))
+			if (!AddMenuItemImage (menu_toolbar_layout_p, "tbimages:gadget_bar", "tbimages:gadget_bar_s", "tbimages:gadget_bar_g", screen_p))
 				{
   				DB (KPRINTF ("%s %ld - Failed to get toolbar menu image\n", __FILE__, __LINE__));
 				}
 			
 			/* 1 ROW TOOLBAR */
 			IIntuition -> IDoMethod (menu_toolbar_1_row_p, MUIM_Notify, MUIA_Menuitem_Trigger, MUIV_EveryTime,
-				toolbar_p, 3, MUIM_Set, MUIA_TheBar_Rows, 1L);
+				toolbar_p, 3, MUIM_Set, MUIA_TheBar_Rows, 1);
 			IIntuition -> SetAttrs (menu_toolbar_1_row_p, MUIA_Menuitem_Image, NULL, TAG_DONE);
 
 			/*  2 ROWS TOOLBAR */
 			IIntuition -> IDoMethod (menu_toolbar_2_rows_p, MUIM_Notify, MUIA_Menuitem_Trigger, MUIV_EveryTime,
-				toolbar_p, 3, MUIM_Set, MUIA_TheBar_Rows, 2L);
+				toolbar_p, 3, MUIM_Set, MUIA_TheBar_Rows, 2);
 			IIntuition -> SetAttrs (menu_toolbar_2_rows_p, MUIA_Menuitem_Image, NULL, TAG_DONE);
 
 			/* 3 ROWS TOOLBAR*/
 			IIntuition -> IDoMethod (menu_toolbar_3_rows_p, MUIM_Notify, MUIA_Menuitem_Trigger, MUIV_EveryTime,
-				toolbar_p, 3, MUIM_Set, MUIA_TheBar_Rows, 3L);
+				toolbar_p, 3, MUIM_Set, MUIA_TheBar_Rows, 3);
 			IIntuition -> SetAttrs (menu_toolbar_3_rows_p, MUIA_Menuitem_Image, NULL, TAG_DONE);
 
 

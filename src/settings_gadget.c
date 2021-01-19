@@ -196,19 +196,22 @@ static Object *GetSettingsObject (MDPrefs *prefs_p, Object *parent_p)
 	Object *load_p = NULL;
 	
 	Object *child_object_p = IMUIMaster -> MUI_NewObject (MUIC_Group,
+		MUIA_FrameTitle, "MD4C conversion",
+		MUIA_Frame, MUIV_Frame_Group,
+								
 		MUIA_Group_Child, IMUIMaster -> MUI_NewObject (MUIC_Group,
 			MUIA_Group_Horiz, TRUE,
 			MUIA_Group_VertCenter, MUIV_Group_VertCenter_Top,
-			MUIA_FrameTitle, "MD4C conversion",
+
 			MUIA_Group_Child, s_dialect_p = IMUIMaster -> MUI_NewObject (MUIC_Radio,
 					MUIA_Frame, MUIV_Frame_Group,
-					MUIA_FrameTitle, "Markdown Dialect",
+					MUIA_FrameTitle, "MD Dialect",
 					MUIA_Radio_Entries, dialects_ss,
 				TAG_DONE),
 		
 				MUIA_Group_Child, IMUIMaster -> MUI_NewObject (MUIC_Group,
 					MUIA_Frame, MUIV_Frame_Group,
-					MUIA_FrameTitle, "Markdown Extensions",
+					MUIA_FrameTitle, "MD Extensions",
 					MUIA_Group_Columns, 2,
 								
 					MUIA_Group_Child, IMUIMaster -> MUI_MakeObject (MUIO_Label, "Tables", TAG_DONE),
