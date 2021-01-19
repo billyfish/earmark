@@ -341,7 +341,22 @@ static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI
 	Object *menu_heading4_p = NULL;	
 	Object *menu_heading5_p = NULL;	
 	Object *menu_heading6_p = NULL;
-			
+
+
+	Object *menu_code_p = NULL;
+	Object *menu_bold_p = NULL;
+	Object *menu_italic_p = NULL;
+	Object *menu_strikethrough_p = NULL;	
+	Object *menu_fenced_code_p = NULL;	
+	Object *menu_blockquote_p = NULL;	
+	Object *menu_hr_p = NULL;	
+	
+	Object *menu_image_p = NULL;	
+	Object *menu_table_p = NULL;	
+	Object *menu_hyperlink_p = NULL;	
+	Object *menu_toolbar_layout_p = NULL;
+
+
 	static const char * const used_classes [] =
 		{
 			"TextEditor.mcc",
@@ -380,84 +395,85 @@ static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI
 
 	const char *pics_ss [] =
 		{
-			"open",
-			"save",
-			"convert",
-			"undo",
-			"redo",
-			"cut",
-			"copy",
-			"paste",
-			"font_bold",
-			"font_italic",
-			"font_color",
-			"font_cancel",
-			"search",
-			"quote",
-			"braces",
-			"forcenewpage",
-			"hyperlink",
-			"image",
-			"insertfootnote",
-			"tableadd",
+			"tbimages:open",
+			"tbimages:save",
+			"tbimages:convert",
+			"tbimages:undo",
+			"tbimages:redo",
+			"tbimages:cut",
+			"tbimages:copy",
+			"tbimages:paste",
+			"tbimages:font_bold",
+			"tbimages:font_italic",
+			"tbimages:font_color",
+			"tbimages:font_cancel",
+			"tbimages:search",
+			"tbimages:quote",
+			"tbimages:braces",
+			"tbimages:forcenewpage",
+			"tbimages:hyperlink",
+			"tbimages:image",
+			"tbimages:insertfootnote",
+			"tbimages:tableadd",
 			NULL
 		};
 
 	const char *selected_pics_ss [] =
 		{
-			"open_s",
-			"save_s",
-			"convert_s",
-			"undo_s",
-			"redo_s",
-			"cut_s",
-			"copy_s",
-			"paste_s",			
-			"font_bold_s",
-			"font_italic_s",
-			"font_color_s",
-			"font_cancel_s",
-			"search_s"
-			"quote_s",
-			"braces_s",
-			"forcenewpage_s",
-			"hyperlink_s",
-			"image_s",
-			"insertfootnote_s",
-			"tableadd_s",
+			"tbimages:open_s",
+			"tbimages:save_s",
+			"tbimages:convert_s",
+			"tbimages:undo_s",
+			"tbimages:redo_s",
+			"tbimages:cut_s",
+			"tbimages:copy_s",
+			"tbimages:paste_s",			
+			"tbimages:font_bold_s",
+			"tbimages:ont_italic_s",
+			"tbimages:font_color_s",
+			"tbimages:font_cancel_s",
+			"tbimages:search_s"
+			"tbimages:uote_s",
+			"tbimages:braces_s",
+			"tbimages:forcenewpage_s",
+			"tbimages:hyperlink_s",
+			"tbimages:image_s",
+			"tbimages:insertfootnote_s",
+			"tbimages:tableadd_s",
 			NULL
 		};
 
 	const char *ghosted_pics_ss [] =
 		{
-			"open_g",
-			"save_g",
-			"convert_g",
-			"undo_g",
-			"redo_g",
-			"cut_g",
-			"copy_g",
-			"paste_g",			
-			"font_bold_g",
-			"font_italic_g",
-			"font_color_g",
-			"font_cancel_g",
-			"search_g"
-			"quote_g",
-			"braces_g",
-			"forcenewpage_g",
-			"hyperlink_g",
-			"image_g",
-			"insertfootnote_g",			
-			"tableadd_g",
+			"tbimages:open_g",
+			"tbimages:save_g",
+			"tbimages:convert_g",
+			"tbimages:undo_g",
+			"tbimages:redo_g",
+			"tbimages:cut_g",
+			"tbimages:copy_g",
+			"tbimages:paste_g",			
+			"tbimages:font_bold_g",
+			"tbimages:font_italic_g",
+			"tbimages:font_color_g",
+			"tbimages:font_cancel_g",
+			"tbimages:search_g"
+			"tbimages:quote_g",
+			"tbimages:braces_g",
+			"tbimages:forcenewpage_g",
+			"tbimages:hyperlink_g",
+			"tbimages:image_g",
+			"tbimages:insertfootnote_g",			
+			"tbimages:tableadd_g",
 			NULL
 		};
+
 
 	struct MUIS_TheBar_Button buttons [] =
 		{
 			{ BID_OPEN, BID_OPEN,  "_Open", "Load a Markdown file.\n\nShortcut: RAmiga+O", 0, 0, NULL, NULL },
 			{ BID_SAVE, BID_SAVE,  "_Save", "Save the file.\n\nShortcut: RAmiga+S", 0, 0, NULL, NULL },
-			{ BID_CONVERT, BID_CONVERT,  "Convert to HTML", "Convert to HTML and view.\n\nShortcut: RAmiga+", 0, 0, NULL, NULL },
+			{ BID_CONVERT, BID_CONVERT,  "Convert to HTML", "Convert to HTML and view.\n\nShortcut: RAmiga+R", 0, 0, NULL, NULL },
 			{ MUIV_TheBar_BarSpacer, -1, NULL, NULL, 0, 0, NULL, NULL },
 			{ BID_UNDO, BID_UNDO,  "Undo", "Undo the latest changes\n\nShortcut: RAmiga+Z", 0, 0, NULL, NULL },
 			{ BID_REDO, BID_REDO,  "Redo", "Redo the latest reverted changes\n\nShortcut; RAmiga+shift+Z", 0, 0, NULL, NULL },
@@ -659,10 +675,80 @@ static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI
 							MUIA_Menuitem_Image, NULL,
 							MUIA_Menuitem_FreeImage, FALSE,
 						TAG_DONE),						
+					
 					TAG_DONE),
 
+					MUIA_Family_Child, IMUIMaster -> MUI_NewObject (MUIC_Menuitem,
+						MUIA_Menuitem_Title, NM_BARLABEL,
+					TAG_DONE),
+					
+					MUIA_Family_Child, menu_bold_p = IMUIMaster -> MUI_NewObject (MUIC_Menuitem,
+						MUIA_Menuitem_Title, "Bold",
+						MUIA_Menuitem_Shortcut, "B",
+					TAG_DONE),
+					
+					MUIA_Family_Child, menu_italic_p = IMUIMaster -> MUI_NewObject (MUIC_Menuitem,
+						MUIA_Menuitem_Title, "Italic",
+						MUIA_Menuitem_Shortcut, "I",
+					TAG_DONE),
+											
+					MUIA_Family_Child, menu_code_p = IMUIMaster -> MUI_NewObject (MUIC_Menuitem,
+						MUIA_Menuitem_Title, "Code",
+						MUIA_Menuitem_Shortcut, "D",
+					TAG_DONE),				
 
+					MUIA_Family_Child, menu_strikethrough_p = IMUIMaster -> MUI_NewObject (MUIC_Menuitem,
+						MUIA_Menuitem_Title, "Strikethrough",
+						MUIA_Menuitem_Shortcut, "K",
+					TAG_DONE),
+					
+					MUIA_Family_Child, IMUIMaster -> MUI_NewObject (MUIC_Menuitem,
+						MUIA_Menuitem_Title, NM_BARLABEL,
+					TAG_DONE),
+
+					MUIA_Family_Child, menu_hr_p = IMUIMaster -> MUI_NewObject (MUIC_Menuitem,
+						MUIA_Menuitem_Title, "Horizontal Rule",
+					TAG_DONE),
+															
+					MUIA_Family_Child, menu_fenced_code_p = IMUIMaster -> MUI_NewObject (MUIC_Menuitem,
+						MUIA_Menuitem_Title, "Fenced Code",
+					TAG_DONE),
+											
+					MUIA_Family_Child, menu_blockquote_p = IMUIMaster -> MUI_NewObject (MUIC_Menuitem,
+						MUIA_Menuitem_Title, "Blockquote",
+					TAG_DONE),		
+
+					MUIA_Family_Child, IMUIMaster -> MUI_NewObject (MUIC_Menuitem,
+						MUIA_Menuitem_Title, NM_BARLABEL,
+					TAG_DONE),
+						
+					MUIA_Family_Child, menu_hyperlink_p = IMUIMaster -> MUI_NewObject (MUIC_Menuitem,
+						MUIA_Menuitem_Title, "Insert Link...",
+						MUIA_Menuitem_Shortcut, "H",						
+					TAG_DONE),
+					
+					MUIA_Family_Child, menu_image_p = IMUIMaster -> MUI_NewObject (MUIC_Menuitem,
+						MUIA_Menuitem_Title, "Insert Image...",
+					TAG_DONE),				
+
+					MUIA_Family_Child, menu_table_p = IMUIMaster -> MUI_NewObject (MUIC_Menuitem,
+						MUIA_Menuitem_Title, "Insert Table...",
+						MUIA_Menuitem_Shortcut, "T",						
+					TAG_DONE),
+					
 				TAG_DONE),			
+			
+				/* View menu */
+				MUIA_Family_Child, IMUIMaster -> MUI_NewObject (MUIC_Menu, 
+					MUIA_Menu_Title, "View",
+					MUIA_Menu_CopyStrings, TRUE,
+					
+					MUIA_Family_Child, menu_toolbar_layout_p = IMUIMaster -> MUI_NewObject (MUIC_Menuitem,
+						MUIA_Menuitem_Title, "Toolbar rows",
+					TAG_DONE),
+
+					
+					TAG_DONE),
 				
 			TAG_DONE),
  			MUIA_ShortHelp, (uint32) "A Markdown editor and viewer",
@@ -683,7 +769,6 @@ static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI
               MUIA_Group_Horiz,             TRUE,
               //MUIA_TheBar_IgnoreAppearance, TRUE,
               MUIA_TheBar_Buttons,          buttons,
-              MUIA_TheBar_PicsDrawer,       "tbimages:",
               MUIA_TheBar_Pics,             pics_ss,
               MUIA_TheBar_SelPics,          selected_pics_ss,
               MUIA_TheBar_DisPics,          ghosted_pics_ss,
@@ -765,7 +850,7 @@ static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI
 			/* LOAD */
 			IIntuition -> IDoMethod (menu_open_p, MUIM_Notify, MUIA_Menuitem_Trigger, MUIV_EveryTime,
 				s_editor_p, 1, MEM_MDEditor_Load);
-			if (!AddMenuItemImage (menu_open_p, "tbimages:open", "tbimages:open_s", "tbimages:open_g", screen_p))
+			if (!AddMenuItemImage (menu_open_p, pics_ss [BID_OPEN], selected_pics_ss [BID_OPEN], ghosted_pics_ss [BID_OPEN], screen_p))
 				{
   				DB (KPRINTF ("%s %ld - Failed to get open menu image\n", __FILE__, __LINE__));
 				}
@@ -773,10 +858,20 @@ static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI
 			/* SAVE */
 			IIntuition -> IDoMethod (menu_save_p, MUIM_Notify, MUIA_Menuitem_Trigger, MUIV_EveryTime,
 				s_editor_p, 1, MEM_MDEditor_Save);
-			if (!AddMenuItemImage (menu_save_p, "tbimages:save", "tbimages:save_s", "tbimages:save_g", screen_p))
+			if (!AddMenuItemImage (menu_save_p, pics_ss [BID_SAVE], selected_pics_ss [BID_SAVE], ghosted_pics_ss [BID_SAVE], screen_p))
 				{
   				DB (KPRINTF ("%s %ld - Failed to get save menu image\n", __FILE__, __LINE__));
 				}
+
+
+			/* ABOUT */
+			IIntuition -> IDoMethod (menu_about_p, MUIM_Notify, MUIA_Menuitem_Trigger, MUIV_EveryTime,
+				about_box_p, 3, MUIM_Set, MUIA_Window_Open, TRUE);
+			if (!AddMenuItemImage (menu_about_p, "tbimages:info", "tbimages:info_s", "tbimages:info_g", screen_p))
+				{
+  				DB (KPRINTF ("%s %ld - Failed to get about menu image\n", __FILE__, __LINE__));
+				}
+
 
 			/* QUIT */
 			IIntuition -> IDoMethod (menu_quit_p, MUIM_Notify, MUIA_Menuitem_Trigger, MUIV_EveryTime,
@@ -787,19 +882,10 @@ static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI
 				}
 
 
-			/* ABOUT */
-			IIntuition -> IDoMethod (menu_about_p, MUIM_Notify, MUIA_Menuitem_Trigger, MUIV_EveryTime,
-				about_box_p, 3, MUIM_Set, MUIA_Window_Open, TRUE);
-			if (!AddMenuItemImage (menu_about_p, "tbimages:info", "tbimages:info_s", "tbimages:info_g", screen_p))
-				{
-  				DB (KPRINTF ("%s %ld - Failed to get open menu image\n", __FILE__, __LINE__));
-				}
-
-
 			/* CONVERT */
 			IIntuition -> IDoMethod (menu_convert_p, MUIM_Notify, MUIA_Menuitem_Trigger, MUIV_EveryTime,
 				s_editor_p, 1, MEM_MDEditor_Convert);
-			if (!AddMenuItemImage (menu_convert_p, "tbimages:convert", "tbimages:convert_s", "tbimages:convert_g", screen_p))
+			if (!AddMenuItemImage (menu_convert_p, pics_ss [BID_CONVERT], selected_pics_ss [BID_CONVERT], ghosted_pics_ss [BID_CONVERT], screen_p))
 				{
   				DB (KPRINTF ("%s %ld - Failed to get convert menu image\n", __FILE__, __LINE__));
 				}
@@ -841,6 +927,82 @@ static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI
 				s_editor_p, 3, MUIM_Set, MEA_PrefixMarkedLines, MEV_MDEditor_Heading6);
 			IIntuition -> SetAttrs (menu_heading6_p, MUIA_Menuitem_Image, NULL, TAG_DONE);
 
+			/* BOLD */
+			IIntuition -> IDoMethod (menu_bold_p, MUIM_Notify, MUIA_Menuitem_Trigger, MUIV_EveryTime,
+				s_editor_p, 3, MUIM_Set, MEA_SurroundSelection, MEV_MDEditor_Style_Bold);
+			if (!AddMenuItemImage (menu_bold_p, pics_ss [BID_FONT_BOLD], selected_pics_ss [BID_FONT_BOLD], ghosted_pics_ss [BID_FONT_BOLD], screen_p))
+				{
+  				DB (KPRINTF ("%s %ld - Failed to get bold menu image\n", __FILE__, __LINE__));
+				}
+
+			/* ITALIC */
+			IIntuition -> IDoMethod (menu_italic_p, MUIM_Notify, MUIA_Menuitem_Trigger, MUIV_EveryTime,
+				s_editor_p, 3, MUIM_Set, MEA_SurroundSelection, MEV_MDEditor_Style_Italic);
+			if (!AddMenuItemImage (menu_italic_p, pics_ss [BID_FONT_ITALIC], selected_pics_ss [BID_FONT_ITALIC], ghosted_pics_ss [BID_FONT_ITALIC], screen_p))
+				{
+  				DB (KPRINTF ("%s %ld - Failed to get italic menu image\n", __FILE__, __LINE__));
+				}
+
+			/* CODE */
+			IIntuition -> IDoMethod (menu_code_p, MUIM_Notify, MUIA_Menuitem_Trigger, MUIV_EveryTime,
+				s_editor_p, 3, MUIM_Set, MEA_SurroundSelection, MEV_MDEditor_Style_Code);
+			if (!AddMenuItemImage (menu_code_p, pics_ss [BID_FONT_CODE], selected_pics_ss [BID_FONT_CODE], ghosted_pics_ss [BID_FONT_CODE], screen_p))
+				{
+  				DB (KPRINTF ("%s %ld - Failed to get code menu image\n", __FILE__, __LINE__));
+				}
+
+			/* STRIKETHROUGH */
+			IIntuition -> IDoMethod (menu_strikethrough_p, MUIM_Notify, MUIA_Menuitem_Trigger, MUIV_EveryTime,
+				s_editor_p, 3, MUIM_Set, MEA_SurroundSelection, MEV_MDEditor_Style_Strikethrough);
+			if (!AddMenuItemImage (menu_strikethrough_p, pics_ss [BID_FONT_STRIKETHROUGH], selected_pics_ss [BID_FONT_STRIKETHROUGH], ghosted_pics_ss [BID_FONT_STRIKETHROUGH], screen_p))
+				{
+  				DB (KPRINTF ("%s %ld - Failed to get strikethrough menu image\n", __FILE__, __LINE__));
+				}
+
+
+			/* FENCED CODE */
+			IIntuition -> IDoMethod (menu_fenced_code_p, MUIM_Notify, MUIA_Menuitem_Trigger, MUIV_EveryTime,
+				s_editor_p, 3, MUIM_Set, MEA_SurroundSelection, MEV_MDEditor_Style_IndentedCode);
+			if (!AddMenuItemImage (menu_fenced_code_p, pics_ss [BID_INDENTED_CODE], selected_pics_ss [BID_INDENTED_CODE], ghosted_pics_ss [BID_INDENTED_CODE], screen_p))
+				{
+  				DB (KPRINTF ("%s %ld - Failed to get fenced code menu image\n", __FILE__, __LINE__));
+				}
+
+			/* BLOCKQUOTE */
+			IIntuition -> IDoMethod (menu_blockquote_p, MUIM_Notify, MUIA_Menuitem_Trigger, MUIV_EveryTime,
+				s_editor_p, 3, MUIM_Set, MEA_PrefixMarkedLines, MEV_MDEditor_BlockQuote);
+			if (!AddMenuItemImage (menu_blockquote_p, pics_ss [BID_BLOCKQUOTE], selected_pics_ss [BID_BLOCKQUOTE], ghosted_pics_ss [BID_BLOCKQUOTE] , screen_p))
+				{
+  				DB (KPRINTF ("%s %ld - Failed to get bblockquote menu image\n", __FILE__, __LINE__));
+				}
+
+			/* HR */
+			IIntuition -> IDoMethod (menu_hr_p, MUIM_Notify, MUIA_Menuitem_Trigger, MUIV_EveryTime,
+				s_editor_p, 3, MUIM_Set, MEA_InsertItem, MEV_MDEditor_HorizontalRule);
+			if (!AddMenuItemImage (menu_hr_p, pics_ss [BID_HORIZONTAL_RULE], selected_pics_ss [BID_HORIZONTAL_RULE], ghosted_pics_ss [BID_HORIZONTAL_RULE], screen_p))
+				{
+  				DB (KPRINTF ("%s %ld - Failed to get hr menu image\n", __FILE__, __LINE__));
+				}
+
+			/* IMAGE */
+			if (!AddMenuItemImage (menu_image_p, pics_ss [BID_IMAGE], selected_pics_ss [BID_IMAGE], ghosted_pics_ss [BID_IMAGE], screen_p))
+				{
+  				DB (KPRINTF ("%s %ld - Failed to get image menu image\n", __FILE__, __LINE__));
+				}
+
+
+			/* TABLE */
+			if (!AddMenuItemImage (menu_table_p, pics_ss [BID_TABLE], selected_pics_ss [BID_TABLE], ghosted_pics_ss [BID_TABLE], screen_p))
+				{
+  				DB (KPRINTF ("%s %ld - Failed to get table menu image\n", __FILE__, __LINE__));
+				}
+
+			/* LINK */
+			if (!AddMenuItemImage (menu_hyperlink_p, pics_ss [BID_HYPERLINK], selected_pics_ss [BID_HYPERLINK], ghosted_pics_ss [BID_HYPERLINK], screen_p))
+				{
+  				DB (KPRINTF ("%s %ld - Failed to get hyperlink menu image\n", __FILE__, __LINE__));
+				}
+				
 
 			IIntuition -> UnlockPubScreen (NULL, screen_p);
 
@@ -865,6 +1027,7 @@ static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI
 			if (image_editor_window_p)
 				{
 					IIntuition -> IDoMethod (toolbar_p, MUIM_TheBar_DoOnButton, BID_IMAGE, MUIM_Notify, MUIA_Pressed, FALSE, image_editor_window_p, 3, MUIM_Set, MUIA_Window_Open, TRUE);
+					IIntuition -> IDoMethod (menu_image_p, MUIM_Notify, MUIA_Menuitem_Trigger, MUIV_EveryTime, image_editor_window_p, 3, MUIM_Set, MUIA_Window_Open, TRUE);
 					IIntuition -> IDoMethod (image_editor_window_p, MUIM_Notify, MUIA_Window_CloseRequest, TRUE, MUIV_Notify_Self, 3, MUIM_Set, MUIA_Window_Open, FALSE);
 
 					DB (KPRINTF ("%s %ld - CreateGUIObjects: image_editor_window_p %lu\n", __FILE__, __LINE__, (uint32) image_editor_window_p));
@@ -874,6 +1037,8 @@ static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI
 			if (table_editor_window_p)
 				{
 					IIntuition -> IDoMethod (toolbar_p, MUIM_TheBar_DoOnButton, BID_TABLE, MUIM_Notify, MUIA_Pressed, FALSE, table_editor_window_p, 3, MUIM_Set, MUIA_Window_Open, TRUE);
+					IIntuition -> IDoMethod (menu_table_p, MUIM_Notify, MUIA_Menuitem_Trigger, MUIV_EveryTime, table_editor_window_p, 3, MUIM_Set, MUIA_Window_Open, TRUE);
+					
 					IIntuition -> IDoMethod (table_editor_window_p, MUIM_Notify, MUIA_Window_CloseRequest, TRUE, MUIV_Notify_Self, 3, MUIM_Set, MUIA_Window_Open, FALSE);
 
 					IIntuition -> SetAttrs (table_editor_p, TEA_Editor, s_editor_p, TAG_DONE);
@@ -882,6 +1047,8 @@ static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI
 			if (hyperlink_editor_window_p)
 				{
 					IIntuition -> IDoMethod (toolbar_p, MUIM_TheBar_DoOnButton, BID_HYPERLINK, MUIM_Notify, MUIA_Pressed, FALSE, hyperlink_editor_window_p, 3, MUIM_Set, MUIA_Window_Open, TRUE);
+					IIntuition -> IDoMethod (menu_hyperlink_p, MUIM_Notify, MUIA_Menuitem_Trigger, MUIV_EveryTime, hyperlink_editor_window_p, 3, MUIM_Set, MUIA_Window_Open, TRUE);
+					
 					IIntuition -> IDoMethod (hyperlink_editor_window_p, MUIM_Notify, MUIA_Window_CloseRequest, TRUE, MUIV_Notify_Self, 3, MUIM_Set, MUIA_Window_Open, FALSE);
 
 					IIntuition -> SetAttrs (hyperlink_editor_p, HEA_Editor, s_editor_p, TAG_DONE);
