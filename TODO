@@ -1,6 +1,6 @@
 # TODO
 
- * Toolbar  is super wide on my setup (doesn't fit on the screen) (@capehill)
+
 
  * The settings Save button, IMO should propose the default name that earmark wait to load, giving the user the option to change it, if he wants. Or there should be a tooltype where the user should set the default config file. (@walkero)
  
@@ -18,6 +18,8 @@
  * Added status bar gadget for showing current cursor position and whether the
  file has been changed. (@walkero)
  * Menu images added. 
+ * Toolbar  is super wide on my setup (doesn't fit on the screen) (@capehill)
+ * Added View and Insert menus
  * Fenced code blocks were automatically adding opening and closing braces 
 (@walkero)
  * BUGFIX: The table button bubble had a semicolon after the shortcut, 

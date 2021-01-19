@@ -40,6 +40,8 @@
 
 #define MEA_PrefixMarkedLines (ME_Dummy + 6)
 
+#define MEA_InfoGadget (ME_Dummy + 7)
+
 /*************************/
 /******** METHODS ********/
 /*************************/
@@ -93,6 +95,10 @@
 #define MEV_MDEditor_Heading5   (ME_Dummy + 15)
 
 #define MEV_MDEditor_Heading6   (ME_Dummy + 16)
+
+#define MEV_MDEditor_UseExistingFilename (ME_Dummy + 17)
+
+#define MEV_MDEditor_UseNewFilename (ME_Dummy + 18)
 
 
 /*************************/

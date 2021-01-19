@@ -2,7 +2,7 @@ Short:        Edit and view Markdown documents
 Uploader:     tyrrell.simon@gmail.com (Simon Tyrrell)  
 Author:       tyrrell.simon@gmail.com (Simon Tyrrell)  
 Type:         text/edit  
-Version:      1.0
+Version:      1.1
 Architecture: ppc-amigaos >= 4.1  
 Distribution: Aminet  
 Requires: dev/mui/MCC_TextEditor, dev/mui/MCC_BetterString, dev/mui/MCC_TheBar
@@ -93,6 +93,8 @@ Any other ideas are welcome. :-)
 ## CHANGELOG
 
 ### 1.1
+ * Added Edit and View menus including option for changing the number of rows
+ in the toolbar to reduce the minimum window width if needed (@capehill)
  * Added status bar gadget for showing current cursor position and whether the
  file has been changed. (@walkero)
  * Menu images added. 

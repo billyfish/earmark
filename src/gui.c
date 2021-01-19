@@ -330,6 +330,7 @@ static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI
 	/* menu items */	
 	Object *menu_open_p = NULL;
 	Object *menu_save_p = NULL;
+	Object *menu_save_as_p = NULL;
 	Object *menu_convert_p = NULL;
 	Object *menu_about_p = NULL;
 	Object *menu_quit_p = NULL;
@@ -601,6 +602,12 @@ static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI
 						MUIA_Menuitem_Title, "Save",
 						MUIA_Menuitem_Shortcut, "S",
 					TAG_DONE),
+
+					MUIA_Family_Child, menu_save_as_p = IMUIMaster -> MUI_NewObject (MUIC_Menuitem,
+						MUIA_Menuitem_Title, "Save As",
+						MUIA_Menuitem_Shortcut, "W",
+					TAG_DONE),
+
 
 					MUIA_Family_Child, IMUIMaster -> MUI_NewObject (MUIC_Menuitem,
 						MUIA_Menuitem_Title, NM_BARLABEL,
@@ -877,8 +884,16 @@ static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI
 
 			/* SAVE */
 			IIntuition -> IDoMethod (menu_save_p, MUIM_Notify, MUIA_Menuitem_Trigger, MUIV_EveryTime,
-				s_editor_p, 1, MEM_MDEditor_Save);
+				s_editor_p, 2, MEM_MDEditor_Save, MEV_MDEditor_UseExistingFilename);
 			if (!AddMenuItemImage (menu_save_p, pics_ss [BID_SAVE], selected_pics_ss [BID_SAVE], ghosted_pics_ss [BID_SAVE], screen_p))
+				{
+  				DB (KPRINTF ("%s %ld - Failed to get save menu image\n", __FILE__, __LINE__));
+				}
+
+			/* SAVE AS */
+			IIntuition -> IDoMethod (menu_save_as_p, MUIM_Notify, MUIA_Menuitem_Trigger, MUIV_EveryTime,
+				s_editor_p, 2, MEM_MDEditor_Save, MEV_MDEditor_UseNewFilename);
+			if (!AddMenuItemImage (menu_save_as_p, "tbimages:saveas", "tbimages:saveas_s", "tbimages:saveas_g", screen_p))
 				{
   				DB (KPRINTF ("%s %ld - Failed to get save menu image\n", __FILE__, __LINE__));
 				}
@@ -1061,6 +1076,7 @@ static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI
 			if (info_gadget_p)
 				{
 					IIntuition -> SetAttrs (info_gadget_p, IGA_Editor, s_editor_p, TAG_DONE);
+					IIntuition -> SetAttrs (s_editor_p, MEA_InfoGadget, info_gadget_p, TAG_DONE);
 				}
 				
 				
@@ -1113,7 +1129,7 @@ static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI
 			if (toolbar_p)
 				{
 		      IIntuition -> IDoMethod (toolbar_p, MUIM_TheBar_DoOnButton, BID_OPEN, MUIM_Notify, MUIA_Pressed, FALSE, s_editor_p, 1, MEM_MDEditor_Load);
-		      IIntuition -> IDoMethod (toolbar_p, MUIM_TheBar_DoOnButton, BID_SAVE, MUIM_Notify, MUIA_Pressed, FALSE, s_editor_p, 1, MEM_MDEditor_Save);
+		      IIntuition -> IDoMethod (toolbar_p, MUIM_TheBar_DoOnButton, BID_SAVE, MUIM_Notify, MUIA_Pressed, FALSE, s_editor_p, 2, MEM_MDEditor_Save, MEV_MDEditor_UseExistingFilename);
 		      IIntuition -> IDoMethod (toolbar_p, MUIM_TheBar_DoOnButton, BID_CONVERT, MUIM_Notify, MUIA_Pressed, FALSE, s_editor_p, 1, MEM_MDEditor_Convert);
 
 		      IIntuition -> IDoMethod (toolbar_p, MUIM_TheBar_DoOnButton, BID_UNDO, MUIM_Notify, MUIA_Pressed, FALSE, s_editor_p, 2, MUIM_TextEditor_ARexxCmd, "Undo");

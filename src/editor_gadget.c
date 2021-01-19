@@ -35,6 +35,7 @@
 #include "debugging_utils.h"
 //#include "memwatch.h"
 #include "editor_gadget.h"
+#include "info_gadget.h"
 
 #include "md_to_html.h"
 
@@ -48,6 +49,7 @@
 typedef struct MarkdownEditorData
 {
 	Object *med_viewer_p;
+	Object *med_info_p;
 	MDPrefs *med_prefs_p; 
 	STRPTR med_filename_s;
 } MarkdownEditorData;
@@ -69,7 +71,7 @@ static uint32 MarkdownEditor_Convert (Class *class_p, Object *editor_p);
 
 static uint32 MarkdownEditor_Load (Class *class_p, Object *editor_p);
 
-static uint32 MarkdownEditor_Save (Class *class_p, Object *editor_p);
+static uint32 MarkdownEditor_Save (Class *class_p, Object *editor_p, STRPTR filename_s);
 
 
 
@@ -129,7 +131,7 @@ static uint32 MarkdownEditorDispatcher (Class *class_p,  Object *object_p, Msg m
 					/* Do we have a valid filename? */
 					if (! (md_p -> med_filename_s))
 						{
-							MarkdownEditor_Save (class_p, object_p);
+							MarkdownEditor_Save (class_p, object_p, md_p -> med_filename_s);
 						}
 					
 					DB (KPRINTF ("%s %ld - MarkdownEditorDispatcher: Convert 2 -  file \"%s\"\n", __FILE__, __LINE__, md_p -> med_filename_s ? md_p -> med_filename_s : "NULL"));					
@@ -151,8 +153,22 @@ static uint32 MarkdownEditorDispatcher (Class *class_p,  Object *object_p, Msg m
 				break;
 
 			case MEM_MDEditor_Save:
-				DB (KPRINTF ("%s %ld - MarkdownEditorDispatcher: Save\n", __FILE__, __LINE__));
-				res = MarkdownEditor_Save (class_p, object_p);
+				{
+					MarkdownEditorData *md_p = INST_DATA (class_p, object_p);
+					struct opGet *op_p = (struct opGet *) msg_p;
+					uint32 *store_p = op_p -> opg_Storage;
+					STRPTR filename_s = NULL;				
+				
+					switch (op_p -> opg_AttrID)
+						{
+							case MEV_MDEditor_UseExistingFilename:	
+								filename_s = md_p -> med_filename_s;			
+								break;	
+						}
+									
+					DB (KPRINTF ("%s %ld - MarkdownEditorDispatcher: Save\n", __FILE__, __LINE__));
+					res = MarkdownEditor_Save (class_p, object_p, filename_s);
+				}
 				break;
 
 			default:
@@ -177,7 +193,7 @@ static uint32 MarkdownEditor_New (Class *class_p, Object *object_p, Msg msg_p)
 			md_p -> med_filename_s = NULL;
 			md_p -> med_viewer_p = NULL;
 			md_p -> med_prefs_p = NULL;
-
+			md_p -> med_info_p = NULL;
 
 			DB (KPRINTF ("%s %ld - MarkdownEditor_New: Adding info obj\n", __FILE__, __LINE__));
 		}
@@ -218,6 +234,11 @@ static uint32 MarkdownEditor_Set (Class *class_p, Object *object_p, Msg msg_p)
 						md_p -> med_viewer_p = (Object *) tag_data;
 						break;
 						
+					case MEA_InfoGadget:
+						md_p -> med_info_p = (Object *) tag_data;
+						break;
+						
+
 					case MEA_Prefs:
 						md_p -> med_prefs_p = (MDPrefs *) tag_data;
 						break;
@@ -707,7 +728,15 @@ static uint32 MarkdownEditor_Load (Class *class_p, Object *editor_p)
 
 	if (filename_s)
 		{
-			LoadFile (filename_s);
+			if (LoadFile (filename_s))
+				{					
+					MarkdownEditorData *md_p = INST_DATA (class_p, editor_p);																	
+				
+					if (md_p -> med_info_p)
+						{
+							IIntuition -> SetAttrs (md_p -> med_info_p, IGA_Changed, FALSE, TAG_DONE);	
+						}	
+				}
 					
 			IExec -> FreeVec (filename_s);
 		}
@@ -717,13 +746,17 @@ static uint32 MarkdownEditor_Load (Class *class_p, Object *editor_p)
 
 
 
-static uint32 MarkdownEditor_Save (Class *class_p, Object *editor_p)
+static uint32 MarkdownEditor_Save (Class *class_p, Object *editor_p, STRPTR filename_s)
 {
 	uint32 res = 0;
 	MarkdownEditorData *md_p = INST_DATA (class_p, editor_p);
 	CONST CONST_STRPTR pattern_s = GetMarkdownFilePattern ();
-	STRPTR filename_s = RequestFilename (TRUE, "Save Markdown file", pattern_s, md_p -> med_filename_s);
-
+	
+	if (!filename_s)
+		{
+			filename_s = RequestFilename (TRUE, "Save Markdown file", pattern_s, md_p -> med_filename_s);
+		}
+		
 	if (filename_s)
 		{
 			STRPTR text_s = (STRPTR) IIntuition -> IDoMethod (editor_p, MUIM_TextEditor_ExportText);
@@ -758,8 +791,14 @@ static uint32 MarkdownEditor_Save (Class *class_p, Object *editor_p)
 								
 							if (changed_filename_flag)
 								{
-									UpdateWindowActiveFilename (md_p -> med_filename_s);	
+									UpdateWindowActiveFilename (md_p -> med_filename_s);
 								}	
+								
+																
+							if (md_p -> med_info_p)
+								{
+									IIntuition -> SetAttrs (md_p -> med_info_p, IGA_Changed, FALSE, TAG_DONE);	
+								}
 						}
 				}
 			
