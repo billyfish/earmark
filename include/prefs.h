@@ -28,6 +28,14 @@ typedef enum
 } Dialect;
 
 
+typedef enum
+{
+	VM_LAUNCH_HANDLER,
+	VM_HTML_VIEW,
+	VM_NUM_MODES
+} ViewerMode;
+
+
 typedef struct MDPrefs
 {
 	uint32 mdp_dialect;
@@ -41,6 +49,8 @@ typedef struct MDPrefs
 	uint32 mdp_html_spans;
 	uint32 mdp_indented_code_blocks;
 	uint32 mdp_translate_html_entities;	
+	
+	uint32 mdp_viewer_mode;
 	
 } MDPrefs;
 

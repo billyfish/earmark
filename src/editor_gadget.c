@@ -658,37 +658,59 @@ static uint32 MarkdownEditor_Convert (Class *class_p, Object *editor_p)
 							
 							if (html_filename_s)
 								{
-									if (SaveFile (html_filename_s + prefix_length, html_s))
+									DB (KPRINTF ("%s %ld - MarkdownEditor_Convert: md_p -> med_filename_s \"%s\", html_filename_s \"%s\", after prefix \"%s\"\n", 
+										__FILE__, __LINE__, md_p -> med_filename_s, html_filename_s, html_filename_s + prefix_length));
+									
+ 									if (SaveFile (html_filename_s + prefix_length, html_s))
 										{
-											/*
-											** This example allows an application to determine if the URL: handler is
-											** currently mounted and to test whether the launch-handler is working
-											** without posting any requesters.
-											*/
-									    APTR old_win_p = IDOS -> SetProcWindow ((APTR) -1); 
-		    							BPTR url_handle_p = IDOS -> Open ("URL:NIL:", MODE_OLDFILE);
-		                  BOOL success_flag = FALSE;
-		                  
-		                  IDOS -> SetProcWindow (old_win_p);
-	 
-									    if (url_handle_p)  /* Non-zero return values indicates success. */
-									    	{
-									        IDOS -> Close (url_handle_p);  /* Must still close it */
-									        
-									        /* We now know that the launch handler is working, so open our file */
-									        url_handle_p = IDOS -> Open (html_filename_s, MODE_OLDFILE);
-	
-		    									if (url_handle_p)  /* Check return value and Close() immediately. */
-		    										{	
-											        IDOS -> Close (url_handle_p);
-											        success_flag = TRUE;
+											BOOL use_launch_handler_flag = FALSE;
+											
+											if (use_launch_handler_flag)
+												{
+													/*
+													** This example allows an application to determine if the URL: handler is
+													** currently mounted and to test whether the launch-handler is working
+													** without posting any requesters.
+													*/
+											    APTR old_win_p = IDOS -> SetProcWindow ((APTR) -1); 
+				    							BPTR url_handle_p = IDOS -> Open ("URL:NIL:", MODE_OLDFILE);
+				                  BOOL success_flag = FALSE;
+				                  
+				                  IDOS -> SetProcWindow (old_win_p);
+			 
+											    if (url_handle_p)  /* Non-zero return values indicates success. */
+											    	{
+											        IDOS -> Close (url_handle_p);  /* Must still close it */
+											        
+											        /* We now know that the launch handler is working, so open our file */
+											        url_handle_p = IDOS -> Open (html_filename_s, MODE_OLDFILE);
+			
+				    									if (url_handle_p)  /* Check return value and Close() immediately. */
+				    										{	
+													        IDOS -> Close (url_handle_p);
+													        success_flag = TRUE;
+																}
+														}
+														
+													if (!success_flag)
+														{
+															ShowWarning ("View Error", "Failed to open browser to view converted file", "_Ok");
+														}												
+
+												}		/* if (use_launch_handler_flag) */
+				
+											if (md_p -> med_viewer_p)
+												{
+													char *url_s = ConcatenateStrings ("file://", html_filename_s + prefix_length); 	/* skip past the "URL:" bit */
+													
+													if (url_s)
+														{
+															//IIntuition -> SetAttrs (md_p -> med_viewer_p, MUIA_HTMLview_Contents, html_s, TAG_DONE);
+															DB (KPRINTF ("%s %ld - Viewing \"%s\"\n", __FILE__, __LINE__, url_s));
+															IIntuition -> IDoMethod (md_p -> med_viewer_p, MUIM_HTMLview_GotoURL, url_s, NULL);
+															FreeCopiedString (url_s);
 														}
 												}
-												
-											if (!success_flag)
-												{
-													ShowWarning ("View Error", "Failed to open browser to view converted file", "_Ok");
-												}												
 										}
 									else
 										{
@@ -697,11 +719,6 @@ static uint32 MarkdownEditor_Convert (Class *class_p, Object *editor_p)
 										
 									IExec -> FreeVec (html_filename_s);	
 								}		/* if (html_filename_s) */	
-						}
-					
-					if (md_p -> med_viewer_p)
-						{
-							IIntuition -> SetAttrs (md_p -> med_viewer_p, MUIA_HTMLview_Contents, html_s, TAG_DONE);
 						}
 
 					IExec -> FreeVec (html_s);
@@ -722,10 +739,12 @@ static uint32 MarkdownEditor_Load (Class *class_p, Object *editor_p)
 {
 	uint32 res = 0;
 	CONST CONST_STRPTR pattern_s = GetMarkdownFilePattern ();
-	STRPTR filename_s = RequestFilename (FALSE, "Load Markdown file", pattern_s, NULL);
+	STRPTR filename_s = RequestFilename (FALSE, "Load Markdown file", pattern_s, NULL, NULL);
 
 	if (filename_s)
 		{
+			DB (KPRINTF ("%s %ld - Trying to load \"%s\"\n", __FILE__, __LINE__, filename_s));
+
 			if (LoadFile (filename_s))
 				{					
 					MarkdownEditorData *md_p = INST_DATA (class_p, editor_p);																	
@@ -752,7 +771,7 @@ static uint32 MarkdownEditor_Save (Class *class_p, Object *editor_p, STRPTR file
 	
 	if (!filename_s)
 		{
-			filename_s = RequestFilename (TRUE, "Save Markdown file", pattern_s, md_p -> med_filename_s);
+			filename_s = RequestFilename (TRUE, "Save Markdown file", pattern_s, NULL, md_p -> med_filename_s);
 		}
 		
 	if (filename_s)

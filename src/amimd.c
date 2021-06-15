@@ -81,6 +81,9 @@ struct ClassLibrary *BitMapBase = NULL;
 struct Library *IconBase = NULL;
 struct IconIFace *IIcon = NULL;
 
+
+static BPTR s_current_dir_p = ZERO;
+
 static const char USED min_stack[] = "$STACK:102400";
 
 /***************************************************************/
@@ -154,6 +157,7 @@ int main (int argc, char *argv [])
 
 	if (OpenLibs ())
 		{			
+			BPTR original_dir_lock_p = ZERO;
 			MDPrefs *prefs_p = NULL;
 			STRPTR md_filename_s = NULL;
 			STRPTR md_settings_s = NULL;
@@ -245,7 +249,28 @@ int main (int argc, char *argv [])
 						}
 				}
 
-			CreateMUIInterface (prefs_p, md_filename_s);
+			/*
+			original_dir_lock_p = IDOS -> GetCurrentDir ();
+			
+			if (original_dir_lock_p != ZERO)
+				{
+					BPTR current_dir_lock_p = ZERO;
+								
+					CreateMUIInterface (prefs_p, md_filename_s);
+
+					current_dir_lock_p = IDOS -> GetCurrentDir ();
+			
+					if (current_dir_lock_p != ZERO)
+						{
+							if (current_dir_lock_p != original_dir_lock_p)
+								{
+									IDOS -> SetCurrentDir (original_dir_lock_p);
+								}
+						}
+				}
+			*/
+
+		CreateMUIInterface (prefs_p, md_filename_s);
 
 
 			if (md_settings_s)
@@ -267,6 +292,8 @@ int main (int argc, char *argv [])
 
 	return result;
 }
+
+
 
 static BOOL OpenLib (struct Library **library_pp, CONST_STRPTR lib_name_s, const uint32 lib_version, struct Interface **interface_pp, CONST_STRPTR interface_name_s, const uint32 interface_version)
 {

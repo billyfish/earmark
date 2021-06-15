@@ -20,11 +20,14 @@
 
 #include <libraries/mui.h>
 
+#include <mui/HTMLview_mcc.h>
+
 
 struct MUI_CustomClass *InitMarkdownViewerClass (void);
 
 
 void FreeMarkdownViewerClass (struct MUI_CustomClass *mui_class_p);
 
-
+uint32 LoadHtmlImage (struct Hook *hook_p, Object *obj_p, struct HTMLview_LoadMsg *lmsg);
+ 
 #endif

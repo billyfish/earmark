@@ -39,7 +39,7 @@ BOOL LoadFile (CONST CONST_STRPTR filename_s);
 
 BOOL SaveFile (CONST CONST_STRPTR filename_s, CONST CONST_STRPTR text_s);
 
-STRPTR RequestFilename (const BOOL save_flag, CONST CONST_STRPTR title_s, CONST CONST_STRPTR file_pattern_s, CONST CONST_STRPTR initial_file_s);
+STRPTR RequestFilename (const BOOL save_flag, CONST CONST_STRPTR title_s, CONST CONST_STRPTR file_pattern_s, CONST_STRPTR initial_drawer_s, CONST CONST_STRPTR initial_file_s);
 
 void UpdateWindowActiveFilename (CONST CONST_STRPTR filename_s);
 

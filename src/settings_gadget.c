@@ -179,6 +179,7 @@ static uint32 MarkdownSettingsDispatcher (Class *class_p,  Object *object_p, Msg
 static Object *GetSettingsObject (MDPrefs *prefs_p, Object *parent_p)
 {
 	static const char *dialects_ss []   = { "CommonMark", "Github", NULL };
+	static const char *view_modes_ss [] = { "Browser", "Inline", NULL };
 					
 	Object *save_p = NULL;
 	Object *load_p = NULL;
@@ -191,11 +192,17 @@ static Object *GetSettingsObject (MDPrefs *prefs_p, Object *parent_p)
 			MUIA_Group_Horiz, TRUE,
 			MUIA_Group_VertCenter, MUIV_Group_VertCenter_Top,
 
-			MUIA_Group_Child, s_dialect_p = IMUIMaster -> MUI_NewObject (MUIC_Radio,
+				MUIA_Group_Child, s_dialect_p = IMUIMaster -> MUI_NewObject (MUIC_Radio,
 					MUIA_Frame, MUIV_Frame_Group,
 					MUIA_FrameTitle, "MD Dialect",
 					MUIA_Radio_Entries, dialects_ss,
 				TAG_DONE),
+		
+				MUIA_Group_Child, s_dialect_p = IMUIMaster -> MUI_NewObject (MUIC_Radio,
+					MUIA_Frame, MUIV_Frame_Group,
+					MUIA_FrameTitle, "MD Dialect",
+					MUIA_Radio_Entries, dialects_ss,
+				TAG_DONE),		
 		
 				MUIA_Group_Child, IMUIMaster -> MUI_NewObject (MUIC_Group,
 					MUIA_Frame, MUIV_Frame_Group,
@@ -513,7 +520,7 @@ static uint32 MarkdownSettings_Get (Class *class_p, Object *object_p, Msg msg_p)
 static uint32 MarkdownSettings_Load (Class *class_p, Object *settings_p)
 {
 	uint32 res = 0;
-	STRPTR filename_s = RequestFilename (FALSE, "Load conversion settings", NULL, "earmark.settings");
+	STRPTR filename_s = RequestFilename (FALSE, "Load conversion settings", NULL, NULL, "earmark.settings");
 
 	DB (KPRINTF ("%s %ld - MarkdownSettings_Load: filename \"%s\"\n", __FILE__, __LINE__, filename_s));		
 
@@ -544,7 +551,7 @@ static uint32 MarkdownSettings_Load (Class *class_p, Object *settings_p)
 static uint32 MarkdownSettings_Save (Class *class_p, Object *settings_p)
 {
 	uint32 res = 0;
-	STRPTR filename_s = RequestFilename (TRUE, "Save conversion settings", NULL, "earmark.settings");
+	STRPTR filename_s = RequestFilename (TRUE, "Save conversion settings", NULL, NULL, "earmark.settings");
 
 	if (filename_s)
 		{

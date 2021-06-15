@@ -37,6 +37,7 @@
 
 #include "gui.h"
 #include "editor_gadget.h"
+#include "viewer_gadget.h"
 #include "settings_gadget.h"
 #include "image_editor.h"
 #include "table_editor.h"
@@ -79,7 +80,7 @@ static void FreeGUIObjects (APTR app_p);
 
 static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI_CustomClass *settings_class_p, struct MUI_CustomClass *image_editor_class_p,
 	struct MUI_CustomClass *table_editor_class_p, struct MUI_CustomClass *hyperlink_editor_class_p, struct MUI_CustomClass *search_gadget_class_p, 
-	struct MUI_CustomClass *info_gadget_class_p, MDPrefs *prefs_p);
+	struct MUI_CustomClass *info_gadget_class_p, struct MUI_CustomClass *viewer_gadget_class_p, MDPrefs *prefs_p, struct Hook *hook_p);
 
 static void RunMD (APTR app_p);
 
@@ -110,6 +111,7 @@ static STRPTR s_file_pattern_s = NULL;
 /***************************************/
 /*********** API FUNCTIONS ************/
 /***************************************/
+
 
 BOOL CreateMUIInterface (MDPrefs *prefs_p, CONST CONST_STRPTR markdown_file_s)
 {
@@ -165,81 +167,106 @@ BOOL CreateMUIInterface (MDPrefs *prefs_p, CONST CONST_STRPTR markdown_file_s)
 													info_gadget_class_p = InitInfoGadgetClass ();
 				
 													if (info_gadget_class_p)
-														{													
-															APTR app_p;
+														{
+															struct MUI_CustomClass *viewer_gadget_class_p;
+																														
+															DB (KPRINTF ("%s %ld - Inited Info Gadget\n", __FILE__, __LINE__));
+																												
+															viewer_gadget_class_p = InitMarkdownViewerClass ();
 		
-															DB (KPRINTF ("%s %ld - Inited Hyperlink Editor\n", __FILE__, __LINE__));
-				
-															DB (KPRINTF ("%s %ld - prefs %lu\n", __FILE__, __LINE__, prefs_p));
-				
-															app_p = CreateGUIObjects (editor_class_p, settings_class_p, image_editor_class_p, table_editor_class_p, 
-																hyperlink_editor_class_p, search_gadget_class_p, info_gadget_class_p, prefs_p);
-				
-															if (app_p)
+															if (viewer_gadget_class_p)
 																{
-																	CONST CONST_STRPTR md_reg_s = "#?.md";
-																	const size_t md_reg_length = strlen (md_reg_s);
-																	const size_t size = (md_reg_length + 1) << 1;
-				
-																	DB (KPRINTF ("%s %ld - Created GUI Objects\n", __FILE__, __LINE__));
-				
-																	s_file_pattern_s = (STRPTR) IExec -> AllocVecTags (size, TAG_DONE);
-				
-																	if (s_file_pattern_s)
+																	struct Hook *hook_p = IExec -> AllocSysObjectTags (ASOT_HOOK, ASOHOOK_Entry, LoadHtmlImage, TAG_DONE);	
+
+																	if (hook_p)
 																		{
-																			DB (KPRINTF ("%s %ld - Created File Pattern\n", __FILE__, __LINE__));
-				
-																			if (IDOS -> ParsePattern (md_reg_s, s_file_pattern_s, size) >= 0)
+																			APTR app_p;
+																														
+																			DB (KPRINTF ("%s %ld - Inited Viewer Gadget\n", __FILE__, __LINE__));
+																			
+																			DB (KPRINTF ("%s %ld - prefs %lu\n", __FILE__, __LINE__, prefs_p));
+						
+						
+																			app_p = CreateGUIObjects (editor_class_p, settings_class_p, image_editor_class_p, table_editor_class_p, 
+																				hyperlink_editor_class_p, search_gadget_class_p, info_gadget_class_p, viewer_gadget_class_p, prefs_p, hook_p);
+								
+																			if (app_p)
 																				{
-																					DB (KPRINTF ("%s %ld - Parsed File Pattern\n", __FILE__, __LINE__));
-				
-																					if (markdown_file_s)
+																					CONST CONST_STRPTR md_reg_s = "#?.md";
+																					const size_t md_reg_length = strlen (md_reg_s);
+																					const size_t size = (md_reg_length + 1) << 1;
+								
+																					DB (KPRINTF ("%s %ld - Created GUI Objects\n", __FILE__, __LINE__));
+								
+																					s_file_pattern_s = (STRPTR) IExec -> AllocVecTags (size, TAG_DONE);
+								
+																					if (s_file_pattern_s)
 																						{
-																							if (!LoadFile (markdown_file_s))
+																							DB (KPRINTF ("%s %ld - Created File Pattern\n", __FILE__, __LINE__));
+								
+																							if (IDOS -> ParsePattern (md_reg_s, s_file_pattern_s, size) >= 0)
 																								{
-																									STRPTR error_s = ConcatenateStrings ("Failed to load input file: ", markdown_file_s);
+																									DB (KPRINTF ("%s %ld - Parsed File Pattern\n", __FILE__, __LINE__));
+								
+																									if (markdown_file_s)
+																										{
+																											if (!LoadFile (markdown_file_s))
+																												{
+																													STRPTR error_s = ConcatenateStrings ("Failed to load input file: ", markdown_file_s);
+																													
+																													if (error_s)
+																														{
+																															ShowError ("Load Error", error_s, "_Ok");	
+																															FreeCopiedString (error_s);
+																														}
+																													else
+																														{
+																															ShowError ("Load Error", markdown_file_s, "_Ok");																											
+																														}
+																												}
+																										}
 																									
-																									if (error_s)
-																										{
-																											ShowError ("Load Error", error_s, "_Ok");	
-																											FreeCopiedString (error_s);
-																										}
-																									else
-																										{
-																											ShowError ("Load Error", markdown_file_s, "_Ok");																											
-																										}
+								
+																									RunMD (app_p);
+																									success_flag = TRUE;
+								
+																									/*
+																									** save the current weights of all Balance objects until the next reboot
+																									** if the weights are to be saved permanently the MUIV_Application_Save_ENVARC must be used instead
+																									*/
+																									IIntuition -> IDoMethod (app_p, MUIM_Application_Save, MUIV_Application_Save_ENV);
+								
+																									IExec -> FreeVec (s_file_pattern_s);
+																								}
+																							else
+																								{
+																									ShowError ("Launch Error", "Failed to create the user interface:\n Could not parse the default file pattern", "_Ok");
 																								}
 																						}
-																					
-				
-																					RunMD (app_p);
-																					success_flag = TRUE;
-				
-																					/*
-																					** save the current weights of all Balance objects until the next reboot
-																					** if the weights are to be saved permanently the MUIV_Application_Save_ENVARC must be used instead
-																					*/
-																					IIntuition -> IDoMethod (app_p, MUIM_Application_Save, MUIV_Application_Save_ENV);
-				
-																					IExec -> FreeVec (s_file_pattern_s);
-																				}
+																					else
+																						{
+																							ShowError ("Launch Error", "Failed to create the user interface:\n Could not create the default file pattern", "_Ok");
+																						}
+								
+																					FreeGUIObjects (app_p);
+																				}		/* if (app_p) */
 																			else
 																				{
-																					ShowError ("Launch Error", "Failed to create the user interface:\n Could not parse the default file pattern", "_Ok");
-																				}
-																		}
-																	else
-																		{
-																			ShowError ("Launch Error", "Failed to create the user interface:\n Could not create the default file pattern", "_Ok");
-																		}
-				
-																	FreeGUIObjects (app_p);
-																}		/* if (app_p) */
+																					ShowError ("Launch Error", "Failed to create the user interface:\n Could not start the application", "_Ok");
+																				}																				
+																				
+																			IExec ->FreeSysObject (ASOT_HOOK, hook_p);
+																		}		/* if (hook_p) */
+
+																	
+																		
+																	FreeMarkdownViewerClass (viewer_gadget_class_p);		
+																}		/* if (viewer_gadget_class_p) */
 															else
 																{
-																	ShowError ("Launch Error", "Failed to create the user interface:\n Could not start the application", "_Ok");
-																}					
-																
+																	ShowError ("Launch Error", "Failed to create the user interface:\n Could not initialise the viewer gadget class", "_Ok");																	
+																}
+				
 															FreeInfoGadgetClass (info_gadget_class_p);	
 														}		/* if (info_gadget_class_p) */
 													else
@@ -330,7 +357,7 @@ CONST CONST_STRPTR GetMarkdownFilePattern (void)
 
 static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI_CustomClass *settings_class_p, struct MUI_CustomClass *image_editor_class_p,
 	struct MUI_CustomClass *table_editor_class_p, struct MUI_CustomClass *hyperlink_editor_class_p, struct MUI_CustomClass *search_gadget_class_p, 
-	struct MUI_CustomClass *info_gadget_class_p, MDPrefs *prefs_p)
+	struct MUI_CustomClass *info_gadget_class_p, struct MUI_CustomClass *viewer_class_p, MDPrefs *prefs_p, struct Hook *hook_p)
 {
 	APTR app_p = NULL;
 	APTR strip_p = NULL;
@@ -386,6 +413,7 @@ static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI
 			"TextEditor.mcc",
 			"TheBar.mcc",
 			"BetterString.mcc",
+			"HTMLView.mcc",
 			NULL
 		};
 
@@ -413,6 +441,7 @@ static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI
 			BID_IMAGE,
 			BID_FOOTNOTE,
 			BID_TABLE,
+			BID_UPDATE,
 			BID_NUM_BUTTONS
 		}
 	ButtonID;
@@ -439,6 +468,7 @@ static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI
 			"tbimages:image",
 			"tbimages:insertfootnote",
 			"tbimages:tableadd",
+			"tbimages:internet",
 			NULL
 		};
 
@@ -464,6 +494,7 @@ static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI
 			"tbimages:image_s",
 			"tbimages:insertfootnote_s",
 			"tbimages:tableadd_s",
+			"tbimages:internet_s",
 			NULL
 		};
 
@@ -489,6 +520,7 @@ static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI
 			"tbimages:image_g",
 			"tbimages:insertfootnote_g",			
 			"tbimages:tableadd_g",
+			"tbimages:internet_g",
 			NULL
 		};
 
@@ -520,6 +552,7 @@ static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI
 			{ BID_IMAGE, BID_IMAGE, "Image", "Insert an image.", 0, 0, NULL, NULL },
 //			{ BID_FOOTNOTE, BID_FOOTNOTE, "_Footnote", "Insert a footnote.", 0, 0, NULL, NULL },
 			{ BID_TABLE, BID_TABLE, "_Table", "Insert a table.\n\nShortcut: RAmiga+T", 0, 0, NULL, NULL },
+			{ BID_UPDATE, BID_UPDATE, "_Update", "Update the HTML.\n\nShortcut: RAmiga+U", 0, 0, NULL, NULL },
 			{ MUIV_TheBar_End, -1, NULL, NULL, 0, 0, NULL, NULL }
 		};
 
@@ -825,20 +858,40 @@ static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI
 						TAG_DONE),
 
 
-						/* Editor  */
 						MUIA_Group_Child, IMUIMaster -> MUI_NewObject (MUIC_Group,
 							MUIA_Group_Horiz, TRUE,
 
-							MUIA_Group_Child, s_editor_p = IIntuition -> NewObject (editor_class_p -> mcc_Class, NULL,
+							/* Editor  */
+							MUIA_Group_Child, IMUIMaster -> MUI_NewObject (MUIC_Group,
+								MUIA_Group_Horiz, TRUE,
+	
+								MUIA_Group_Child, s_editor_p = IIntuition -> NewObject (editor_class_p -> mcc_Class, NULL,
+									ImageButtonFrame,
+									MUIA_FillArea, FALSE,
+									MUIA_ShortHelp, (uint32) "The Markdown source code",
+								TAG_DONE),
+	
+								MUIA_Group_Child, editor_scrollbar_p = IMUIMaster -> MUI_NewObject (MUIC_Scrollbar,
+								TAG_DONE),
+	
+							TAG_DONE),		/* End Editor */
+	
+	
+							MUIA_Group_Child, IMUIMaster -> MUI_NewObject (MUIC_Balance,
+								MUIA_CycleChain, 1,
+								MUIA_ObjectID, MAKE_ID ('B', 'A', 'L', '1'),
+							TAG_DONE),
+						
+							MUIA_Group_Child, s_viewer_p = IIntuition -> NewObject (viewer_class_p -> mcc_Class, NULL,
+								MUIA_HTMLview_ImageLoadHook, hook_p,
 								ImageButtonFrame,
 								MUIA_FillArea, FALSE,
-								MUIA_ShortHelp, (uint32) "The Markdown source code",
-							TAG_DONE),
+								MUIA_ShortHelp, (uint32) "The generated HTML",
+							TAG_DONE),							
+							
+						TAG_DONE),
 
-							MUIA_Group_Child, editor_scrollbar_p = IMUIMaster -> MUI_NewObject (MUIC_Scrollbar,
-							TAG_DONE),
 
-						TAG_DONE),		/* End Editor */
                  
 						MUIA_Group_Child, IMUIMaster -> MUI_NewObject (MUIC_Group,
 							MUIA_Group_Horiz, TRUE,
@@ -1215,7 +1268,8 @@ BOOL LoadFile (CONST CONST_STRPTR filename_s)
 								{
 									CONST_STRPTR join_s = " - ";
 									STRPTR title_s = NULL;
-
+									BPTR lock_p = ZERO;
+									
 									* (content_s + size) = '\0';
 
 									IIntuition -> IDoMethod (s_editor_p, MUIM_TextEditor_ClearText);
@@ -1223,7 +1277,20 @@ BOOL LoadFile (CONST CONST_STRPTR filename_s)
 
 									IIntuition -> SetAttrs (s_editor_p, MEA_Filename, filename_s, TAG_DONE);
 
-
+									/*
+									DB (KPRINTF ("%s %ld - Locking parent of \"%s\"\n", __FILE__, __LINE__, filename_s));
+									lock_p = IDOS -> ParentOfFH (fh_p);
+									
+									if (lock_p != ZERO)
+										{
+											IDOS -> SetCurrentDir (lock_p);
+										}
+									else
+										{
+											DB (KPRINTF ("%s %ld - Failed to lock parent of \"%s\"\n", __FILE__, __LINE__, filename_s));	
+										}
+									*/
+									
 									success_flag = TRUE;
 								}
 						}
@@ -1254,7 +1321,21 @@ BOOL SaveFile (CONST CONST_STRPTR filename_s, CONST CONST_STRPTR text_s)
 
 			IDOS -> FClose (fh_p);
 		}
-
+	else
+		{
+			char buffer_s [8192];
+			BPTR lock_p = IDOS -> GetCurrentDir ();
+			
+			if (IDOS -> NameFromLock (lock_p, buffer_s, 8191))
+				{
+					DB (KPRINTF ("%s %ld - Failed to save \"%s\" in \"%s\"\n", __FILE__, __LINE__, filename_s, buffer_s));
+				}
+			else
+				{
+					DB (KPRINTF ("%s %ld - Failed to save \"%s\" in unknown dir\n", __FILE__, __LINE__, filename_s));
+				}			
+		}
+		
 	return success_flag;
 }
 
@@ -1304,7 +1385,7 @@ static void RunMD (APTR app_p)
 }
 
 
-STRPTR RequestFilename (const BOOL save_flag, CONST CONST_STRPTR title_s, CONST CONST_STRPTR file_pattern_s, CONST CONST_STRPTR initial_file_s)
+STRPTR RequestFilename (const BOOL save_flag, CONST CONST_STRPTR title_s, CONST CONST_STRPTR file_pattern_s, CONST_STRPTR initial_drawer_s, CONST CONST_STRPTR initial_file_s)
 {
 	STRPTR filename_s = NULL;
 	struct FileRequester *req_p = (struct FileRequester *) IAsl -> AllocAslRequest (ASL_FileRequest, NULL);
@@ -1323,6 +1404,18 @@ STRPTR RequestFilename (const BOOL save_flag, CONST CONST_STRPTR title_s, CONST 
 
 			if (window_p)
 				{
+					char drawer_buffer_s [MAX_DOS_PATH];
+					
+					if (!initial_drawer_s)
+						{
+							int32 success = IDOS -> GetCliCurrentDirName (drawer_buffer_s, MAX_DOS_PATH);
+							
+							if (success)
+								{
+									initial_drawer_s = drawer_buffer_s;
+								}
+						}
+					
 					if (IAsl -> AslRequestTags (req_p,
 						//ASLFR_InitialDrawer, "RAM:",
 						ASLFR_RejectIcons, TRUE,
@@ -1332,6 +1425,7 @@ STRPTR RequestFilename (const BOOL save_flag, CONST CONST_STRPTR title_s, CONST 
 						ASLFR_DoPatterns, TRUE,
 						ASLFR_InitialPattern, file_pattern_s ? file_pattern_s : NULL,
 						ASLFR_InitialFile, initial_file_s,
+						ASLFR_InitialDrawer, initial_drawer_s,
 						TAG_END))
 						{
 							#define FNAME_MAX (2048)
@@ -1345,11 +1439,18 @@ STRPTR RequestFilename (const BOOL save_flag, CONST CONST_STRPTR title_s, CONST 
 
 											//printf ("asl: %s %s\n", req_p -> fr_Drawer, req_p -> fr_File);
 
+
+
 											filename_s = (STRPTR) IExec -> AllocVecTags (l, TAG_DONE);
 
 											if (filename_s)
 												{
-													if (IUtility -> Strlcpy (filename_s, buffer_s, l) > l)
+													if (IUtility -> Strlcpy (filename_s, buffer_s, l) <= l)
+														{
+															DB (KPRINTF ("%s %ld - RequestFilename drawer \"%s\", file \"%s\", buffer \"%s\", filename \"%s\" \n", 
+																__FILE__, __LINE__, req_p -> fr_Drawer, req_p -> fr_File, buffer_s, filename_s));
+														}
+													else
 														{
 															IExec -> FreeVec (filename_s);
 															filename_s = NULL;

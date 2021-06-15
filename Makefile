@@ -46,6 +46,8 @@ DIR_OBJS = build/$(BUILD)
 
 OBJS = $(patsubst %.c, $(DIR_OBJS)/%.o, $(SRCS))
 
+#LIBS = /SDK/local/newlib/lib/libcurl.a
+
 
 ###################################################################
 ##
@@ -77,8 +79,9 @@ endif
 
 all: $(DIR_OBJS)/$(APP)
 
-$(DIR_OBJS)/$(APP): init $(OBJS)
-	$(CC) -o $(DIR_OBJS)/$(APP) $(OBJS) $(LDFLAGS)
+
+$(DIR_OBJS)/$(APP): init $(OBJS) $(LIBS)
+	$(CC) -o $(DIR_OBJS)/$(APP) $(OBJS) $(LIBS) $(LDFLAGS)
 	copy $(DIR_OBJS)/$(APP) $(APP)
 
 clean:
