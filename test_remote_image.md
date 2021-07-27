@@ -1,3 +1,3 @@
 one
 ![local image](emoticon_bigsmile)
-![remote image](http://test.jpg)
+![remote_image](http://aminet.net/pics/aminet_sketch_64.png)

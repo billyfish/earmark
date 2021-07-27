@@ -21,6 +21,12 @@
 #include <string.h>
 
 #include <proto/muimaster.h>
+#include <proto/oo.h>
+#include <proto/dos.h>
+
+#include <OO/ooNetwork.h>
+
+#include "string_utils.h"
 
 
 typedef struct MarkdownViewerData
@@ -35,6 +41,7 @@ typedef struct
 	char *hi_local_path_s;
 	char *hi_url_s;
 	FILE *hi_image_f;
+	APTR hi_data_p;
 } HTMLImage;
 
 
@@ -55,8 +62,17 @@ static uint32 MarkdownViewer_Set (Class *class_p, Object *object_p, Msg msg_p);
 
 static void SetFile (MarkdownViewerData *md_p, STRPTR filename_s);
 
-static uint32 LoadFile (struct Hook *hook_p, Object *obj_p, struct HTMLview_LoadMsg *lmsg);
 
+static HTMLImage *GetLocalImage (STRPTR filename_s);
+
+
+static HTMLImage *GetRemoteImage (STRPTR url_s);
+
+
+static void FreeImage (HTMLImage *image_p);
+
+
+static STRPTR DownloadImage (STRPTR url_s);
 
 /**************************************************/
 /**************** PUBLIC FUNCTIONS ****************/
@@ -84,6 +100,69 @@ void FreeMarkdownViewerClass (struct MUI_CustomClass *mui_class_p)
 
 
 
+/* The procedure which will be called by the load task. Simple, right?
+** Please note: The built-in LoadFunc in HTMLview is smarter (uses
+** asyncio.library if present, for example), so this one serves only a
+** teaching purpose. */
+uint32 LoadHtmlImage (struct Hook *hook_p, Object *obj_p, struct HTMLview_LoadMsg *lmsg_p)
+{
+	uint32 ret = 0;
+	
+	switch (lmsg_p -> lm_Type)
+	{
+		case HTMLview_Open: /* Just open the file */
+			{
+				char *filename_s = lmsg_p -> lm_Params.lm_Open.URL;
+
+				printf ("loading \"%s\"\n", filename_s);
+
+				if (filename_s)
+					{
+						HTMLImage *image_p = NULL;
+							
+						if (strncmp (filename_s, "file://", 7) == 0)
+							{
+								filename_s += 7;
+								image_p = GetLocalImage (filename_s);
+							} 	
+						else if ((strncmp (filename_s, "http://", 7) == 0) || (strncmp (filename_s, "https://", 8) == 0))
+							{
+								image_p = GetRemoteImage (filename_s);
+							}			
+							
+						lmsg_p -> lm_Userdata = (APTR) image_p;
+						ret = (uint32) (lmsg_p -> lm_Userdata);								
+					}
+			}
+			break;
+			
+		case HTMLview_Close: /* And close it again */
+			{
+				HTMLImage *image_p = (HTMLImage *) lmsg_p -> lm_Userdata;
+					
+				if (image_p)
+					{
+						FreeImage (image_p);
+						lmsg_p -> lm_Userdata = NULL;													
+					} 	
+			}
+			break;
+			
+		case HTMLview_Read: /* Read from the file */
+			{
+				HTMLImage *image_p = (HTMLImage *) lmsg_p -> lm_Userdata; 				
+				ret = (uint32) fread (lmsg_p -> lm_Params.lm_Read.Buffer, 1, lmsg_p -> lm_Params.lm_Read.Size, image_p -> hi_image_f);
+			}
+			break;
+			
+		default:
+			printf ("unknown %lu\n", lmsg_p -> lm_Type);
+			break;
+
+	}
+	
+	return ret;
+}
 
 
 /**********************************/
@@ -125,13 +204,7 @@ static uint32 MarkdownViewer_New (Class *class_p, Object *object_p, Msg msg_p)
 	if (md_viewer_p)
 		{
 			MarkdownViewerData *md_p = INST_DATA (class_p, md_viewer_p);
-
-
-			md_p -> mvd_filename_s = NULL;
-
-			
-
-			
+			md_p -> mvd_filename_s = NULL;			
 
 			DB (KPRINTF ("%s %ld - MarkdownViewer_New: Adding info obj\n", __FILE__, __LINE__));
 		}
@@ -184,71 +257,6 @@ static void SetFile (MarkdownViewerData *md_p, STRPTR filename_s)
 
 
 
-/* The procedure which will be called by the load task. Simple, right?
-** Please note: The built-in LoadFunc in HTMLview is smarter (uses
-** asyncio.library if present, for example), so this one serves only a
-** teaching purpose. */
-uint32 LoadHtmlImage (struct Hook *hook_p, Object *obj_p, struct HTMLview_LoadMsg *lmsg_p)
-{
-	uint32 ret = 0;
-	
-	switch (lmsg_p -> lm_Type)
-	{
-		case HTMLview_Open: /* Just open the file */
-			{
-				char *filename_s = lmsg -> lm_Params.lm_Open.URL;
-
-				printf ("loading \"%s\"\n", filename);
-
-				if (filename_s)
-					{
-						if (strncmp (filename_s, "file://", 7) == 0)
-							{
-								filename_s += 7;
-								uint32 ret = lmsg_p -> lm_Userdata = fopen (filename_s ,"r"));
-							} 	
-						else if strncmp (filename_s, "http://", 7) == 0)
-							{
-								char *uefa 81!
-								
-								filename_s += 7;	
-								ret = LoadRemoteImage (filename_s);
-							}
-						else if strncmp (filename_s, "https://", 8) == 0)
-							{
-								filename_s += 8;	
-								ret = LoadRemoteImage (filename_s);								
-							}						
-				}
-			}
-			break;
-			
-		case HTMLview_Close: /* And close it again */
-			{
-				FILE *image_f = (FILE *) lmsg_p -> lm_Userdata; // Our file handle
-					
-				if (image_f)
-					{
-						fclose (image_f);
-						lmsg_p -> lm_Userdata = NULL;													
-					} 	
-			}
-			break;
-			
-		case HTMLview_Read: /* Read from the file */
-			{
-				FILE *image_f = (FILE *) lmsg_p -> lm_Userdata; // Our file handle				
-				ret = fread (lmsg_p -> lm_Params.lm_Read.Buffer, 1 ,lmsg_p -> lm_Params.lm_Read.Size, image_f));
-			}
-			break;
-			
-		default:
-			printf ("unknown %lu\n", lmsg->lm_Type);
-			break;
-
-	}
-	return(0);
-}
 
 
 static HTMLImage *GetLocalImage (STRPTR filename_s)
@@ -261,7 +269,7 @@ static HTMLImage *GetLocalImage (STRPTR filename_s)
 			
 			if (in_f)
 				{
-					HTMLImage *hi_p = (HtmlImage *) IExec -> AllocVecTags (sizeof (HtmlImage));
+					HTMLImage *hi_p = (HTMLImage *) IExec -> AllocVecTags (sizeof (HTMLImage));
 					
 					if (hi_p)
 						{
@@ -285,22 +293,51 @@ static HTMLImage *GetLocalImage (STRPTR filename_s)
 
 static HTMLImage *GetRemoteImage (STRPTR url_s)
 {
-	HTMLImage *hi_p = NULL;	
-	STRPTR downloaded_image_s = DownloadImage (url_s);
-	
-	if (downloaded_image_s)
+	STRPTR copied_url_s = EasyCopyToNewString (url_s); 
+
+	if (copied_url_s)
 		{
-			
+			STRPTR downloaded_image_s = DownloadImage (url_s);
+	
+			if (downloaded_image_s)
+				{			
+					FILE *in_f = fopen (downloaded_image_s, "r");
+					
+					printf ("dowloaded image \"%s\"\n", url_s);
+					
+					if (in_f)
+						{
+							HTMLImage *hi_p = (HTMLImage *) IExec -> AllocVecTags (sizeof (HTMLImage));
+							
+							printf ("opened image \"%s\"\n", url_s);
+							
+							if (hi_p)
+								{
+									hi_p -> hi_local_path_s = downloaded_image_s;
+									hi_p -> hi_url_s = copied_url_s;
+									hi_p -> hi_image_f = in_f;
+									
+									
+									printf ("returning image for \"%s\"\n", copied_url_s);
+									
+									return hi_p;	
+								}
+							
+							
+							fclose (in_f);					
+						}
+							
+					FreeCopiedString (downloaded_image_s);	
+				}		/* if (downloaded_image_s) */
 		
-			FreeCopiedString (downloaded_image_s);	
-		}		/* if (downloaded_image_s) */
+			FreeCopiedString (copied_url_s);	
+		}
 	
-	
-	return hi_p;	
+	return NULL;	
 }
 
 
-static void FreeHtmlImage (HtmlImage *image_p)
+static void FreeImage (HTMLImage *image_p)
 {
 	if (image_p -> hi_image_f)
 		{
@@ -321,102 +358,256 @@ static void FreeHtmlImage (HtmlImage *image_p)
 }
 
 
+
+static BOOL GetOrCreateDirectory (STRPTR path_s)
+{
+	BOOL success_flag = FALSE;
+	struct ExamineData *data_p = IDOS -> ExamineObjectTags (EX_StringNameInput, path_s, TAG_DONE);
+	
+	if (data_p)
+		{
+			if (EXD_IS_DIRECTORY (data_p))
+				{
+					success_flag = TRUE;	
+				}
+				
+			IDOS -> FreeDosObject (DOS_EXAMINEDATA, data_p);
+		}
+	else
+		{
+			BPTR lock_p = IDOS -> CreateDirTree (path_s);
+		
+			if (lock_p)
+				{
+					IDOS -> UnLock (lock_p);
+					success_flag = TRUE;	
+				}
+		}
+	
+	return success_flag;
+}
+
+
 static STRPTR DownloadImage (STRPTR url_s)
 {
 	STRPTR cached_filename_s = NULL;
-	
-	OOBase = (struct Library *) IExec -> OpenLibrary ("oo.library",1);
- 	if (OOBase!=NULL)
- 		{
- 	 		IOO = (struct OOIFace *) IExec -> GetInterface (OOBase, "main", 1, NULL);
-  		
-  		if (IOO!=NULL)
-  			{
-   				NETWORKOBJ *net= (NETWORKOBJ *)IOO->NewNetworkObject();
+	STRPTR temp_file_name_s = NULL;
 
-   				if (net!=NULL)
-   					{
-    					portnum=80;
-					
-					    if (net->CreateConnection (url_s, portnum, FALSE, TRUE))
-    						{ 
-						     if (net->GetConnection())
-     								{
-								      printf("Trying to load %s:%lu\n",Url,portnum);
-								      httpreq=net->CreateHTTPRequest(Url,portnum);
-								      net->SendHTTPRequest(httpreq);
-								      respcode=(uint32)net->GetHTTPResponseCode();
-								      IDOS->Printf("Response code=%lu\n",respcode);
 
-     									while (((respcode==301) || (respcode==302) || (respcode==307)) && net->netAltURL)
-									      {
-									      	net->DisposeConnection();
-
-									       respcode=0;
-									       if (net->CreateConnection(net->netAltURL,portnum,FALSE,TRUE))
-										       {
-										        if (net->GetConnection())
-											        {
-																printf("Redirecting to %s:%lu\n",net->netAltURL,portnum);
-																httpreq=net->CreateHTTPRequest(net->netAltURL,portnum);
-																net->SendHTTPRequest(httpreq);
-																respcode=(uint32)net->GetHTTPResponseCode();
-																IDOS->Printf("Response code=%lu\n",respcode);
-															}
-													 }
-												}
-
-      								if ((respcode>=200) && (respcode<=202))
-												{
-													httpresp=net->GetHTTPResponse();
-													if (httpresp!=NULL)
-														{
-															IDOS->Printf("%s\n",httpresp);
-
-															net->Free(httpresp);
-														}
-       										else
-       											{ 
-       												IDOS->Printf("No response\n"); 
-       											}
-      									}
-      								else
-      									{
-       										if (net->netErrorMsg) 
-       											{	 
-       												IDOS->Printf ("Error: %s\n",net->netErrorMsg); 
-       											}
-												}
-     								}
-     							else 
-     								{
-     									printf("SimpleHTTP ERROR: Connection failed\n");
-										}
-						
-						    	net->DisposeConnection();
-    						}
-							else 
-								{
-									printf("SimpleHTTP ERROR: Connection (socket) not created\n");
-								}
-    				
-    					IOO->DisposeNetworkObject(net);
-   					}
-
-   				IExec->DropInterface((struct Interface *)IOO);
-  			}
-  		else 
-  			{
-  				printf("SimpleHTTP ERROR: Can't open oo main interface\n");
-  			}
-		
-		  IExec->CloseLibrary(OOBase);
- 		}
-	else 
+	if (strncmp (url_s, "http://", 7) == 0)
 		{
-			printf("SimpleHTTP ERROR: Can't open oo.library v1\n");
+			temp_file_name_s = EasyCopyToNewString (url_s + 7);
+		}
+	else if (strncmp (url_s, "https://", 8) == 0)
+		{
+			temp_file_name_s = EasyCopyToNewString (url_s + 8);			
 		}
 	
+	if (temp_file_name_s)
+		{
+			BPTR lock_p = ZERO;
+			CONST CONST_STRPTR TEMP_DIR_S = "T:";
+			STRPTR dir_s = ConcatenateStrings (TEMP_DIR_S, temp_file_name_s);
+									
+			if (dir_s)
+				{	
+					STRPTR last_slash_s = strrchr (dir_s, '/');
+		
+					if (last_slash_s)
+						{			
+							*last_slash_s = '\0';	
+						}
+	
+				
+					if (GetOrCreateDirectory (dir_s))
+						{
+							STRPTR command_s = NULL;
+							
+							printf ("GetOrCreateDirectory \"%s\" succeeded\n", dir_s);
+
+							command_s = ConcatenateVarargsStrings  ("copy t:earmark_1 to ", TEMP_DIR_S, temp_file_name_s, NULL); // ("curl -s ", url_s, " -o ", temp_file_name_s, NULL);	
+				
+							printf ("temp \"%s\", url \"%s\"\n", temp_file_name_s, url_s);
+					
+							if (command_s)
+								{
+									int32 ret = -1;
+									
+									printf ("About to run \"%s\" \n", command_s);			
+						
+									ret = IDOS -> SystemTags (command_s,
+										NP_Name, "Earmark Image Downloader",
+										SYS_Asynch, FALSE,
+										TAG_DONE);
+								
+									printf ("\"%s\" returned %ld\n", command_s, ret);			
+								
+									if ((ret >= 0) && (ret <= 20))
+										{
+											printf ("Downloaded image \"%s\" successfully\n", url_s);
+											
+											cached_filename_s = ConcatenateVarargsStrings (TEMP_DIR_S, temp_file_name_s, NULL);
+											
+											if (!cached_filename_s)
+												{
+													printf ("Failed to copy local filename for  image \"%s\" successfully\n", url_s);														
+												}
+																	
+										}
+								
+									FreeCopiedString (command_s);	
+								}			
+						}
+					else
+						{
+							printf ("GetOrCreateDirectory \"%s\" failed\n", dir_s);
+						}
+						
+					FreeCopiedString (dir_s);
+				}
+				
+			
+			
+			FreeCopiedString (temp_file_name_s);					
+		}
+		
+	return cached_filename_s;
+}
+
+
+static STRPTR DownloadImageByOO (STRPTR url_s)
+{
+	STRPTR cached_filename_s = NULL;
+	
+	NETWORKOBJ *net_p = (NETWORKOBJ *) IOO -> NewNetworkObject ();
+
+	if (net_p != NULL)
+		{
+			int32 port = 80;
+			BOOL secure_flag = FALSE;
+			CONST CONST_STRPTR https_s = "https://";
+			const size_t https_len = strlen (https_s);
+		
+		
+			printf ("attempting to download \"%s\"\n", url_s);
+			
+			if (strncmp (url_s, https_s, https_len) == 0)
+				{
+					port = 443;
+					secure_flag = TRUE;
+					printf ("secure url\n");
+				}
+
+			if (net_p -> CreateConnection (url_s, port, secure_flag, TRUE))
+				{ 
+					if (net_p -> GetConnection ())
+						{
+				      STRPTR req_s = NULL;
+				      uint32 resp_code = 0;
+
+				      printf("Trying to load %s:%lu\n", url_s, port);
+				      req_s = net_p -> CreateHTTPRequest (url_s, port);
+				      net_p -> SendHTTPRequest (req_s);
+				      resp_code = net_p -> GetHTTPResponseCode ();
+				      printf("Response code=%lu\n",resp_code);
+		
+							/* Handle any redirects */
+							while (((resp_code == 301) || (resp_code == 302) || (resp_code == 307)) && net_p -> netAltURL)
+					      {
+					      	net_p -> DisposeConnection ();
+		
+									resp_code = 0;
+		
+				
+									if (strncmp (net_p -> netAltURL, https_s, https_len) == 0)
+										{
+											port = 443;
+											secure_flag = TRUE;
+										}
+									else
+										{
+											port = 80;
+											secure_flag = FALSE;
+										}
+					      
+					      	if (net_p -> CreateConnection (net_p -> netAltURL, port, secure_flag, TRUE))
+										{
+											if (net_p -> GetConnection ())
+							        	{
+													printf("Redirecting to %s:%lu\n",net_p -> netAltURL, port);
+													req_s = net_p -> CreateHTTPRequest (net_p -> netAltURL, port);
+													net_p -> SendHTTPRequest (req_s);
+													resp_code = net_p -> GetHTTPResponseCode ();
+													printf("Response code=%lu\n",resp_code);
+												}
+									 	}
+								}
+
+							if ((resp_code >= 200) && (resp_code <= 202))
+								{
+									STRPTR resp_s = net_p -> GetResponseBody ();
+									size_t resp_len = strlen (resp_s);
+									
+									printf ("len %lu\n", resp_len);
+									 
+									if (resp_s != NULL)
+										{
+											CONST_STRPTR temp_file_name_s = "T:earmark_1";
+											BPTR fh_p = IDOS -> FOpen (temp_file_name_s, MODE_NEWFILE, 0);
+
+											printf("Got repsonse\n");
+											
+											if (fh_p)
+												{
+													if (IDOS -> FWrite (fh_p, resp_s, resp_len, 1) == 1)
+														{
+															printf ("saved to \"%s\"\n", temp_file_name_s); 	
+														}
+													else
+														{
+															printf ("error saving to \"%s\"\n", temp_file_name_s); 
+														}
+
+												
+													IDOS -> FClose (fh_p);	
+												}
+											else
+												{
+													printf ("error opening \"%s\"\n", temp_file_name_s); 
+												}
+											
+
+		
+											net_p->Free (resp_s);
+										}
+									else
+										{ 
+											printf("No response\n"); 
+										}
+								}
+							else
+								{
+									if (net_p->netErrorMsg) 
+										{	 
+											printf ("Error: %s\n",net_p->netErrorMsg); 
+										}
+								}
+						}
+					else 
+						{
+							printf("SimpleHTTP ERROR: Connection failed for url \"%s\" on port %ld with secure_flag %d\n", url_s, port, secure_flag);
+						}
+
+    //			net_p->DisposeConnection();
+				}
+			else 
+				{
+					printf("SimpleHTTP ERROR: Connection (socket) not created\n");
+				}
+		
+			IOO->DisposeNetworkObject(net_p);
+		}
+
 	return cached_filename_s;
 }
 

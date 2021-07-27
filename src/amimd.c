@@ -25,6 +25,9 @@
 
 #include <proto/amijansson.h>
 
+#include <proto/oo.h>
+
+
 #define ALLOCATE_GLOBALS
 
 #include "debugging_utils.h"
@@ -81,6 +84,9 @@ struct ClassLibrary *BitMapBase = NULL;
 struct Library *IconBase = NULL;
 struct IconIFace *IIcon = NULL;
 
+struct Library *OOBase = NULL;
+struct OOIFace *IOO = NULL;
+
 
 static BPTR s_current_dir_p = ZERO;
 
@@ -110,7 +116,11 @@ static BOOL OpenLibs (void)
 																		{															
 																			if (OpenLib (&IconBase, "icon.library", 53L, (struct Interface **) &IIcon, "main", 1))
 																				{		
-																					return TRUE;
+																					if (OpenLib (&OOBase, "oo.library", 1L, (struct Interface **) &IOO, "main", 1))
+																						{
+																							return TRUE;
+																						}
+																					CloseLib (OOBase, (struct Interface *) IOO);
 																				}
 																			IIntuition -> CloseClass (BitMapBase);
 																		}
@@ -139,6 +149,7 @@ static BOOL OpenLibs (void)
 
 static void CloseLibs (void)
 {
+	CloseLib (OOBase, (struct Interface *) IOO);
 	CloseLib (IconBase, (struct Interface *) IIcon);
 	IIntuition -> CloseClass (BitMapBase);
 	CloseLib (RequesterBase, (struct Interface *) IRequester);

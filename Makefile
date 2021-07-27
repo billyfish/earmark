@@ -58,7 +58,7 @@ OBJS = $(patsubst %.c, $(DIR_OBJS)/%.o, $(SRCS))
 CC := gcc:bin/gcc
 MAKEDEPEND := gcc -MM -MF
 
-INCPATH := -I SDK:MUI/C/Include -Iinclude -Imd4c/src -ISDK:include/include_h/jansson
+INCPATH := -I SDK:MUI/C/Include -Iinclude -Imd4c/src -ISDK:include/include_h/jansson -I SDK:local/common/include
 
 CFLAGS := $(INCPATH)  -Werror -Wwrite-strings -Wextra -Wshadow  -DAMIGA=1 
 
