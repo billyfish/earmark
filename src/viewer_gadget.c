@@ -74,6 +74,10 @@ static void FreeImage (HTMLImage *image_p);
 
 static STRPTR DownloadImage (STRPTR url_s);
 
+
+static BOOL GetOrCreateDirectory (STRPTR path_s);
+
+
 /**************************************************/
 /**************** PUBLIC FUNCTIONS ****************/
 /**************************************************/
@@ -425,7 +429,7 @@ static STRPTR DownloadImage (STRPTR url_s)
 							
 							printf ("GetOrCreateDirectory \"%s\" succeeded\n", dir_s);
 
-							command_s = ConcatenateVarargsStrings  ("copy t:earmark_1 to ", TEMP_DIR_S, temp_file_name_s, NULL); // ("curl -s ", url_s, " -o ", temp_file_name_s, NULL);	
+							command_s = ConcatenateVarargsStrings ("curl ", url_s, " -o ", TEMP_DIR_S, temp_file_name_s, " -s", NULL);	
 				
 							printf ("temp \"%s\", url \"%s\"\n", temp_file_name_s, url_s);
 					
@@ -437,18 +441,23 @@ static STRPTR DownloadImage (STRPTR url_s)
 						
 									ret = IDOS -> SystemTags (command_s,
 										NP_Name, "Earmark Image Downloader",
+										NP_StackSize, 102392,
 										SYS_Asynch, FALSE,
 										TAG_DONE);
 								
 									printf ("\"%s\" returned %ld\n", command_s, ret);			
 								
-									if ((ret >= 0) && (ret <= 20))
+									if (ret == 0)
 										{
 											printf ("Downloaded image \"%s\" successfully\n", url_s);
 											
 											cached_filename_s = ConcatenateVarargsStrings (TEMP_DIR_S, temp_file_name_s, NULL);
 											
-											if (!cached_filename_s)
+											if (cached_filename_s)
+												{
+													printf ("Downloaded image \"%s\" to \"%s\"\n", url_s, cached_filename_s);		
+												}
+											else
 												{
 													printf ("Failed to copy local filename for  image \"%s\" successfully\n", url_s);														
 												}
@@ -474,140 +483,4 @@ static STRPTR DownloadImage (STRPTR url_s)
 	return cached_filename_s;
 }
 
-
-static STRPTR DownloadImageByOO (STRPTR url_s)
-{
-	STRPTR cached_filename_s = NULL;
-	
-	NETWORKOBJ *net_p = (NETWORKOBJ *) IOO -> NewNetworkObject ();
-
-	if (net_p != NULL)
-		{
-			int32 port = 80;
-			BOOL secure_flag = FALSE;
-			CONST CONST_STRPTR https_s = "https://";
-			const size_t https_len = strlen (https_s);
-		
-		
-			printf ("attempting to download \"%s\"\n", url_s);
-			
-			if (strncmp (url_s, https_s, https_len) == 0)
-				{
-					port = 443;
-					secure_flag = TRUE;
-					printf ("secure url\n");
-				}
-
-			if (net_p -> CreateConnection (url_s, port, secure_flag, TRUE))
-				{ 
-					if (net_p -> GetConnection ())
-						{
-				      STRPTR req_s = NULL;
-				      uint32 resp_code = 0;
-
-				      printf("Trying to load %s:%lu\n", url_s, port);
-				      req_s = net_p -> CreateHTTPRequest (url_s, port);
-				      net_p -> SendHTTPRequest (req_s);
-				      resp_code = net_p -> GetHTTPResponseCode ();
-				      printf("Response code=%lu\n",resp_code);
-		
-							/* Handle any redirects */
-							while (((resp_code == 301) || (resp_code == 302) || (resp_code == 307)) && net_p -> netAltURL)
-					      {
-					      	net_p -> DisposeConnection ();
-		
-									resp_code = 0;
-		
-				
-									if (strncmp (net_p -> netAltURL, https_s, https_len) == 0)
-										{
-											port = 443;
-											secure_flag = TRUE;
-										}
-									else
-										{
-											port = 80;
-											secure_flag = FALSE;
-										}
-					      
-					      	if (net_p -> CreateConnection (net_p -> netAltURL, port, secure_flag, TRUE))
-										{
-											if (net_p -> GetConnection ())
-							        	{
-													printf("Redirecting to %s:%lu\n",net_p -> netAltURL, port);
-													req_s = net_p -> CreateHTTPRequest (net_p -> netAltURL, port);
-													net_p -> SendHTTPRequest (req_s);
-													resp_code = net_p -> GetHTTPResponseCode ();
-													printf("Response code=%lu\n",resp_code);
-												}
-									 	}
-								}
-
-							if ((resp_code >= 200) && (resp_code <= 202))
-								{
-									STRPTR resp_s = net_p -> GetResponseBody ();
-									size_t resp_len = strlen (resp_s);
-									
-									printf ("len %lu\n", resp_len);
-									 
-									if (resp_s != NULL)
-										{
-											CONST_STRPTR temp_file_name_s = "T:earmark_1";
-											BPTR fh_p = IDOS -> FOpen (temp_file_name_s, MODE_NEWFILE, 0);
-
-											printf("Got repsonse\n");
-											
-											if (fh_p)
-												{
-													if (IDOS -> FWrite (fh_p, resp_s, resp_len, 1) == 1)
-														{
-															printf ("saved to \"%s\"\n", temp_file_name_s); 	
-														}
-													else
-														{
-															printf ("error saving to \"%s\"\n", temp_file_name_s); 
-														}
-
-												
-													IDOS -> FClose (fh_p);	
-												}
-											else
-												{
-													printf ("error opening \"%s\"\n", temp_file_name_s); 
-												}
-											
-
-		
-											net_p->Free (resp_s);
-										}
-									else
-										{ 
-											printf("No response\n"); 
-										}
-								}
-							else
-								{
-									if (net_p->netErrorMsg) 
-										{	 
-											printf ("Error: %s\n",net_p->netErrorMsg); 
-										}
-								}
-						}
-					else 
-						{
-							printf("SimpleHTTP ERROR: Connection failed for url \"%s\" on port %ld with secure_flag %d\n", url_s, port, secure_flag);
-						}
-
-    //			net_p->DisposeConnection();
-				}
-			else 
-				{
-					printf("SimpleHTTP ERROR: Connection (socket) not created\n");
-				}
-		
-			IOO->DisposeNetworkObject(net_p);
-		}
-
-	return cached_filename_s;
-}
 

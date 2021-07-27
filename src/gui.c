@@ -407,6 +407,8 @@ static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI
 	Object *menu_toolbar_1_row_p = NULL;
 	Object *menu_toolbar_2_rows_p = NULL;
 	Object *menu_toolbar_3_rows_p = NULL;
+	
+	Object *menu_internal_viewer_p = NULL;
 
 	static const char * const used_classes [] =
 		{
@@ -829,6 +831,12 @@ static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI
 						
 					TAG_DONE),
 
+
+					MUIA_Family_Child, menu_internal_viewer_p = IMUIMaster -> MUI_NewObject (MUIC_Menuitem,
+						MUIA_Menuitem_Title, "Use Internal HTML Viewer",	
+						MUIA_Menuitem_Checkit, TRUE,		
+						MUIA_Menuitem_Toggle, TRUE,			
+					TAG_DONE),
 					
 					TAG_DONE),
 				
@@ -1133,6 +1141,9 @@ static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI
 				toolbar_p, 3, MUIM_Set, MUIA_TheBar_Rows, 3);
 			IIntuition -> SetAttrs (menu_toolbar_3_rows_p, MUIA_Menuitem_Image, NULL, TAG_DONE);
 
+
+			IIntuition -> IDoMethod (menu_internal_viewer_p, MUIM_Notify, MUIA_Menuitem_Checked, MUIV_EveryTime,
+				s_editor_p, 3, MUIM_Set, MEA_UseInternalViewer, MUIV_TriggerValue);
 
 			IIntuition -> UnlockPubScreen (NULL, screen_p);
 

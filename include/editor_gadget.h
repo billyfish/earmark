@@ -42,6 +42,9 @@
 
 #define MEA_InfoGadget (ME_Dummy + 7)
 
+#define MEA_UseInternalViewer (ME_Dummy + 8)
+
+
 /*************************/
 /******** METHODS ********/
 /*************************/

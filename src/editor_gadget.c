@@ -52,6 +52,7 @@ typedef struct MarkdownEditorData
 	Object *med_info_p;
 	MDPrefs *med_prefs_p; 
 	STRPTR med_filename_s;
+	BOOL med_use_internal_viewer_flag;
 } MarkdownEditorData;
 
 
@@ -194,7 +195,8 @@ static uint32 MarkdownEditor_New (Class *class_p, Object *object_p, Msg msg_p)
 			md_p -> med_viewer_p = NULL;
 			md_p -> med_prefs_p = NULL;
 			md_p -> med_info_p = NULL;
-
+			md_p -> med_use_internal_viewer_flag = FALSE;
+			
 			DB (KPRINTF ("%s %ld - MarkdownEditor_New: Adding info obj\n", __FILE__, __LINE__));
 		}
 	else
@@ -297,6 +299,15 @@ static uint32 MarkdownEditor_Set (Class *class_p, Object *object_p, Msg msg_p)
 								}	
 						}
 						break;
+
+
+					case MEA_UseInternalViewer:
+						{
+							DB (KPRINTF ("%s %ld - ti_Tag: MEA_UseInternalViewer %lu\n", __FILE__, __LINE__, tag_data));							
+							md_p -> med_use_internal_viewer_flag = (BOOL) tag_data;
+						}
+						break;
+
 
 					/* Put a case statement here for each attribute that your
 					 * function understands */
@@ -663,9 +674,19 @@ static uint32 MarkdownEditor_Convert (Class *class_p, Object *editor_p)
 									
  									if (SaveFile (html_filename_s + prefix_length, html_s))
 										{
-											BOOL use_launch_handler_flag = FALSE;
-											
-											if (use_launch_handler_flag)
+											if (md_p -> med_use_internal_viewer_flag)
+												{
+													char *url_s = ConcatenateStrings ("file://", html_filename_s + prefix_length); 	/* skip past the "URL:" bit */
+													
+													if (url_s)
+														{
+															//IIntuition -> SetAttrs (md_p -> med_viewer_p, MUIA_HTMLview_Contents, html_s, TAG_DONE);
+															DB (KPRINTF ("%s %ld - Viewing \"%s\"\n", __FILE__, __LINE__, url_s));
+															IIntuition -> IDoMethod (md_p -> med_viewer_p, MUIM_HTMLview_GotoURL, url_s, NULL);
+															FreeCopiedString (url_s);
+														}
+												}
+											else
 												{
 													/*
 													** This example allows an application to determine if the URL: handler is
@@ -698,19 +719,6 @@ static uint32 MarkdownEditor_Convert (Class *class_p, Object *editor_p)
 														}												
 
 												}		/* if (use_launch_handler_flag) */
-				
-											if (md_p -> med_viewer_p)
-												{
-													char *url_s = ConcatenateStrings ("file://", html_filename_s + prefix_length); 	/* skip past the "URL:" bit */
-													
-													if (url_s)
-														{
-															//IIntuition -> SetAttrs (md_p -> med_viewer_p, MUIA_HTMLview_Contents, html_s, TAG_DONE);
-															DB (KPRINTF ("%s %ld - Viewing \"%s\"\n", __FILE__, __LINE__, url_s));
-															IIntuition -> IDoMethod (md_p -> med_viewer_p, MUIM_HTMLview_GotoURL, url_s, NULL);
-															FreeCopiedString (url_s);
-														}
-												}
 										}
 									else
 										{

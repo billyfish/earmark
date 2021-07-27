@@ -2,15 +2,20 @@ Short:        Edit and view Markdown documents
 Uploader:     tyrrell.simon@gmail.com (Simon Tyrrell)  
 Author:       tyrrell.simon@gmail.com (Simon Tyrrell), Martin Mitas  
 Type:         text/edit  
-Version:      1.1
+Version:      1.2
 Architecture: ppc-amigaos >= 4.1  
 Distribution: Aminet  
 Requires: dev/mui/MCC_TextEditor, dev/mui/MCC_BetterString, dev/mui/MCC_TheBar
-Requires: dev/c/jansson_library.lha, Launch-Handler  
+Requires: dev/c/jansson_library.lha, net/misc/curl.lha 
 
 This is a tool to allow you to edit and view Markdown documents. It uses a 
 customised version of md4c at https://github.com/mity/md4c by Martin Mitáš 
 available to do the actual conversion of Markdown to HTML.
+
+##�Installation
+
+You need to install the bug-fixed version of the MUI HTMLView library courtesy of Edgar 
+Schwan. You also need to have an up to date version of curl in your default path.
 
 ## Usage:
 
@@ -118,6 +123,12 @@ are however some exceptions:
  * **View - Toolbar rows**: This submenu allows you to specify the number
  of rows that the toolbar will use. This can be useful if you find that the
  window is too wide for your display.
+ * **View - Internal**: This menuitem can be toggled on and off. If it is on, 
+ then the preview pane in the right-hand area of the application will be used
+ to display the HTML that is generated from the Markdown source. If this is off,
+ then the OS Launch Handler will be used instead where you can choose a 
+ fully-fledged browser to use.
+
 
 ## Future:
 
@@ -134,6 +145,11 @@ are however some exceptions:
 Any other ideas are welcome. :-)
 
 ## Changes
+
+### 1.2 - (28/07/2021)
+ * Added the option to use the application HTML viewer window to display the 
+ generated HTML.
+
 
 ### 1.1 - (19/01/2021)
  * Added command line arguments and icon tooltypes.
@@ -174,13 +190,13 @@ instead of a colon (@walkero)
  * Added Blockquote function.
  * Added Search functionality.
  * Added Cut, Copy and Paste buttons.
- * Added shortucut for Update, now named Convert (@walkero).
+ * Added shortcut for Update, now named Convert (@walkero).
  * Image, table and link editors now close when you click OK (@walkero).
  * Conversion settings can be saved/loaded (@walkero). 
  * The editor button shortcuts are now shown on the help bubbles as well 
  (@walkero).
  * Gladly accepted a much better name for the program :-) (@trixie).
- * BUGFIX: Choosing the Github dialect conversion setting wasn't being set.
+ * BUGFIX: Choosing the Github dialect conversion setting was not being set.
  * BUGFIX: New projects would not save the converted html and launch the 
  preview. (@walkero).
  * BUGFIX: Load and Save menu options had the same shortcut (@walkero). 
@@ -205,7 +221,15 @@ instead of a colon (@walkero)
 ### 0.1 - (05/01/2021):
  * Initial release
 
-## LICENSE:
+### Thanks
+
+Thanks to all of the people who have given suggestions and feedback at amigans.net.
+Special thanks got to @walkero, @trixie and @kas1e for their testing and feedback. 
+Major thanks to Edgar Schwan for his bug-fixed version of the MUI HTMLView class and 
+his tips on how I could I use it.
+
+
+## License:
 
 The code is available under the MIT license. The md4c parts are copyright 
 Martin Mitas. The program icon and emoticon_bigsmile image are copyright to 
