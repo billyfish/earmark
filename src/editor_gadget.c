@@ -234,6 +234,11 @@ static uint32 MarkdownEditor_Set (Class *class_p, Object *object_p, Msg msg_p)
 					 * function understands */
 					case MEA_Viewer:
 						md_p -> med_viewer_p = (Object *) tag_data;
+						
+						if (md_p -> med_viewer_p)
+							{
+								IIntuition -> SetAttrs (md_p -> med_viewer_p, MUIA_ShowMe, md_p -> med_use_internal_viewer_flag, TAG_DONE);
+							}
 						break;
 						
 					case MEA_InfoGadget:
@@ -305,6 +310,11 @@ static uint32 MarkdownEditor_Set (Class *class_p, Object *object_p, Msg msg_p)
 						{
 							DB (KPRINTF ("%s %ld - ti_Tag: MEA_UseInternalViewer %lu\n", __FILE__, __LINE__, tag_data));							
 							md_p -> med_use_internal_viewer_flag = (BOOL) tag_data;
+
+							if (md_p -> med_viewer_p)
+								{
+									IIntuition -> SetAttrs (md_p -> med_viewer_p, MUIA_ShowMe, md_p -> med_use_internal_viewer_flag, TAG_DONE);
+								}
 						}
 						break;
 
