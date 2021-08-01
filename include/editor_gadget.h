@@ -42,7 +42,7 @@
 
 #define MEA_InfoGadget (ME_Dummy + 7)
 
-#define MEA_UseInternalViewer (ME_Dummy + 8)
+#define MEA_Previewer (ME_Dummy + 8)
 
 
 /*************************/
@@ -103,6 +103,11 @@
 
 #define MEV_MDEditor_UseNewFilename (ME_Dummy + 18)
 
+#define MEV_MDEditor_Preview_External (ME_Dummy + 19)
+
+#define MEV_MDEditor_Preview_Internal (ME_Dummy + 20)
+
+#define MEV_MDEditor_Preview_Internal_Live (ME_Dummy + 21)
 
 /*************************/
 /***** API FUNCTIONS *****/

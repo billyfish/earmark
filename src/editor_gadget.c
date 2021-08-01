@@ -52,7 +52,7 @@ typedef struct MarkdownEditorData
 	Object *med_info_p;
 	MDPrefs *med_prefs_p; 
 	STRPTR med_filename_s;
-	BOOL med_use_internal_viewer_flag;
+	uint32 med_preview;
 } MarkdownEditorData;
 
 
@@ -195,7 +195,7 @@ static uint32 MarkdownEditor_New (Class *class_p, Object *object_p, Msg msg_p)
 			md_p -> med_viewer_p = NULL;
 			md_p -> med_prefs_p = NULL;
 			md_p -> med_info_p = NULL;
-			md_p -> med_use_internal_viewer_flag = FALSE;
+			md_p -> med_preview = MEV_MDEditor_Preview_External;
 			
 			DB (KPRINTF ("%s %ld - MarkdownEditor_New: Adding info obj\n", __FILE__, __LINE__));
 		}
@@ -237,7 +237,9 @@ static uint32 MarkdownEditor_Set (Class *class_p, Object *object_p, Msg msg_p)
 						
 						if (md_p -> med_viewer_p)
 							{
-								IIntuition -> SetAttrs (md_p -> med_viewer_p, MUIA_ShowMe, md_p -> med_use_internal_viewer_flag, TAG_DONE);
+								const BOOL show_flag = (md_p -> med_preview != MEV_MDEditor_Preview_External);	
+
+								IIntuition -> SetAttrs (md_p -> med_viewer_p, MUIA_ShowMe, show_flag, TAG_DONE);
 							}
 						break;
 						
@@ -306,15 +308,36 @@ static uint32 MarkdownEditor_Set (Class *class_p, Object *object_p, Msg msg_p)
 						break;
 
 
-					case MEA_UseInternalViewer:
+					case MEA_Previewer:
 						{
-							DB (KPRINTF ("%s %ld - ti_Tag: MEA_UseInternalViewer %lu\n", __FILE__, __LINE__, tag_data));							
-							md_p -> med_use_internal_viewer_flag = (BOOL) tag_data;
+							DB (KPRINTF ("%s %ld - ti_Tag: MEA_Previewer %lu\n", __FILE__, __LINE__, tag_data));							
 
 							if (md_p -> med_viewer_p)
 								{
-									IIntuition -> SetAttrs (md_p -> med_viewer_p, MUIA_ShowMe, md_p -> med_use_internal_viewer_flag, TAG_DONE);
-								}
+									switch (tag_data)
+										{	
+											case MEV_MDEditor_Preview_External:
+												{
+													IIntuition -> SetAttrs (md_p -> med_viewer_p, MUIA_ShowMe, FALSE, TAG_DONE);
+													md_p -> med_preview = MEV_MDEditor_Preview_External;
+												}
+												break;
+
+											case MEV_MDEditor_Preview_Internal:
+											case MEV_MDEditor_Preview_Internal_Live:
+												{
+													IIntuition -> SetAttrs (md_p -> med_viewer_p, MUIA_ShowMe, TRUE, TAG_DONE);
+													md_p -> med_preview = tag_data;
+												}
+												break;
+												
+												
+											default:
+												break;	
+										}
+
+								}					
+
 						}
 						break;
 
@@ -684,7 +707,7 @@ static uint32 MarkdownEditor_Convert (Class *class_p, Object *editor_p)
 									
  									if (SaveFile (html_filename_s + prefix_length, html_s))
 										{
-											if (md_p -> med_use_internal_viewer_flag)
+											if ((md_p -> med_preview == MEV_MDEditor_Preview_Internal) || (md_p -> med_preview == MEV_MDEditor_Preview_Internal_Live))
 												{
 													char *url_s = ConcatenateStrings ("file://", html_filename_s + prefix_length); 	/* skip past the "URL:" bit */
 													

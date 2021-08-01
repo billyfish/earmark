@@ -408,8 +408,10 @@ static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI
 	Object *menu_toolbar_2_rows_p = NULL;
 	Object *menu_toolbar_3_rows_p = NULL;
 	
-	Object *menu_internal_viewer_p = NULL;
-
+	Object *menu_viewer_app_live_p = NULL;
+	Object *menu_viewer_app_p = NULL;
+	Object *menu_viewer_external_p = NULL;
+		
 	static const char * const used_classes [] =
 		{
 			"TextEditor.mcc",
@@ -815,30 +817,70 @@ static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI
 							MUIA_Menuitem_Title, "1 row",
 							MUIA_Menuitem_Image, NULL,
 							MUIA_Menuitem_FreeImage, FALSE,
+							MUIA_Menuitem_Checkit, TRUE,
+							MUIA_Menuitem_Exclude, 2 | 4,
+							MUIA_Menuitem_Toggle, TRUE,
+							MUIA_Menuitem_Checked, TRUE,
 						TAG_DONE),
 						
 						MUIA_Family_Child, menu_toolbar_2_rows_p = IMUIMaster -> MUI_NewObject (MUIC_Menuitem,
 							MUIA_Menuitem_Title, "2 rows",
 							MUIA_Menuitem_Image, NULL,
 							MUIA_Menuitem_FreeImage, FALSE,
+							MUIA_Menuitem_Checkit, TRUE,
+							MUIA_Menuitem_Exclude, 1 | 4,
+							MUIA_Menuitem_Toggle, TRUE,
+							MUIA_Menuitem_Checked, FALSE,
 						TAG_DONE),
 												
 						MUIA_Family_Child, menu_toolbar_3_rows_p = IMUIMaster -> MUI_NewObject (MUIC_Menuitem,
 							MUIA_Menuitem_Title, "3 rows",
 							MUIA_Menuitem_Image, NULL,
 							MUIA_Menuitem_FreeImage, FALSE,
+							MUIA_Menuitem_Checkit, TRUE,
+							MUIA_Menuitem_Exclude, 1 | 2,
+							MUIA_Menuitem_Toggle, TRUE,
+							MUIA_Menuitem_Checked, FALSE,
 						TAG_DONE),	
 						
 					TAG_DONE),
 
-
-					MUIA_Family_Child, menu_internal_viewer_p = IMUIMaster -> MUI_NewObject (MUIC_Menuitem,
-						MUIA_Menuitem_Title, "Use Internal HTML Viewer",	
-						MUIA_Menuitem_Checkit, TRUE,		
-						MUIA_Menuitem_Toggle, TRUE,			
+					MUIA_Family_Child, IMUIMaster -> MUI_NewObject (MUIC_Menuitem,
+						MUIA_Menuitem_Title, "Viewer",
+						
+						MUIA_Family_Child, menu_viewer_external_p = IMUIMaster -> MUI_NewObject (MUIC_Menuitem,
+							MUIA_Menuitem_Title, "OS4 Launch Handler",
+							MUIA_Menuitem_Image, NULL,
+							MUIA_Menuitem_Checkit, TRUE,
+							MUIA_Menuitem_Exclude, 2 | 4,
+							MUIA_Menuitem_Toggle, TRUE,
+							MUIA_Menuitem_Checked, TRUE,
+							MUIA_Menuitem_FreeImage, FALSE,
+						TAG_DONE),
+						
+						MUIA_Family_Child, menu_viewer_app_p = IMUIMaster -> MUI_NewObject (MUIC_Menuitem,
+							MUIA_Menuitem_Title, "In-app preview",
+							MUIA_Menuitem_Image, NULL,
+							MUIA_Menuitem_Checkit, TRUE,
+							MUIA_Menuitem_Exclude, 1 | 4,
+							MUIA_Menuitem_Toggle, TRUE,
+							MUIA_Menuitem_Checked, FALSE,							
+							MUIA_Menuitem_FreeImage, FALSE,
+						TAG_DONE),
+												
+						MUIA_Family_Child, menu_viewer_app_live_p = IMUIMaster -> MUI_NewObject (MUIC_Menuitem,
+							MUIA_Menuitem_Title, "In-app live preview",
+							MUIA_Menuitem_Image, NULL,
+							MUIA_Menuitem_Checkit, TRUE,
+							MUIA_Menuitem_Exclude, 1 | 2,						
+							MUIA_Menuitem_Toggle, TRUE,
+							MUIA_Menuitem_Checked, FALSE,						
+							MUIA_Menuitem_FreeImage, FALSE,
+						TAG_DONE),	
+						
 					TAG_DONE),
 					
-					TAG_DONE),
+				TAG_DONE),
 				
 			TAG_DONE),
  			MUIA_ShortHelp, (uint32) "A Markdown editor and viewer",
@@ -1142,9 +1184,15 @@ static APTR CreateGUIObjects (struct MUI_CustomClass *editor_class_p, struct MUI
 			IIntuition -> SetAttrs (menu_toolbar_3_rows_p, MUIA_Menuitem_Image, NULL, TAG_DONE);
 
 
-			IIntuition -> IDoMethod (menu_internal_viewer_p, MUIM_Notify, MUIA_Menuitem_Checked, MUIV_EveryTime,
-				s_editor_p, 3, MUIM_Set, MEA_UseInternalViewer, MUIV_TriggerValue);
+			IIntuition -> IDoMethod (menu_viewer_external_p, MUIM_Notify, MUIA_Menuitem_Trigger, MUIV_EveryTime,
+				s_editor_p, 3, MUIM_Set, MEA_Previewer, MEV_MDEditor_Preview_External);
 
+			IIntuition -> IDoMethod (menu_viewer_app_p, MUIM_Notify, MUIA_Menuitem_Trigger, MUIV_EveryTime,
+				s_editor_p, 3, MUIM_Set, MEA_Previewer, MEV_MDEditor_Preview_Internal);
+
+			IIntuition -> IDoMethod (menu_viewer_app_live_p, MUIM_Notify, MUIA_Menuitem_Trigger, MUIV_EveryTime,
+				s_editor_p, 3, MUIM_Set, MEA_Previewer, MEV_MDEditor_Preview_Internal_Live);
+				
 			IIntuition -> UnlockPubScreen (NULL, screen_p);
 
 //			IIntuition -> IDoMethod (menu_item_p, MUIM_Notify, MUIA_Menuitem_Checked, MUIV_EveryTime,
