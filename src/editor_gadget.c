@@ -53,6 +53,7 @@ typedef struct MarkdownEditorData
 	MDPrefs *med_prefs_p; 
 	STRPTR med_filename_s;
 	uint32 med_preview;
+	BOOL med_updating_flag;
 } MarkdownEditorData;
 
 
@@ -125,26 +126,46 @@ static uint32 MarkdownEditorDispatcher (Class *class_p,  Object *object_p, Msg m
 
 			case MEM_MDEditor_Convert:
 				{
-					MarkdownEditorData *md_p = INST_DATA (class_p, object_p);
+					MarkdownEditorData *md_p = INST_DATA (class_p, object_p);		
+
+					DB (KPRINTF ("%s %ld - MarkdownEditorDispatcher: Convert updating = %s\n", __FILE__, __LINE__, md_p -> med_updating_flag ? "true" : "false"));
+
+					if (md_p -> med_updating_flag == FALSE)
+						{									
+							DB (KPRINTF ("%s %ld - MarkdownEditorDispatcher: Convert 1 - file \"%s\"\n", __FILE__, __LINE__, md_p -> med_filename_s ? md_p -> med_filename_s: "NULL"));
 							
-					DB (KPRINTF ("%s %ld - MarkdownEditorDispatcher: Convert 1 - file \"%s\"\n", __FILE__, __LINE__, md_p -> med_filename_s ? md_p -> med_filename_s: "NULL"));
-					
-					/* Do we have a valid filename? */
-					if (! (md_p -> med_filename_s))
-						{
-							MarkdownEditor_Save (class_p, object_p, md_p -> med_filename_s);
+							md_p -> med_updating_flag = TRUE;
+							
+							/* Do we have a valid filename? */
+							if (! (md_p -> med_filename_s))
+								{
+									MarkdownEditor_Save (class_p, object_p, md_p -> med_filename_s);
+								}
+							
+							DB (KPRINTF ("%s %ld - MarkdownEditorDispatcher: Convert 2 -  file \"%s\"\n", __FILE__, __LINE__, md_p -> med_filename_s ? md_p -> med_filename_s : "NULL"));					
+							
+							if (md_p -> med_filename_s)
+								{
+									res = MarkdownEditor_Convert (class_p, object_p);
+								}
+							else
+								{
+									ShowWarning ("Conversion problem", "You need to save the Markdown file before you can convert it", "_Ok");
+								}
+								
+							/*
+								If we're using the live preview, let the text editor know that we've reacted
+								to this change and want to hear about any others.
+							*/
+							if (md_p -> med_preview == MEV_MDEditor_Preview_Internal_Live)
+								{
+									IIntuition -> SetAttrs (object_p, MUIA_TextEditor_ContentsChanged, FALSE, TAG_DONE);		
+								}
+
+							md_p -> med_updating_flag = FALSE;
 						}
-					
-					DB (KPRINTF ("%s %ld - MarkdownEditorDispatcher: Convert 2 -  file \"%s\"\n", __FILE__, __LINE__, md_p -> med_filename_s ? md_p -> med_filename_s : "NULL"));					
-					
-					if (md_p -> med_filename_s)
-						{
-							res = MarkdownEditor_Convert (class_p, object_p);
-						}
-					else
-						{
-							ShowWarning ("Conversion problem", "You need to save the Markdown file before you can convert it", "_Ok");
-						}
+						
+					DB (KPRINTF ("%s %ld - MarkdownEditorDispatcher: exiting Convert updating = %s\n", __FILE__, __LINE__, md_p -> med_updating_flag ? "true" : "false"));
 				}
 				break;
 
@@ -196,7 +217,8 @@ static uint32 MarkdownEditor_New (Class *class_p, Object *object_p, Msg msg_p)
 			md_p -> med_prefs_p = NULL;
 			md_p -> med_info_p = NULL;
 			md_p -> med_preview = MEV_MDEditor_Preview_External;
-			
+			md_p -> med_updating_flag  = FALSE;
+			 
 			DB (KPRINTF ("%s %ld - MarkdownEditor_New: Adding info obj\n", __FILE__, __LINE__));
 		}
 	else
@@ -308,7 +330,7 @@ static uint32 MarkdownEditor_Set (Class *class_p, Object *object_p, Msg msg_p)
 						break;
 
 
-					case MEA_Previewer:
+ 					case MEA_Previewer:
 						{
 							DB (KPRINTF ("%s %ld - ti_Tag: MEA_Previewer %lu\n", __FILE__, __LINE__, tag_data));							
 
@@ -319,20 +341,50 @@ static uint32 MarkdownEditor_Set (Class *class_p, Object *object_p, Msg msg_p)
 											case MEV_MDEditor_Preview_External:
 												{
 													IIntuition -> SetAttrs (md_p -> med_viewer_p, MUIA_ShowMe, FALSE, TAG_DONE);
+
+													if (md_p -> med_preview == MEV_MDEditor_Preview_Internal_Live)
+														{
+															DB (KPRINTF ("%s %ld - ti_Tag: MarkdownEditor_Set MEA_Previewer killing Notify", __FILE__, __LINE__));																														
+															IIntuition -> IDoMethod (object_p, MUIM_KillNotifyObj, MUIA_TextEditor_ContentsChanged, object_p);																														
+														}														
+
 													md_p -> med_preview = MEV_MDEditor_Preview_External;
 												}
 												break;
 
 											case MEV_MDEditor_Preview_Internal:
+												{
+													IIntuition -> SetAttrs (md_p -> med_viewer_p, MUIA_ShowMe, TRUE, TAG_DONE);
+
+													if (md_p -> med_preview == MEV_MDEditor_Preview_Internal_Live)
+														{
+															DB (KPRINTF ("%s %ld - ti_Tag: MarkdownEditor_Set MEA_Previewer killing Notify", __FILE__, __LINE__));															
+															IIntuition -> IDoMethod (object_p, MUIM_KillNotifyObj, MUIA_TextEditor_ContentsChanged, object_p);															
+														}		
+														
+													md_p -> med_preview = tag_data;																							
+												}
+												break;
+												
 											case MEV_MDEditor_Preview_Internal_Live:
 												{
 													IIntuition -> SetAttrs (md_p -> med_viewer_p, MUIA_ShowMe, TRUE, TAG_DONE);
+
+													if (md_p -> med_preview != MEV_MDEditor_Preview_Internal_Live)
+														{
+															DB (KPRINTF ("%s %ld - ti_Tag: MarkdownEditor_Set MEA_Previewer adding Notify", __FILE__, __LINE__));
+															IIntuition -> IDoMethod (object_p, MUIM_Notify, MUIA_TextEditor_ContentsChanged, MUIV_EveryTime, object_p, 1, MEM_MDEditor_Convert);
+														}	
+														
 													md_p -> med_preview = tag_data;
 												}
 												break;
 												
 												
 											default:
+												{
+													DB (KPRINTF ("%s %ld - ti_Tag: MEA_Previewer UNKNOWN:  %lu\n", __FILE__, __LINE__, tag_data));							
+												}	
 												break;	
 										}
 
